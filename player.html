@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giao Diện Đặt Cược Chuẩn</title>
+    <title>Giao Diện Đặt Cược Đa Năng</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            /* KHÓA CHỨC NĂNG BÔI ĐEN TOÀN DIỆN TRÊN MỌI TRÌNH DUYỆT */
-            -webkit-user-select: none; /* Safari */
-            -ms-user-select: none;     /* IE 10+ và Edge */
-            user-select: none;         /* Chuẩn chung (Chrome, Firefox, Opera) */
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         body {
@@ -71,17 +70,24 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.5);
             padding: 10px;
             display: grid;
-            grid-template-columns: repeat(5, 1fr); /* Chia lưới xếp tiền */
+            grid-template-columns: repeat(5, 1fr);
             grid-auto-rows: 25px;
             gap: 4px;
             overflow-y: auto;
-            transition: background-color 0.2s, transform 0.2s;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s, border-color 0.2s;
         }
 
-        /* Hiệu ứng khi đang rê chuột kéo tiền qua ô */
+        /* Hiệu ứng kéo thả hoặc khi click chọn */
         .door.drag-over {
             background-color: #d32f2f;
             transform: scale(1.03);
+        }
+        
+        .door.selected {
+            border-color: #00e676; /* Viền xanh lá báo hiệu đang được chọn */
+            box-shadow: 0 0 15px #00e676;
+            transform: scale(1.02);
         }
 
         /* Khu vực bàn để tiền ở mép dưới màn hình */
@@ -91,6 +97,12 @@
             border-top: 6px solid #34495e;
             padding: 15px 20px;
             border-radius: 12px 12px 0 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .table-container:active {
+            background-color: #34495e;
         }
 
         .table-title {
@@ -130,15 +142,15 @@
             border-radius: 3px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.4);
             display: block;
-            pointer-events: none; /* Khóa pointer event của ảnh */
+            pointer-events: none; 
         }
 
-        /* Tự động thu nhỏ cục tiền cho vừa vặn khi đã lọt vào trong ô đỏ */
+        /* Khi tiền lọt vào ô cửa */
         .door .money-stack {
             width: 100%;
             height: 100%;
-            cursor: default;
-            pointer-events: none; /* Khóa luôn pointer event của cục tiền cũ khi đã nằm trong ô */
+            cursor: pointer;
+            pointer-events: none; 
         }
         
         .door .money-stack img {
@@ -167,20 +179,21 @@
         </div>
     </div>
 
-    <div class="table-container">
-        <div class="table-title">Bàn Tiền (40 cục - Tổng: 1.000.000 $A)</div>
+    <div class="table-container" id="table-desk">
+        <div class="table-title">Bàn Tiền (Bấm ô để đặt | Chọn ô rồi bấm ô khác để dời | Chọn ô rồi bấm bàn để rút)</div>
         <div class="money-grid" id="money-board">
             </div>
     </div>
 
     <script>
         const moneyBoard = document.getElementById('money-board');
+        const tableDesk = document.getElementById('table-desk');
         const doors = document.querySelectorAll('.door');
         
-        // Định giá: 1.000.000 $A / 40 cục = 25.000 $A mỗi cục
         const VALUE_PER_STACK = 25000; 
+        let selectedDoor = null; // Lưu trữ ô cửa đang được chọn nguồn
 
-        // Khởi tạo tự động 40 cục tiền trên bàn đặt cược
+        // 1. Khởi tạo 40 cục tiền ban đầu đặt dưới bàn
         for (let i = 1; i <= 40; i++) {
             const moneyStack = document.createElement('div');
             moneyStack.className = 'money-stack';
@@ -194,19 +207,87 @@
             moneyStack.appendChild(img);
             moneyBoard.appendChild(moneyStack);
 
-            // Bắt đầu kéo tiền
+            // Sự kiện Drag cho PC
             moneyStack.addEventListener('dragstart', (e) => {
+                // Nếu đang có ô cửa được chọn bằng click, hủy chọn trước khi kéo thả để tránh xung đột
+                if (selectedDoor) {
+                    selectedDoor.classList.remove('selected');
+                    selectedDoor = null;
+                }
                 e.dataTransfer.setData('text/plain', e.currentTarget.id);
             });
         }
 
-        // Ngăn chặn sự kiện bôi đen text mặc định khi kéo thả trên toàn trang
-        document.addEventListener('selectstart', (e) => {
-            e.preventDefault();
-        });
+        // Cập nhật hiển thị tiền trên mép cửa
+        function updateDoorBetDisplay(door) {
+            const currentBet = parseInt(door.getAttribute('data-bet'));
+            const doorId = door.id.split('-')[1];
+            const betDisplay = document.getElementById(`bet-${doorId}`);
+            betDisplay.innerText = currentBet.toLocaleString('vi-VN') + ' $A';
+        }
 
-        // Thiết lập tính năng nhận tiền cho các ô đỏ
+        // 2. Logic xử lý tương tác trên các ô cửa đỏ
         doors.forEach(door => {
+            
+            // XỬ LÝ SỰ KIỆN CLICK (ĐẶT, DỜI, HOẶC CHỌN)
+            door.addEventListener('click', (e) => {
+                e.stopPropagation();
+
+                // TRƯỜNG HỢP 1: Đã có một ô cửa khác được chọn trước đó -> Thực hiện DỜI TIỀN
+                if (selectedDoor && selectedDoor !== door) {
+                    const moneyInSelectedDoor = selectedDoor.querySelector('.money-stack');
+                    
+                    if (moneyInSelectedDoor) {
+                        // Chuyển cục tiền sang ô mới
+                        door.appendChild(moneyInSelectedDoor);
+
+                        // Trừ tiền ô cũ
+                        let oldBet = parseInt(selectedDoor.getAttribute('data-bet'));
+                        oldBet -= VALUE_PER_STACK;
+                        selectedDoor.setAttribute('data-bet', oldBet);
+                        updateDoorBetDisplay(selectedDoor);
+
+                        // Cộng tiền ô mới
+                        let newBet = parseInt(door.getAttribute('data-bet'));
+                        newBet += VALUE_PER_STACK;
+                        door.setAttribute('data-bet', newBet);
+                        updateDoorBetDisplay(door);
+                    }
+
+                    // Sau khi dời xong 1 cục, kiểm tra xem ô cũ còn tiền không để duy trì hoặc xóa trạng thái chọn
+                    if (parseInt(selectedDoor.getAttribute('data-bet')) === 0) {
+                        selectedDoor.classList.remove('selected');
+                        selectedDoor = null;
+                    }
+                } 
+                // TRƯỜNG HỢP 2: Chưa chọn ô nào, và người dùng bấm vào ô đang có tiền -> CHỌN Ô ĐỂ DỜI/RÚT
+                else if (!selectedDoor && parseInt(door.getAttribute('data-bet')) > 0) {
+                    selectedDoor = door;
+                    door.classList.add('selected');
+                } 
+                // TRƯỜNG HỢP 3: Bấm vào ô trống hoặc muốn hủy chọn chính nó -> NẠP TIỀN từ bàn vào ô
+                else {
+                    if (selectedDoor === door) {
+                        // Nếu bấm lại chính nó thì hủy chọn viền xanh
+                        door.classList.remove('selected');
+                        selectedDoor = null;
+                    }
+
+                    // Tiến hành nạp tiền từ bàn lên ô cửa vừa bấm
+                    const availableMoney = moneyBoard.querySelector('.money-stack');
+                    if (availableMoney) {
+                        door.appendChild(availableMoney);
+                        availableMoney.draggable = false;
+
+                        let currentBet = parseInt(door.getAttribute('data-bet'));
+                        currentBet += VALUE_PER_STACK;
+                        door.setAttribute('data-bet', currentBet);
+                        updateDoorBetDisplay(door);
+                    }
+                }
+            });
+
+            // XỬ LÝ KÉO THẢ DRAG & DROP
             door.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 door.classList.add('drag-over');
@@ -223,23 +304,50 @@
                 const id = e.dataTransfer.getData('text/plain');
                 const draggedElement = document.getElementById(id);
 
-                if (draggedElement) {
-                    // Đưa cục tiền vào NẰM TRONG ô đỏ chính
+                // Chỉ cho phép kéo thả từ bàn lên cửa (không trùng lặp hành vi click dời)
+                if (draggedElement && draggedElement.parentNode === moneyBoard) {
                     door.appendChild(draggedElement);
                     draggedElement.draggable = false; 
 
-                    // Tính toán và cập nhật số tiền hiển thị ở mép TRÊN ô cửa
                     let currentBet = parseInt(door.getAttribute('data-bet'));
                     currentBet += VALUE_PER_STACK;
                     door.setAttribute('data-bet', currentBet);
-
-                    // Hiển thị số tiền cập nhật lên mép trên ô cửa tương ứng
-                    const doorId = door.id.split('-')[1];
-                    const betDisplay = document.getElementById(`bet-${doorId}`);
-                    betDisplay.innerText = currentBet.toLocaleString('vi-VN') + ' $A';
+                    updateDoorBetDisplay(door);
                 }
             });
         });
+
+        // 3. Logic xử lý khi click vào BÀN TIỀN để rút tiền về
+        tableDesk.addEventListener('click', () => {
+            if (selectedDoor) {
+                const moneyInDoor = selectedDoor.querySelector('.money-stack');
+                
+                if (moneyInDoor) {
+                    moneyBoard.appendChild(moneyInDoor);
+                    moneyInDoor.draggable = true; // Khôi phục khả năng kéo thả cho cục tiền khi về bàn
+
+                    let currentBet = parseInt(selectedDoor.getAttribute('data-bet'));
+                    currentBet -= VALUE_PER_STACK;
+                    selectedDoor.setAttribute('data-bet', currentBet);
+                    updateDoorBetDisplay(selectedDoor);
+                }
+
+                if (parseInt(selectedDoor.getAttribute('data-bet')) === 0) {
+                    selectedDoor.classList.remove('selected');
+                    selectedDoor = null;
+                }
+            }
+        });
+
+        // Bấm ra khoảng trắng nền màn hình để hủy chọn ô cửa nhanh
+        document.body.addEventListener('click', () => {
+            if (selectedDoor) {
+                selectedDoor.classList.remove('selected');
+                selectedDoor = null;
+            }
+        });
+
+        document.addEventListener('selectstart', (e) => e.preventDefault());
     </script>
 </body>
 </html>
