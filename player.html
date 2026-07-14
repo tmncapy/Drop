@@ -3,272 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giao Diện Đặt Cược - Có Đồng Hồ & Câu Hỏi</title>
+    <title>Giao Diện Đặt Cược - PLAYER</title>
     <style>
         * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+            box-sizing: border-box; margin: 0; padding: 0;
+            -webkit-user-select: none; -ms-user-select: none; user-select: none;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background-color: #111;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
-            padding: 20px;
+            font-family: Arial, sans-serif; background-color: #111; height: 100vh;
+            display: flex; flex-direction: column; justify-content: space-between;
+            overflow: hidden; padding: 20px;
         }
 
-        /* -----------------------------------------
-           KHU VỰC 4 Ô CỬA & ĐÁP ÁN (PHÍA TRÊN)
-        ----------------------------------------- */
+        /* KHU VỰC CÁC Ô CỬA */
         .doors-container {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            gap: 20px;
-            margin-top: 10px;
+            display: flex; justify-content: space-around; width: 100%; gap: 20px; margin-top: 10px;
         }
 
         .door-wrapper {
-            flex: 1;
-            max-width: 280px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex: 1; max-width: 280px; display: flex; flex-direction: column; align-items: center; transition: opacity 0.5s;
         }
 
-        /* Đáp án nằm ở mép TRÊN ô cửa */
         .answer-box {
-            color: #fff;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            background: #27ae60; 
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: 1px solid #2ecc71;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            color: #fff; font-size: 16px; font-weight: bold; margin-bottom: 10px;
+            background: #27ae60; padding: 8px 16px; border-radius: 4px;
+            border: 1px solid #2ecc71; min-height: 44px; display: flex;
+            align-items: center; justify-content: center; width: 100%; text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: background-color 0.3s;
         }
 
-        /* Ô cửa đỏ tỉ lệ chuẩn 16:9 */
+        .door-wrapper.failed .answer-box {
+            background: #c0392b !important; border-color: #ff3333 !important;
+        }
+
         .door {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background-color: #b71c1c;
-            border: 3px solid #ffcc00;
-            border-radius: 8px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            padding: 10px;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            grid-auto-rows: 25px;
-            gap: 4px;
-            overflow-y: auto;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.2s, border-color 0.2s;
+            width: 100%; aspect-ratio: 16 / 9; background-color: #b71c1c;
+            border: 3px solid #ffcc00; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            padding: 10px; display: grid; grid-template-columns: repeat(5, 1fr);
+            grid-auto-rows: 25px; gap: 4px; overflow-y: auto; cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .door.drag-over {
-            background-color: #d32f2f;
-            transform: scale(1.03);
-        }
+        .door.drag-over { background-color: #d32f2f; transform: scale(1.03); }
+        .door.selected { border-color: #00e676; box-shadow: 0 0 15px #00e676; transform: scale(1.02); }
         
-        .door.selected {
-            border-color: #00e676; 
-            box-shadow: 0 0 15px #00e676;
-            transform: scale(1.02);
+        .door.dropped {
+            transform: rotateX(85deg); opacity: 0.1; background-color: #000;
+            box-shadow: none; pointer-events: none;
         }
 
-        /* Số hiển thị tiền cược đổi xuống mép DƯỚI ô cửa */
         .bet-amount {
-            color: #ffcc00;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 10px;
-            background: rgba(0, 0, 0, 0.85);
-            padding: 6px 16px;
-            border-radius: 4px;
-            border: 1px solid #444;
-            min-height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            text-align: center;
+            color: #ffcc00; font-size: 16px; font-weight: bold; margin-top: 10px;
+            background: rgba(0, 0, 0, 0.85); padding: 6px 16px; border-radius: 4px;
+            border: 1px solid #444; min-height: 34px; display: flex;
+            align-items: center; justify-content: center; width: 100%; text-align: center;
         }
 
-        /* -----------------------------------------
-           KHU VỰC CÂU HỎI (Ở GIỮA MÀN HÌNH)
-        ----------------------------------------- */
+        /* KHU VỰC CÂU HỎI */
         .question-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            margin: 10px 0;
+            width: 100%; display: flex; justify-content: center; align-items: center; padding: 20px; margin: 10px 0;
         }
 
         .question-box {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            border: 2px solid #7f8c8d;
-            border-radius: 12px;
-            padding: 25px 40px;
-            color: #ffffff;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            max-width: 800px;
-            width: 100%;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #2c3e50, #34495e); border: 2px solid #7f8c8d;
+            border-radius: 12px; padding: 25px 40px; color: #ffffff; font-size: 24px;
+            font-weight: bold; text-align: center; max-width: 800px; width: 100%;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6); letter-spacing: 0.5px;
         }
 
-        /* -----------------------------------------
-           KHU VỰC ĐỒNG HỒ & BÀN TIỀN (MÉP DƯỚI)
-        ----------------------------------------- */
-        .table-wrapper {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        /* KHU VỰC BÀN TIỀN DƯỚI */
+        .table-wrapper { width: 100%; display: flex; flex-direction: column; align-items: center; }
 
-        /* Đồng hồ đặt ở trên mép bàn tiền */
         .timer-box {
-            background: #222;
-            color: #ff3d00; /* Màu đỏ LED neon */
-            font-family: 'Courier New', Courier, monospace; /* Font điện tử */
-            font-size: 28px;
-            font-weight: bold;
-            padding: 6px 24px;
-            border: 3px solid #34495e;
-            border-bottom: none; /* Ghép liền mạch xuống cạnh bàn tiền */
-            border-radius: 10px 10px 0 0;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
-            text-shadow: 0 0 10px rgba(255, 61, 0, 0.5);
-            z-index: 2; /* Nổi bật hẳn trên mép */
+            background: #222; color: #ff3d00; font-family: 'Courier New', Courier, monospace;
+            font-size: 28px; font-weight: bold; padding: 6px 24px; border: 3px solid #34495e;
+            border-bottom: none; border-radius: 10px 10px 0 0; box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+            text-shadow: 0 0 10px rgba(255, 61, 0, 0.5); z-index: 2; transition: color 0.3s;
         }
+        .timer-box.warning { color: #ffff00; text-shadow: 0 0 10px rgba(255, 255, 0, 0.5); }
 
         .table-container {
-            width: 100%;
-            background: #2c3e50;
-            border-top: 6px solid #34495e;
-            padding: 15px 20px;
-            border-radius: 12px 12px 0 0;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            position: relative;
-            z-index: 1;
+            width: 100%; background: #2c3e50; border-top: 6px solid #34495e;
+            padding: 15px 20px; border-radius: 12px 12px 0 0; cursor: pointer; position: relative; z-index: 1;
         }
+
+        .table-title { color: #fff; text-align: center; margin-bottom: 15px; font-size: 14px; font-weight: bold; text-transform: uppercase; }
         
-        .table-container:active {
-            background-color: #34495e;
-        }
-
-        .table-title {
-            color: #fff;
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 14px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .money-grid {
-            display: grid;
+        .money-grid { 
+            display: grid; 
             grid-template-columns: repeat(20, 1fr); 
-            gap: 10px;
-            justify-items: center;
+            gap: 10px; 
+            justify-items: center; 
+            min-height: 74px;
         }
 
-        /* Định dạng cục tiền */
-        .money-stack {
-            width: 60px;
-            height: 32px;
-            cursor: grab;
-            transition: transform 0.1s;
-        }
-
-        .money-stack:active {
-            cursor: grabbing;
-        }
-
-        .money-stack img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 3px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
-            display: block;
-            pointer-events: none; 
-        }
-
-        /* Tiền nằm trong ô đỏ */
-        .door .money-stack {
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            pointer-events: none; 
-        }
+        .money-stack { width: 60px; height: 32px; cursor: grab; transition: transform 0.1s; }
+        .money-stack img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; box-shadow: 0 4px 6px rgba(0,0,0,0.4); display: block; pointer-events: none; }
         
-        .door .money-stack img {
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
+        .door .money-stack { width: 100%; height: 100%; cursor: pointer; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div class="doors-container">
-        <div class="door-wrapper">
-            <div class="answer-box">Đáp án 1</div>
+        <div class="door-wrapper" id="wrap-1">
+            <div class="answer-box" id="ans-txt-1">---</div>
             <div class="door" id="door-1" data-bet="0"></div>
             <div class="bet-amount" id="bet-1">0 $A</div>
         </div>
-        <div class="door-wrapper">
-            <div class="answer-box">Đáp án 2</div>
+        <div class="door-wrapper" id="wrap-2">
+            <div class="answer-box" id="ans-txt-2">---</div>
             <div class="door" id="door-2" data-bet="0"></div>
             <div class="bet-amount" id="bet-2">0 $A</div>
         </div>
-        <div class="door-wrapper">
-            <div class="answer-box">Đáp án 3</div>
+        <div class="door-wrapper" id="wrap-3">
+            <div class="answer-box" id="ans-txt-3">---</div>
             <div class="door" id="door-3" data-bet="0"></div>
             <div class="bet-amount" id="bet-3">0 $A</div>
         </div>
-        <div class="door-wrapper">
-            <div class="answer-box">Đáp án 4</div>
+        <div class="door-wrapper" id="wrap-4">
+            <div class="answer-box" id="ans-txt-4">---</div>
             <div class="door" id="door-4" data-bet="0"></div>
             <div class="bet-amount" id="bet-4">0 $A</div>
         </div>
     </div>
 
     <div class="question-container">
-        <div class="question-box" id="question-text">
-            NỘI DUNG CÂU HỎI ĐANG ĐƯỢC CẬP NHẬT...
-        </div>
+        <div class="question-box" id="question-text">CHỜ MC NẠP CHỦ ĐỀ...</div>
     </div>
 
     <div class="table-wrapper">
         <div class="timer-box" id="game-timer">01:00</div>
-        
         <div class="table-container" id="table-desk">
-            <div class="table-title">Bàn Tiền (Bấm ô đặt | Chọn ô bấm ô khác để dời | Chọn ô bấm bàn để rút)</div>
-            <div class="money-grid" id="money-board">
-                </div>
+            <div class="table-title" id="table-guide">Bàn Tiền (Vui lòng đợi lệnh của MC)</div>
+            <div class="money-grid" id="money-board"></div>
         </div>
     </div>
 
@@ -276,154 +145,223 @@
         const moneyBoard = document.getElementById('money-board');
         const tableDesk = document.getElementById('table-desk');
         const doors = document.querySelectorAll('.door');
+        const gameTimer = document.getElementById('game-timer');
         
         const VALUE_PER_STACK = 25000; 
         let selectedDoor = null; 
+        let isLock = true; 
 
-        // 1. Tự động tạo 40 cục tiền đặt dưới bàn
+        const channel = new BroadcastChannel('gameshow_money_drop');
+
+        function syncBetsToController() {
+            const betData = {
+                b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
+                b2: parseInt(document.getElementById('door-2').getAttribute('data-bet')) || 0,
+                b3: parseInt(document.getElementById('door-3').getAttribute('data-bet')) || 0,
+                b4: parseInt(document.getElementById('door-4').getAttribute('data-bet')) || 0
+            };
+            channel.postMessage({ action: 'sync_bets_to_mc', data: betData });
+        }
+
+        // Khởi tạo cọc tiền
         for (let i = 1; i <= 40; i++) {
             const moneyStack = document.createElement('div');
             moneyStack.className = 'money-stack';
             moneyStack.draggable = true;
             moneyStack.id = `money-${i}`;
-            
             const img = document.createElement('img');
-            img.src = '50$A.png'; 
-            img.alt = '50 $A';
-            
+            img.src = '50$A.png'; img.alt = '50 $A';
             moneyStack.appendChild(img);
             moneyBoard.appendChild(moneyStack);
 
             moneyStack.addEventListener('dragstart', (e) => {
-                if (selectedDoor) {
-                    selectedDoor.classList.remove('selected');
-                    selectedDoor = null;
-                }
+                if(isLock) return e.preventDefault();
+                if (selectedDoor) { selectedDoor.classList.remove('selected'); selectedDoor = null; }
                 e.dataTransfer.setData('text/plain', e.currentTarget.id);
             });
         }
 
-        // Cập nhật hiển thị số tiền ở mép DƯỚI ô cửa
         function updateDoorBetDisplay(door) {
-            const currentBet = parseInt(door.getAttribute('data-bet'));
+            const currentBet = parseInt(door.getAttribute('data-bet')) || 0;
             const doorId = door.id.split('-')[1];
-            const betDisplay = document.getElementById(`bet-${doorId}`);
-            betDisplay.innerText = currentBet.toLocaleString('vi-VN') + ' $A';
+            document.getElementById(`bet-${doorId}`).innerText = currentBet.toLocaleString('vi-VN') + ' $A';
+            syncBetsToController(); 
         }
 
-        // 2. Logic xử lý tương tác trên các ô cửa đỏ
         doors.forEach(door => {
             door.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if(isLock || door.classList.contains('dropped')) return;
 
-                // Dời tiền giữa các ô cửa
                 if (selectedDoor && selectedDoor !== door) {
                     const moneyInSelectedDoor = selectedDoor.querySelector('.money-stack');
-                    
                     if (moneyInSelectedDoor) {
                         door.appendChild(moneyInSelectedDoor);
-
-                        let oldBet = parseInt(selectedDoor.getAttribute('data-bet'));
-                        oldBet -= VALUE_PER_STACK;
-                        selectedDoor.setAttribute('data-bet', oldBet);
-                        updateDoorBetDisplay(selectedDoor);
-
-                        let newBet = parseInt(door.getAttribute('data-bet'));
-                        newBet += VALUE_PER_STACK;
-                        door.setAttribute('data-bet', newBet);
-                        updateDoorBetDisplay(door);
+                        let oldBet = (parseInt(selectedDoor.getAttribute('data-bet')) || 0) - VALUE_PER_STACK;
+                        selectedDoor.setAttribute('data-bet', oldBet); updateDoorBetDisplay(selectedDoor);
+                        let newBet = (parseInt(door.getAttribute('data-bet')) || 0) + VALUE_PER_STACK;
+                        door.setAttribute('data-bet', newBet); updateDoorBetDisplay(door);
                     }
-
-                    if (parseInt(selectedDoor.getAttribute('data-bet')) === 0) {
-                        selectedDoor.classList.remove('selected');
-                        selectedDoor = null;
-                    }
-                } 
-                // Chọn ô cửa đang có tiền để chuẩn bị dời/rút
-                else if (!selectedDoor && parseInt(door.getAttribute('data-bet')) > 0) {
-                    selectedDoor = door;
-                    door.classList.add('selected');
-                } 
-                // Nạp tiền từ bàn lên ô cửa
-                else {
-                    if (selectedDoor === door) {
-                        door.classList.remove('selected');
-                        selectedDoor = null;
-                    }
-
+                    if (parseInt(selectedDoor.getAttribute('data-bet')) === 0) { selectedDoor.classList.remove('selected'); selectedDoor = null; }
+                } else if (!selectedDoor && (parseInt(door.getAttribute('data-bet')) || 0) > 0) {
+                    selectedDoor = door; door.classList.add('selected');
+                } else {
+                    if (selectedDoor === door) { door.classList.remove('selected'); selectedDoor = null; }
                     const availableMoney = moneyBoard.querySelector('.money-stack');
                     if (availableMoney) {
-                        door.appendChild(availableMoney);
-                        availableMoney.draggable = false;
-
-                        let currentBet = parseInt(door.getAttribute('data-bet'));
-                        currentBet += VALUE_PER_STACK;
-                        door.setAttribute('data-bet', currentBet);
-                        updateDoorBetDisplay(door);
+                        door.appendChild(availableMoney); availableMoney.draggable = false;
+                        let currentBet = (parseInt(door.getAttribute('data-bet')) || 0) + VALUE_PER_STACK;
+                        door.setAttribute('data-bet', currentBet); updateDoorBetDisplay(door);
                     }
                 }
             });
 
-            // Xử lý KÉO THẢ DRAG & DROP
-            door.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                door.classList.add('drag-over');
-            });
-
-            door.addEventListener('dragleave', () => {
-                door.classList.remove('drag-over');
-            });
-
+            door.addEventListener('dragover', (e) => { if(!isLock && !door.classList.contains('dropped')) e.preventDefault(); door.classList.add('drag-over'); });
+            door.addEventListener('dragleave', () => { door.classList.remove('drag-over'); });
             door.addEventListener('drop', (e) => {
-                e.preventDefault();
-                door.classList.remove('drag-over');
-
+                e.preventDefault(); door.classList.remove('drag-over');
+                if(isLock || door.classList.contains('dropped')) return;
                 const id = e.dataTransfer.getData('text/plain');
                 const draggedElement = document.getElementById(id);
-
                 if (draggedElement && draggedElement.parentNode === moneyBoard) {
-                    door.appendChild(draggedElement);
-                    draggedElement.draggable = false; 
-
-                    let currentBet = parseInt(door.getAttribute('data-bet'));
-                    currentBet += VALUE_PER_STACK;
-                    door.setAttribute('data-bet', currentBet);
-                    updateDoorBetDisplay(door);
+                    door.appendChild(draggedElement); draggedElement.draggable = false; 
+                    let currentBet = (parseInt(door.getAttribute('data-bet')) || 0) + VALUE_PER_STACK;
+                    door.setAttribute('data-bet', currentBet); updateDoorBetDisplay(door);
                 }
             });
         });
 
-        // 3. Logic xử lý click vào BÀN TIỀN để rút tiền về
         tableDesk.addEventListener('click', () => {
             if (selectedDoor) {
                 const moneyInDoor = selectedDoor.querySelector('.money-stack');
-                
                 if (moneyInDoor) {
-                    moneyBoard.appendChild(moneyInDoor);
-                    moneyInDoor.draggable = true; 
-
-                    let currentBet = parseInt(selectedDoor.getAttribute('data-bet'));
-                    currentBet -= VALUE_PER_STACK;
-                    selectedDoor.setAttribute('data-bet', currentBet);
-                    updateDoorBetDisplay(selectedDoor);
+                    moneyBoard.appendChild(moneyInDoor); moneyInDoor.draggable = true; 
+                    let currentBet = (parseInt(selectedDoor.getAttribute('data-bet')) || 0) - VALUE_PER_STACK;
+                    selectedDoor.setAttribute('data-bet', currentBet); updateDoorBetDisplay(selectedDoor);
                 }
-
-                if (parseInt(selectedDoor.getAttribute('data-bet')) === 0) {
-                    selectedDoor.classList.remove('selected');
-                    selectedDoor = null;
-                }
+                if (parseInt(selectedDoor.getAttribute('data-bet')) === 0) { selectedDoor.classList.remove('selected'); selectedDoor = null; }
             }
         });
 
-        // Hủy chọn ô cửa khi click ra nền
-        document.body.addEventListener('click', () => {
-            if (selectedDoor) {
-                selectedDoor.classList.remove('selected');
-                selectedDoor = null;
-            }
-        });
+        document.body.addEventListener('click', () => { if (selectedDoor) { selectedDoor.classList.remove('selected'); selectedDoor = null; } });
 
-        document.addEventListener('selectstart', (e) => e.preventDefault());
+        // KHU VỰC NHẬN LỆNH ĐỒNG BỘ CHÍNH XÁC
+        channel.onmessage = function(event) {
+            const { action, data } = event.data;
+
+            switch(action) {
+                case 'show_topics':
+                    document.getElementById('question-text').innerHTML = `LỰA CHỌN CHỦ ĐỀ:<br><br> ${data.ta} <br>HOẶC<br> ${data.tb}`;
+                    break;
+                
+                case 'lock_topic':
+                    document.getElementById('question-text').innerText = `CHỦ ĐỀ ĐƯỢC CHỌN: ${data.topicName.toUpperCase()}`;
+                    break;
+
+                case 'update_single_answer':
+                    // ĐẢM BẢO CHÍNH XÁC HIỂN THỊ ĐÁP ÁN RA MÀN HÌNH
+                    if (document.getElementById(`ans-txt-${data.id}`)) {
+                        document.getElementById(`ans-txt-${data.id}`).innerText = data.text;
+                    }
+                    break;
+
+                case 'update_content':
+                    if(data.type === 'question') {
+                        document.getElementById('question-text').innerText = data.data.question;
+                    }
+                    break;
+
+                case 'change_round':
+                    document.getElementById('wrap-4').style.display = (data.round == '1') ? 'flex' : 'none';
+                    document.getElementById('wrap-3').style.display = (data.round == '1' || data.round == '5') ? 'flex' : 'none';
+                    break;
+
+                case 'timer_control':
+                    if(data.status === 'start' || data.status === 'add30') {
+                        isLock = false;
+                        if(data.status === 'add30') gameTimer.classList.add('warning');
+                        document.getElementById('table-guide').innerText = "THỜI GIAN ĐANG CHẠY! HÃY ĐẶT TIỀN NHANH CHÓNG";
+                    } else {
+                        isLock = true;
+                        document.getElementById('table-guide').innerText = "HẾT GIỜ / ĐÃ CHỐT CƯỢC!";
+                    }
+                    formatTimer(data.time || 0);
+                    break;
+
+                case 'timer_tick':
+                    formatTimer(data.time);
+                    break;
+
+                case 'open_door':
+                    const dWrap = document.getElementById(`wrap-${data.doorId}`);
+                    const door = document.getElementById(`door-${data.doorId}`);
+                    const betBox = document.getElementById(`bet-${data.doorId}`);
+                    const ansBox = document.getElementById(`ans-txt-${data.doorId}`);
+                    
+                    if(door && dWrap) {
+                        door.classList.add('dropped');
+                        dWrap.classList.add('failed'); 
+                        ansBox.innerText = "ĐÃ RƠI HẾT TIỀN";
+                        betBox.style.visibility = 'hidden';
+                        door.innerHTML = '';
+                        door.setAttribute('data-bet', '0');
+                        syncBetsToController(); 
+                    }
+                    break;
+
+                case 'collect_winning':
+                    doors.forEach(d => {
+                        if (!d.classList.contains('dropped')) {
+                            const remainingStacks = d.querySelectorAll('.money-stack');
+                            remainingStacks.forEach(stack => {
+                                moneyBoard.appendChild(stack); 
+                                stack.draggable = true;       
+                            });
+                            d.setAttribute('data-bet', '0');
+                            updateDoorBetDisplay(d);
+                        }
+                    });
+                    document.getElementById('table-guide').innerText = "ĐÃ HOÀN TIỀN THẮNG VỀ BÀN TIỀN CHUẨN BỊ CHO VÒNG TIẾP THEO!";
+                    syncBetsToController();
+                    break;
+
+                case 'penalty_fine':
+                    const moneyInGrid = moneyBoard.querySelector('.money-stack');
+                    if (moneyInGrid) moneyInGrid.remove();
+                    break;
+
+                case 'reset_round':
+                    isLock = true;
+                    gameTimer.innerText = "01:00";
+                    gameTimer.classList.remove('warning');
+                    document.getElementById('table-guide').innerText = "Vui lòng đợi lệnh của MC";
+                    document.getElementById('question-text').innerText = "CHỜ MC NẠP CHỦ ĐỀ...";
+                    
+                    const allStacks = document.querySelectorAll('.money-stack');
+                    allStacks.forEach(stack => {
+                        moneyBoard.appendChild(stack);
+                        stack.draggable = true;
+                    });
+
+                    doors.forEach(d => {
+                        d.classList.remove('dropped');
+                        d.setAttribute('data-bet', '0');
+                        const dId = d.id.split('-')[1];
+                        document.getElementById(`bet-${dId}`).style.visibility = 'visible';
+                        document.getElementById(`bet-${dId}`).innerText = "0 $A";
+                        document.getElementById(`ans-txt-${dId}`).innerText = "---";
+                        document.getElementById(`wrap-${dId}`).classList.remove('failed');
+                    });
+                    syncBetsToController();
+                    break;
+            }
+        };
+
+        function formatTimer(timeLeft) {
+            if(!timeLeft && timeLeft !== 0) return;
+            let m = Math.floor(timeLeft / 60); let s = timeLeft % 60;
+            gameTimer.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
     </script>
 </body>
 </html>
