@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Projector Interface - Full Flow</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; }
+        .projector-container { 
+            width: 1920px; height: 1080px; position: relative; margin: auto;
+            background-color: #000; overflow: hidden;
+        }
+        .bg-main { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        :root {
+            --q-center-top: 500px;
+            --q-moved-top: 400px;
+            --ans-container-top: 475px;
+        }
+/* 1. Nhúng font Myriad Pro (Sử dụng đường dẫn font nếu bạn có file cục bộ, 
+       hoặc dùng font thay thế phổ biến nếu không nhúng được) */
+    @font-face {
+        font-family: 'Myriad Pro';
+        /* Nếu bạn có file .ttf hoặc .woff, hãy để đường dẫn ở đây */
+        src: local('Myriad Pro'); 
+    }
+
+    body, html { 
+        margin: 0; padding: 0; width: 100%; height: 100%; 
+        overflow: hidden; background-color: #000; 
+        /* 2. Áp dụng font cho toàn bộ văn bản */
+        font-family: 'Myriad Pro', Arial, sans-serif; 
+    }
+
+    /* ... Các style khác giữ nguyên ... */
+
+    .strap-text { 
+        position: absolute; top: 50%; left: 50%; 
+        transform: translate(-50%, -50%); 
+        color: white; font-size: 32px; font-weight: bold; 
+        pointer-events: none;
+        font-family: 'Myriad Pro', sans-serif; /* Đảm bảo các thành phần quan trọng nhận font */
+    }
+
+    #central-box {
+        /* ... */
+        font-family: 'Myriad Pro', sans-serif;
+    }
+
+    .ans-text {
+        /* ... */
+        font-family: 'Myriad Pro', sans-serif;
+    }
+
+        .strap-wrapper {
+            position: absolute; left: 50%; transform: translateX(-50%); z-index: 5;
+            width: 1000px; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+        }
+        .category-strap { width: 100%; height: auto; }
+        .strap-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 32px; font-weight: bold; pointer-events: none; }
+        
+        .is-active { top: 50% !important; z-index: 20; transform: translate(-50%, -50%) scale(1.1); }
+        .zoom-out { transform: translate(-50%, -50%) scale(0) !important; opacity: 0; }
+
+        #central-box {
+            position: absolute; top: var(--q-center-top); left: 50%; transform: translateX(-50%) scale(0);
+            width: 1000px; z-index: 5; color: white; font-size: 40px; text-align: center;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; cursor: pointer;
+        }
+        #central-box.show { transform: translateX(-50%) scale(1); opacity: 1; }
+        #central-box.move-up { top: var(--q-moved-top); }
+
+        #answers-container {
+            position: absolute; top: var(--ans-container-top); left: 50%; transform: translateX(-50%) scale(0);
+            width: 100%; display: flex; justify-content: center; align-items: center; z-index: 5;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0;
+        }
+        #answers-container.show { transform: translateX(-50%) scale(1); opacity: 1; }
+        
+        .ans-frame { width: 280px; height: 150px; position: relative; }
+        .ans-img { width: 100%; height: 100%; }
+        .ans-text { position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    pointer-events: none;
+    font-family: 'Myriad Pro', sans-serif;
+    
+    /* THÊM CÁC DÒNG NÀY ĐỂ CĂN GIỮA TEXT */
+    width: 100%;          /* Đảm bảo khung text chiếm hết chiều rộng của khung đáp án */
+    text-align: center;   /* Căn giữa chữ theo chiều ngang */
+    display: flex;        /* Dùng flexbox để căn giữa theo chiều dọc */
+    justify-content: center;
+    align-items: center;
+    padding: 0 10px;      /* Thêm padding nhẹ để chữ không chạm sát mép khung */
+    box-sizing: border-box; /* Đảm bảo padding không làm vỡ khung */}
+    </style>
+</head>
+<body>
+
+    <div class="projector-container">
+        <img src="main1.png" class="bg-main">
+
+        <div id="central-box" onclick="showAnswers()">Ai là chồng của Nguyễn Ngọc Đức?</div>
+
+        <div id="answers-container">
+            <div class="ans-frame"><img src="indoor.png" class="ans-img"><div class="ans-text">Nguyễn Xuân Tùng</div></div>
+            <div class="ans-frame"><img src="indoor.png" class="ans-img"><div class="ans-text">Nguyễn Thế Lộc</div></div>
+            <div class="ans-frame"><img src="indoor.png" class="ans-img"><div class="ans-text">Nguyễn Đức Thắng</div></div>
+            <div class="ans-frame"><img src="indoor.png" class="ans-img"><div class="ans-text">Nguyễn Thế Tài</div></div>
+        </div>
+
+        <div class="strap-wrapper" style="top: 400px;" id="item-a" data-state="0" onclick="processClick(this)">
+            <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ A</div>
+        </div>
+        <div class="strap-wrapper" style="top: 550px;" id="item-b" data-state="0" onclick="processClick(this)">
+            <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ B</div>
+        </div>
+    </div>
+
+    <script>
+        function processClick(el) {
+            let state = parseInt(el.getAttribute('data-state'));
+            
+            if (state === 0) {
+                // Giai đoạn 1: Ẩn các chủ đề khác, đưa chủ đề đã chọn ra giữa
+                document.querySelectorAll('.strap-wrapper').forEach(item => {
+                    if (item !== el) item.classList.add('zoom-out');
+                });
+                el.classList.add('is-active');
+                el.setAttribute('data-state', '1');
+            } else if (state === 1) {
+                // Giai đoạn 2: Ẩn chủ đề xác nhận, hiện câu hỏi
+                el.classList.add('zoom-out');
+                setTimeout(() => { document.getElementById('central-box').classList.add('show'); }, 600);
+                el.setAttribute('data-state', '2');
+            }
+        }
+
+        function showAnswers() {
+            const box = document.getElementById('central-box');
+            // Ẩn câu hỏi để chuyển cảnh
+            box.classList.remove('show');
+            
+            setTimeout(() => {
+                // Hiện lại câu hỏi ở vị trí mới + hiện 4 đáp án
+                box.classList.add('move-up');
+                box.classList.add('show');
+                document.getElementById('answers-container').classList.add('show');
+            }, 600);
+        }
+    </script>
+</body>
+</html>

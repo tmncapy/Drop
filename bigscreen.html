@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Projector Interface - Clock Added</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Myriad Pro', Arial, sans-serif; }
+        .projector-container { 
+            width: 1920px; height: 1080px; position: relative; margin: auto;
+            background-color: #000; overflow: hidden;
+        }
+        .bg-main { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        :root {
+            --q-center-top: 500px;
+            --q-moved-top: 400px; /* Câu hỏi dịch lên cao khi có đáp án */
+            --ans-container-top: 475px;
+            --clock-top: 610px;   /* THÔNG SỐ VỊ TRÍ CLOCK */
+        }
+
+        /* --- STYLES GIỮ NGUYÊN --- */
+        .strap-wrapper { position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; width: 1000px; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .category-strap { width: 100%; height: auto; }
+        .strap-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 32px; font-weight: bold; pointer-events: none; }
+        .is-active { top: 50% !important; z-index: 20; transform: translate(-50%, -50%) scale(1.1); }
+        .zoom-out { transform: translate(-50%, -50%) scale(0) !important; opacity: 0; }
+
+        #central-box { position: absolute; top: var(--q-center-top); left: 50%; transform: translateX(-50%) scale(0); width: 1000px; z-index: 5; color: white; font-size: 40px; text-align: center; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; cursor: pointer; }
+        #central-box.show { transform: translateX(-50%) scale(1); opacity: 1; }
+        #central-box.move-up { top: var(--q-moved-top); }
+
+        #answers-container { position: absolute; top: var(--ans-container-top); left: 50%; transform: translateX(-50%) scale(0); width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 5; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
+        #answers-container.show { transform: translateX(-50%) scale(1); opacity: 1; }
+        
+        .ans-frame { width: 280px; height: 150px; position: relative; }
+        .ans-img { width: 100%; height: 100%; }
+        .ans-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 24px; font-weight: bold; width: 100%; text-align: center; display: flex; justify-content: center; align-items: center; padding: 0 10px; box-sizing: border-box; }
+
+        /* --- CLOCK STYLES --- */
+        #clock-container {
+            position: absolute; top: var(--clock-top); left: 50%; transform: translateX(-50%) scale(0.75);
+            width: 300px; height: 100px; z-index: 5; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0;
+        }
+        #clock-container.show { transform: translateX(-50%) scale(0.75); opacity: 1; }
+        #clock-bg { width: 100%; height: 100%; }
+        #clock-time { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 40px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="projector-container">
+        <img src="main1.png" class="bg-main">
+
+        <div id="central-box" onclick="showAnswers()">Ai là chồng của Nguyễn Ngọc Đức?</div>
+
+        <div id="answers-container">
+            <div class="ans-frame"><img src="indoor.png" class="ans-img"><div class="ans-text">Nguyễn Ngọc Đức</div></div>
+            <div class="ans-frame"><img src="indoor.png" class="ans-img"><div class="ans-text">Nguyễn Thế Lộc</div></div>
+            <div class="ans-frame"><img src="indoor.png" class="ans-img"><div class="ans-text">Nguyễn Đức Thắng</div></div>
+            <div class="ans-frame"><img src="indoor.png" class="ans-img"><div class="ans-text">Nguyễn Thế Tài</div></div>
+        </div>
+
+        <div id="clock-container">
+            <img src="clock1.png" id="clock-bg">
+            <div id="clock-time">1:00</div>
+        </div>
+
+        <div class="strap-wrapper" style="top: 400px;" id="item-a" data-state="0" onclick="processClick(this)">
+            <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ A</div>
+        </div>
+        <div class="strap-wrapper" style="top: 550px;" id="item-b" data-state="0" onclick="processClick(this)">
+            <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ B</div>
+        </div>
+    </div>
+
+    <script>
+        let clickCount = 0; // Đếm số lần click vào câu hỏi
+
+        function processClick(el) {
+            let state = parseInt(el.getAttribute('data-state'));
+            if (state === 0) {
+                document.querySelectorAll('.strap-wrapper').forEach(item => { if (item !== el) item.classList.add('zoom-out'); });
+                el.classList.add('is-active');
+                el.setAttribute('data-state', '1');
+            } else if (state === 1) {
+                el.classList.add('zoom-out');
+                setTimeout(() => { document.getElementById('central-box').classList.add('show'); }, 600);
+                el.setAttribute('data-state', '2');
+            }
+        }
+
+        function showAnswers() {
+            const box = document.getElementById('central-box');
+            const ans = document.getElementById('answers-container');
+            const clock = document.getElementById('clock-container');
+
+            if (clickCount === 0) {
+                // Lần nhấn đầu: Hiện đáp án
+                box.classList.remove('show');
+                setTimeout(() => {
+                    box.classList.add('move-up');
+                    box.classList.add('show');
+                    ans.classList.add('show');
+                    clickCount++;
+                }, 600);
+            } else {
+                // Lần nhấn thứ hai: Hiện đồng hồ
+                clock.classList.add('show');
+            }
+        }
+    </script>
+</body>
+</html>
