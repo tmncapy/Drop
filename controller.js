@@ -22,100 +22,85 @@ function importExcel(element) {
 
 function parseExcelQuestions(rows) {
     excelDataStore = [];
-    let currentRoundId = null;
-    
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row || row.length === 0) continue;
-        if (row[0] !== undefined && row[0] !== "") currentRoundId = parseInt(row[0]);
-        if (!currentRoundId || isNaN(currentRoundId)) continue;
+    // Mỗi 2 hàng là 1 cặp câu hỏi (Ví dụ: Câu 1 có hàng 1 và 2)
+    // Cấu trúc cột Excel: STT(0), Chủ đề(1), CÂU HỎI(2), ĐÁP ÁN 1(3), 2(4), 3(5), 4(6)
+    // Lưu ý: Dựa trên file Excel bạn cung cấp, cấu trúc là:
+    // Cột A: STT, Cột B: Chủ đề, Cột C: CÂU HỎI, Cột D-G: ĐÁP ÁN
+    for (let i = 1; i < rows.length; i += 2) {
+        const rowA = rows[i];
+        const rowB = rows[i + 1];
+        if (!rowA) continue;
 
         excelDataStore.push({
-            round: currentRoundId,
-            topicA: row[1] ? row[1].toString().trim() : "",
-            topicB: row[2] ? row[2].toString().trim() : "", 
-            questionText: row[3] ? row[3].toString().trim() : "",
-            answers: [
-                row[4] ? row[4].toString().trim() : "",
-                row[5] ? row[5].toString().trim() : "",
-                row[6] ? row[6].toString().trim() : "",
-                row[7] ? row[7].toString().trim() : ""
-            ]
+            round: parseInt(rowA[0]), // STT
+            topicA: rowA[1] || "",
+            topicB: rowB ? (rowB[1] || "") : "",
+            questionA: rowA[2] || "",
+            questionB: rowB ? (rowB[2] || "") : "",
+            ansA: [rowA[3], rowA[4], rowA[5], rowA[6]].filter(a => a !== null && a !== undefined && a !== ""),
+            ansB: rowB ? [rowB[3], rowB[4], rowB[5], rowB[6]].filter(a => a !== null && a !== undefined && a !== "") : []
         });
     }
-    alert("Tải câu hỏi từ tệp Excel thành công!");
-    handleRoundChange();
+    alert("Đã tải dữ liệu cho 8 câu hỏi!");
+    updateQuestionSelector();
 }
 
-function handleRoundChange() {
-    const round = parseInt(document.getElementById('select-round').value);
-    sendCommand('change_round', { round: round });
-
+function updateQuestionSelector() {
     const qSelect = document.getElementById('select-question-index');
     qSelect.innerHTML = "";
     
-    const filteredQuestions = excelDataStore.filter(item => item.round === round);
-    if(filteredQuestions.length === 0) {
-        qSelect.innerHTML = '<option value="">-- Không có câu hỏi nào thuộc vòng này --</option>';
-        return;
-    }
+    excelDataStore.forEach((q, idx) => {
+        const optA = document.createElement('option');
+        optA.value = `${idx}-A`;
+        optA.innerText = `Câu ${q.round}: Chủ đề ${q.topicA}`;
+        qSelect.appendChild(optA);
 
-    filteredQuestions.forEach((q, idx) => {
-        const opt = document.createElement('option');
-        opt.value = excelDataStore.indexOf(q);
-        opt.innerText = `Câu ${idx + 1}: ${q.questionText.substring(0, 30)}...`;
-        qSelect.appendChild(opt);
+        const optB = document.createElement('option');
+        optB.value = `${idx}-B`;
+        optB.innerText = `Câu ${q.round}: Chủ đề ${q.topicB}`;
+        qSelect.appendChild(optB);
     });
-
-    loadSelectedQuestion();
 }
 
 function loadSelectedQuestion() {
-    const qIdx = document.getElementById('select-question-index').value;
-    if(qIdx === "") return;
+    const val = document.getElementById('select-question-index').value;
+    if (!val) return;
+    const [idx, type] = val.split('-');
+    const data = excelDataStore[idx];
     
-    const currentData = excelDataStore[qIdx];
-    if (currentData) {
-        document.getElementById('topic-a').value = currentData.topicA;
-        document.getElementById('topic-b').value = currentData.topicB;
-        document.getElementById('question-input').value = currentData.questionText || "";
-        for (let i = 1; i <= 4; i++) {
-            document.getElementById(`ans-${i}`).value = currentData.answers[i-1] || "";
+    document.getElementById('topic-a').value = data.topicA;
+    document.getElementById('topic-b').value = data.topicB;
+    
+    if (type === 'A') {
+        document.getElementById('question-input').value = data.questionA;
+        fillAnswers(data.ansA);
+    } else {
+        document.getElementById('question-input').value = data.questionB;
+        fillAnswers(data.ansB);
+    }
+}
+
+function fillAnswers(ansList) {
+    for (let i = 1; i <= 4; i++) {
+        const input = document.getElementById(`ans-${i}`);
+        const btn = input.nextElementSibling;
+        
+        if (i <= ansList.length) {
+            input.value = ansList[i-1] || "";
+            input.style.display = 'block';
+            btn.style.display = 'block';
+        } else {
+            input.value = "";
+            input.style.display = 'none';
+            btn.style.display = 'none';
         }
     }
 }
 
-function sendTopics() {
-    const ta = document.getElementById('topic-a').value;
-    const tb = document.getElementById('topic-b').value;
-    sendCommand('show_topics', { ta, tb });
-}
-
-function lockTopic(type) {
-    const topicName = type === 'A' ? document.getElementById('topic-a').value : document.getElementById('topic-b').value;
-    sendCommand('lock_topic', { type, topicName });
-}
-
-function sendQuestion() {
-    const qText = document.getElementById('question-input').value;
-    sendCommand('update_content', { type: 'question', data: { question: qText } });
-}
-
-function sendSingleAnswer(id) {
-    const text = document.getElementById(`ans-${id}`).value;
-    sendCommand('update_single_answer', { id, text });
-}
-
-channel.onmessage = function(event) {
-    if (event.data.action === 'sync_bets_to_mc') {
-        const data = event.data.data;
-        for (let i = 1; i <= 4; i++) {
-            if (document.getElementById(`mc-bet-${i}`)) {
-                document.getElementById(`mc-bet-${i}`).innerText = (data[`b${i}`] || 0).toLocaleString('vi-VN') + " $A";
-            }
-        }
-    }
-};
+function sendTopics() { sendCommand('show_topics', { ta: document.getElementById('topic-a').value, tb: document.getElementById('topic-b').value }); }
+function lockTopic(type) { sendCommand('lock_topic', { type, topicName: type === 'A' ? document.getElementById('topic-a').value : document.getElementById('topic-b').value }); }
+function sendQuestion() { sendCommand('update_content', { type: 'question', data: { question: document.getElementById('question-input').value } }); }
+function sendSingleAnswer(id) { sendCommand('update_single_answer', { id, text: document.getElementById(`ans-${id}`).value }); }
 
 function startTimer() {
     clearInterval(timerInterval);
@@ -149,25 +134,18 @@ function add30Seconds() {
     }, 1000);
 }
 
-function stopTimer() { 
-    clearInterval(timerInterval); 
-    sendCommand('timer_control', { status: 'stop' }); 
-}
+function stopTimer() { clearInterval(timerInterval); sendCommand('timer_control', { status: 'stop' }); }
 
 function updateTimerDisplay() {
     let m = Math.floor(timeLeft / 60); let s = timeLeft % 60;
     document.getElementById('time-display').innerText = `THỜI GIAN ĐẶT CƯỢC: ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 }
 
-function openDoor(doorId) { sendCommand('open_door', { doorId }); }
+function openDoor(id) { sendCommand('open_door', { doorId: id }); }
 function collectWinningMoney() { sendCommand('collect_winning'); }
 function penaltyFine() { sendCommand('penalty_fine'); }
-
 function resetRound() {
     stopTimer();
     document.getElementById('time-display').innerText = `THỜI GIAN ĐẶT CƯỢC: --:--`;
-    for (let i = 1; i <= 4; i++) {
-        if(document.getElementById(`mc-bet-${i}`)) document.getElementById(`mc-bet-${i}`).innerText = "0 $A";
-    }
     sendCommand('reset_round');
 }
