@@ -4,7 +4,11 @@ let timeLeft = 60;
 let timerInterval = null;
 
 function sendCommand(action, data = {}) {
-    channel.postMessage({ action, data });
+       channel.postMessage({
+        action,
+        data,
+        timestamp: Date.now()
+    });
 }
 
 function importExcel(element) {
@@ -97,25 +101,67 @@ function fillAnswers(ansList) {
     }
 }
 
-function sendTopics() { sendCommand('show_topics', { ta: document.getElementById('topic-a').value, tb: document.getElementById('topic-b').value }); }
-function lockTopic(type) { sendCommand('lock_topic', { type, topicName: type === 'A' ? document.getElementById('topic-a').value : document.getElementById('topic-b').value }); }
+function sendTopics() { 
+    sendCommand("show_topics",{
+
+        topicA:document.getElementById("topic-a").value,
+
+        topicB:document.getElementById("topic-b").value
+
+    });
+ }
+
+function lockTopic(type) {   
+sendCommand("lock_topic",{
+
+        type:type,
+
+        topicName:
+        type==="A"
+        ?document.getElementById("topic-a").value
+        :document.getElementById("topic-b").value
+
+    });
+ }
+
 function sendQuestion() { sendCommand('update_content', { type: 'question', data: { question: document.getElementById('question-input').value } }); }
 function sendSingleAnswer(id) { sendCommand('update_single_answer', { id, text: document.getElementById(`ans-${id}`).value }); }
 
 function startTimer() {
     clearInterval(timerInterval);
+
     timeLeft = 60;
+
     updateTimerDisplay();
-    sendCommand('timer_control', { status: 'start', time: timeLeft });
-    timerInterval = setInterval(() => {
+
+    sendCommand("timer_control",{
+        status:"start",
+        time:timeLeft
+    });
+
+    timerInterval=setInterval(()=>{
+
         timeLeft--;
+
         updateTimerDisplay();
-        sendCommand('timer_tick', { time: timeLeft });
-        if (timeLeft <= 0) {
+
+        sendCommand("timer_tick",{
+            time:timeLeft
+        });
+
+        if(timeLeft<=0){
+
             clearInterval(timerInterval);
-            sendCommand('timer_control', { status: 'timeout' });
+
+            sendCommand("timer_control",{
+                status:"timeout",
+                time:0
+            });
+
         }
-    }, 1000);
+
+    },1000);
+
 }
 
 function add30Seconds() {
@@ -134,7 +180,13 @@ function add30Seconds() {
     }, 1000);
 }
 
-function stopTimer() { clearInterval(timerInterval); sendCommand('timer_control', { status: 'stop' }); }
+function stopTimer() {     
+clearInterval(timerInterval);
+    sendCommand("timer_control",{
+        status:"stop",
+        time:timeLeft
+    });
+ }
 
 function updateTimerDisplay() {
     let m = Math.floor(timeLeft / 60); let s = timeLeft % 60;

@@ -72,8 +72,64 @@
             <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ B</div>
         </div>
     </div>
+const channel=new BroadcastChannel("gameshow_money_drop");
+channel.onmessage=function(event){
+
+    const {action,data}=event.data;
+
+    switch(action){
+case "reset_round":
+
+    resetBigscreen();
+
+break;
+
+        case "show_topics":
+
+            document.querySelector("#item-a .strap-text").innerText=data.topicA;
+
+            document.querySelector("#item-b .strap-text").innerText=data.topicB;
+
+        break;
+
+        case "lock_topic":
+
+            if(data.type==="A"){
+
+                document.getElementById("item-b").style.display="none";
+
+            }
+
+            else{
+
+                document.getElementById("item-a").style.display="none";
+
+            }
+
+        break;
+
+    }
+
+}
 
     <script>
+function resetBigscreen(){
+
+    document.getElementById("item-a").style.display="block";
+    document.getElementById("item-b").style.display="block";
+
+    document.getElementById("item-a").classList.remove("is-active","zoom-out");
+    document.getElementById("item-b").classList.remove("is-active","zoom-out");
+
+    document.getElementById("item-a").setAttribute("data-state","0");
+    document.getElementById("item-b").setAttribute("data-state","0");
+
+    document.getElementById("central-box").classList.remove("show","move-up");
+    document.getElementById("answers-container").classList.remove("show");
+    document.getElementById("clock-container").classList.remove("show");
+
+    clickCount = 0;
+}
         let clickCount = 0; // Đếm số lần click vào câu hỏi
 
         function processClick(el) {
@@ -109,5 +165,63 @@
             }
         }
     </script>
+<script>
+
+const channel=new BroadcastChannel("gameshow_money_drop");
+
+const timerAudio=new Audio("SFX/drop_timer.mp3");
+const timerStopAudio = new Audio("SFX/drop_timer_stop.mp3");
+timerStopAudio.preload = "auto";
+
+timerAudio.loop=true;
+
+channel.onmessage=function(event){
+
+    const {action,data}=event.data;
+
+    if(action==="timer_tick"){
+
+        let m=Math.floor(data.time/60);
+
+        let s=data.time%60;
+
+        document.getElementById("clock-time").innerText=
+        m+":"+s.toString().padStart(2,"0");
+
+    }
+
+    if(action==="timer_control"){
+
+        if(data.status==="start"){
+
+            timerAudio.currentTime=0;
+
+            timerAudio.play();
+
+            document.getElementById("clock-container").classList.add("show");
+
+        }
+
+        if(data.status==="stop" || data.status==="timeout"){
+
+       
+
+            timerAudio.currentTime=0;
+
+    isLock=true;
+
+    timerAudio.pause();
+    timerAudio.currentTime=0;
+
+    timerStopAudio.currentTime=0;
+    timerStopAudio.play();
+
+        }
+
+    }
+
+}
+
+</script>
 </body>
 </html>

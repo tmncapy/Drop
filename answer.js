@@ -1,4 +1,6 @@
 const channel = new BroadcastChannel('gameshow_money_drop');
+const timerAudio=new Audio("SFX/drop_timer.mp3");
+timerAudio.loop=true;
 let currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
 let activeRound = 1;
 
@@ -47,12 +49,29 @@ channel.onmessage = function(event) {
             break;
 
         case 'timer_control':
-            if (data.status === 'start' || data.status === 'add30') {
-                for (let i = 1; i <= 4; i++) {
-                    document.getElementById(`wing-l-${i}`).classList.add('bg-moneydoor');
-                    document.getElementById(`wing-r-${i}`).classList.add('bg-moneydoor');
-                }
-            }
+if(data.status==="start"){
+
+    timerAudio.currentTime=0;
+
+    timerAudio.play();
+
+}
+
+if(data.status==="stop"){
+
+    timerAudio.pause();
+
+    timerAudio.currentTime=0;
+
+}
+
+if(data.status==="timeout"){
+
+    timerAudio.pause();
+
+    timerAudio.currentTime=0;
+
+}
             break;
 
         case 'change_round':

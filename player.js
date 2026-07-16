@@ -8,7 +8,9 @@ let selectedDoor = null;
 let isLock = true; 
 
 const channel = new BroadcastChannel('gameshow_money_drop');
+const timerAudio=new Audio("SFX/drop_timer.mp3");
 
+timerAudio.loop=true;
 function syncBetsToController() {
     const betData = {
         b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
@@ -131,16 +133,49 @@ channel.onmessage = function(event) {
             break;
 
         case 'timer_control':
-            if(data.status === 'start' || data.status === 'add30') {
-                isLock = false;
-                if(data.status === 'add30') gameTimer.classList.add('warning');
-                document.getElementById('table-guide').innerText = "THỜI GIAN ĐANG CHẠY! HÃY ĐẶT TIỀN NHANH CHÓNG";
-            } else {
-                isLock = true;
-                document.getElementById('table-guide').innerText = "HẾT GIỜ / ĐÃ CHỐT CƯỢC!";
-            }
-            formatTimer(data.time || 0);
-            break;
+        if(data.status==="start"){
+
+        isLock=false;
+
+        timerAudio.currentTime=0;
+
+        timerAudio.play();
+
+        document.getElementById("table-guide").innerText="THỜI GIAN ĐANG CHẠY!";
+
+    }
+
+    if(data.status==="add30"){
+
+        isLock=false;
+
+        document.getElementById("table-guide").innerText="ĐƯỢC CỘNG THÊM 30 GIÂY";
+
+    }
+
+    if(data.status==="stop"){
+
+        isLock=true;
+
+        timerAudio.pause();
+
+        timerAudio.currentTime=0;
+
+    }
+
+    if(data.status==="timeout"){
+
+        isLock=true;
+
+
+
+        timerAudio.currentTime=0;
+
+    }
+
+    formatTimer(data.time);
+
+break;
 
         case 'timer_tick':
             formatTimer(data.time);
