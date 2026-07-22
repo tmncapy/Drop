@@ -227,9 +227,17 @@
 
                 case "open_door":
                     if (data && data.doorId) {
-                        const frameEl = document.getElementById(`proj-frame-${data.doorId}`);
-                        if (frameEl) {
-                            frameEl.classList.add("dropped");
+                        let frameId = data.doorId;
+                        if (currentRound === 8) {
+                            if (data.doorId === 1) frameId = 2;
+                            else if (data.doorId === 2) frameId = 3;
+                            else frameId = null;
+                        }
+                        if (frameId) {
+                            const frameEl = document.getElementById(`proj-frame-${frameId}`);
+                            if (frameEl) {
+                                frameEl.classList.add("dropped");
+                            }
                         }
                     }
                     break;
@@ -285,13 +293,21 @@
                     break;
 
                 case "update_single_answer":
-                    const ansEl = document.getElementById(`proj-ans-${data.id}`);
-                    if (ansEl) {
-                        ansEl.innerText = data.text;
-                        if (!data.text || data.text.trim() === "" || data.text === "---") {
-                            ansEl.dataset.hiddenByContent = "true";
-                        } else {
-                            ansEl.dataset.hiddenByContent = "false";
+                    let targetId = data.id;
+                    if (currentRound === 8) {
+                        if (data.id === 1) targetId = 2;
+                        else if (data.id === 2) targetId = 3;
+                        else targetId = null;
+                    }
+                    if (targetId) {
+                        const ansEl = document.getElementById(`proj-ans-${targetId}`);
+                        if (ansEl) {
+                            ansEl.innerText = data.text;
+                            if (!data.text || data.text.trim() === "" || data.text === "---") {
+                                ansEl.dataset.hiddenByContent = "true";
+                            } else {
+                                ansEl.dataset.hiddenByContent = "false";
+                            }
                         }
                     }
                     applyAnswerVisibility();

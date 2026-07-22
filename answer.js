@@ -39,18 +39,21 @@ channel.onmessage = function(event) {
             if (activeRound === 8) {
                 if (data.id === 1) targetDoorId = 2;
                 else if (data.id === 2) targetDoorId = 3;
+                else targetDoorId = null;
             }
 
-            const insideTxt = document.getElementById(`inside-txt-${targetDoorId}`);
-            if (insideTxt) {
-                insideTxt.innerText = data.text;
-                insideTxt.classList.remove('hide-on-drop'); 
-                insideTxt.classList.add('show');
-            }
+            if (targetDoorId) {
+                const insideTxt = document.getElementById(`inside-txt-${targetDoorId}`);
+                if (insideTxt) {
+                    insideTxt.innerText = data.text;
+                    insideTxt.classList.remove('hide-on-drop'); 
+                    insideTxt.classList.add('show');
+                }
 
-            const surfaceEl = document.getElementById(`surface-${targetDoorId}`);
-            if (surfaceEl) {
-                surfaceEl.classList.add('wiped');
+                const surfaceEl = document.getElementById(`surface-${targetDoorId}`);
+                if (surfaceEl) {
+                    surfaceEl.classList.add('wiped');
+                }
             }
             break;
 
@@ -74,7 +77,14 @@ channel.onmessage = function(event) {
             break;
 
         case 'open_door':
-            const doorId = data.doorId;
+            let doorId = data.doorId;
+            if (activeRound === 8) {
+                if (data.doorId === 1) doorId = 2;
+                else if (data.doorId === 2) doorId = 3;
+                else doorId = null;
+            }
+            if (!doorId) break;
+
             const surface = document.getElementById(`surface-${doorId}`);
             const fallTxt = document.getElementById(`fall-txt-${doorId}`);
             const bgLayer = document.getElementById(`bg-layer-${doorId}`);
@@ -95,7 +105,7 @@ channel.onmessage = function(event) {
                     if (bgLayer) bgLayer.classList.add('collapsed-bg'); 
                     
                     if (fallTxt) {
-                        const betVal = currentBets[`b${doorId}`] || 0;
+                        const betVal = currentBets[`b${data.doorId}`] || 0;
                         if (betVal > 0) {
                             fallTxt.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
                         } else {

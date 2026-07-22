@@ -106,6 +106,7 @@
     <script>
         const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
         let currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
+        let currentRound = 1;
 
         channel.onmessage = function(event) {
             const { action, data } = event.data;
@@ -129,7 +130,15 @@
                 }
             }
             if (action === 'update_single_answer') {
-                document.getElementById(`label-ans-${data.id}`).innerText = data.text;
+                let targetId = data.id;
+                if (currentRound === 8) {
+                    if (data.id === 1) targetId = 2;
+                    else if (data.id === 2) targetId = 3;
+                    else targetId = null;
+                }
+                if (targetId) {
+                    document.getElementById(`label-ans-${targetId}`).innerText = data.text;
+                }
             }
             if (action === 'timer_tick') {
                 document.getElementById('host-timer').innerText = data.time;
@@ -142,22 +151,31 @@
                 }
             }
             if (action === 'open_door') {
-                const doorId = data.doorId;
-                document.getElementById(`img-door-${doorId}`).classList.add('dropped');
-                const txtDrop = document.getElementById(`drop-text-${doorId}`);
-                txtDrop.innerText = currentBets[`b${doorId}`].toLocaleString('vi-VN') + " $A đã rơi";
-                txtDrop.style.display = 'block';
-
-                const label = document.getElementById(`label-ans-${doorId}`);
-                if (currentBets[`b${doorId}`] > 0) {
-                    label.classList.add('host-win'); 
-                } else {
-                    label.classList.add('host-lose'); 
+                let doorId = data.doorId;
+                if (currentRound === 8) {
+                    if (data.doorId === 1) doorId = 2;
+                    else if (data.doorId === 2) doorId = 3;
+                    else doorId = null;
                 }
-                document.getElementById('explain-text').style.display = 'inline';
+                if (doorId) {
+                    document.getElementById(`img-door-${doorId}`).classList.add('dropped');
+                    const txtDrop = document.getElementById(`drop-text-${doorId}`);
+                    const betVal = currentBets[`b${data.doorId}`] || 0;
+                    txtDrop.innerText = betVal.toLocaleString('vi-VN') + " $A đã rơi";
+                    txtDrop.style.display = 'block';
+
+                    const label = document.getElementById(`label-ans-${doorId}`);
+                    if (betVal > 0) {
+                        label.classList.add('host-win'); 
+                    } else {
+                        label.classList.add('host-lose'); 
+                    }
+                    document.getElementById('explain-text').style.display = 'inline';
+                }
             }
             if (action === 'change_round') {
                 resetAllHostVisuals();
+                currentRound = parseInt(data.round) || 1;
                 document.getElementById('host-round-title').innerText = `CÂU HỎI ${data.round}`;
                 
                 if (data.round >= 5 && data.round <= 7) {
