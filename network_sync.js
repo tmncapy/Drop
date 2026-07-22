@@ -3,15 +3,22 @@
 (function () {
     class GameSyncChannel {
         constructor(channelName) {
-            this.channelName = channelName || 'gameshow_money_drop';
-            this.localChannel = new BroadcastChannel(this.channelName);
+            // Read optional custom channel/room from URL query string, e.g. ?room=mygame
+            const urlParams = new URLSearchParams(window.location.search);
+            const customRoom = urlParams.get('room') || urlParams.get('channel');
+            
+            this.baseChannelName = channelName || 'gameshow_money_drop';
+            // All pages in the app MUST connect to the same topic to communicate!
+            this.topicName = customRoom ? `${this.baseChannelName}_${customRoom}` : `${this.baseChannelName}_main_channel_v2`;
+            
+            this.localChannel = new BroadcastChannel(this.baseChannelName);
             this.onmessageHandler = null;
-            this.instanceId = 'tab_' + Math.random().toString(36).substring(2, 9);
-            this.roomCode = localStorage.getItem('game_pin') || '1234';
+            this.instanceId = 'client_' + Math.random().toString(36).substring(2, 9);
             this.mqttClient = null;
-            this.isConnecting = false;
+            this.isConnected = false;
+            this.pendingQueue = [];
 
-            // 1. Listen to local BroadcastChannel (Same-device browser tabs)
+            // 1. Listen to BroadcastChannel for local tabs on same device
             this.localChannel.onmessage = (event) => {
                 if (event.data && event.data._senderId !== this.instanceId) {
                     if (typeof this.onmessageHandler === 'function') {
@@ -21,7 +28,7 @@
             };
 
             // 2. Load MQTT Library for Cross-Device WebSockets
-            this.loadMqttLibrary();
+            this.initMqtt();
         }
 
         get onmessage() {
@@ -32,169 +39,154 @@
             this.onmessageHandler = handler;
         }
 
-        loadMqttLibrary() {
+        initMqtt() {
             if (typeof window.mqtt !== 'undefined') {
-                this.connectMqttEMQX();
+                this.connectBrokers();
                 return;
             }
 
-            const cdnUrls = [
+            const cdns = [
                 'https://unpkg.com/mqtt@5.3.4/dist/mqtt.min.js',
                 'https://cdn.jsdelivr.net/npm/mqtt@5.3.4/dist/mqtt.min.js',
                 'https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js'
             ];
 
-            let index = 0;
-            const tryNextCdn = () => {
-                if (index >= cdnUrls.length) {
-                    console.warn('⚠️ Could not load MQTT CDN. Falling back to local BroadcastChannel only.');
+            let idx = 0;
+            const loadScript = () => {
+                if (idx >= cdns.length) {
+                    console.warn('⚠️ MQTT CDN unavailable, using BroadcastChannel local only.');
                     return;
                 }
-                const url = cdnUrls[index++];
-                const script = document.createElement('script');
-                script.src = url;
-                script.onload = () => {
-                    console.log('✅ MQTT CDN loaded from:', url);
-                    this.connectMqttEMQX();
+                const s = document.createElement('script');
+                s.src = cdns[idx++];
+                s.onload = () => {
+                    console.log('✅ MQTT Library loaded successfully.');
+                    this.connectBrokers();
                 };
-                script.onerror = () => {
-                    console.warn('⚠️ MQTT CDN failed:', url);
-                    tryNextCdn();
-                };
-                document.head.appendChild(script);
+                s.onerror = () => loadScript();
+                document.head.appendChild(s);
             };
-
-            tryNextCdn();
+            loadScript();
         }
 
-        connectMqttEMQX() {
-            if (!window.mqtt || this.isConnecting) return;
-            this.isConnecting = true;
-
-            try {
-                const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
-                const topic = `gameshow_money_drop/${this.roomCode}`;
-
-                this.mqttClient = window.mqtt.connect(brokerUrl, {
-                    clientId: 'gs_' + this.instanceId,
-                    keepalive: 30,
-                    clean: true,
-                    reconnectPeriod: 3000,
-                    connectTimeout: 5000
-                });
-
-                this.mqttClient.on('connect', () => {
-                    this.isConnecting = false;
-                    console.log('🌐 [EMQX] Cross-Device Broker Connected! Topic:', topic);
-                    this.mqttClient.subscribe(topic, { qos: 0 });
-                });
-
-                this.mqttClient.on('message', (receivedTopic, message) => {
-                    try {
-                        const payload = JSON.parse(message.toString());
-                        if (payload && payload._senderId !== this.instanceId) {
-                            if (typeof this.onmessageHandler === 'function') {
-                                this.onmessageHandler({ data: payload });
-                            }
-                        }
-                    } catch (e) {
-                        console.error('MQTT JSON parse error:', e);
-                    }
-                });
-
-                this.mqttClient.on('error', (err) => {
-                    console.warn('⚠️ EMQX Broker connection error:', err);
-                    this.isConnecting = false;
-                    if (this.mqttClient) {
-                        try { this.mqttClient.end(true); } catch(e){}
-                    }
-                    this.connectMqttHiveMQ();
-                });
-
-            } catch (e) {
-                this.isConnecting = false;
-                console.warn('⚠️ EMQX Init Exception:', e);
-                this.connectMqttHiveMQ();
-            }
-        }
-
-        connectMqttHiveMQ() {
+        connectBrokers() {
             if (!window.mqtt) return;
 
-            try {
-                const brokerUrl = 'wss://broker.hivemq.com:8884/mqtt';
-                const topic = `gameshow_money_drop/${this.roomCode}`;
+            const brokers = [
+                'wss://broker.emqx.io:8084/mqtt',
+                'wss://broker.hivemq.com:8884/mqtt',
+                'wss://test.mosquitto.org:8081/mqtt'
+            ];
 
-                this.mqttClient = window.mqtt.connect(brokerUrl, {
-                    clientId: 'gs_hive_' + this.instanceId,
-                    keepalive: 30,
-                    clean: true,
-                    reconnectPeriod: 3000
-                });
+            let currentBrokerIdx = 0;
 
-                this.mqttClient.on('connect', () => {
-                    console.log('🌐 [HiveMQ] Fallback Cross-Device Broker Connected! Topic:', topic);
-                    this.mqttClient.subscribe(topic, { qos: 0 });
-                });
+            const tryConnect = () => {
+                if (currentBrokerIdx >= brokers.length) return;
+                const brokerUrl = brokers[currentBrokerIdx];
+                console.log(`🌐 Connecting to MQTT broker: ${brokerUrl} (Topic: ${this.topicName})`);
 
-                this.mqttClient.on('message', (receivedTopic, message) => {
-                    try {
-                        const payload = JSON.parse(message.toString());
-                        if (payload && payload._senderId !== this.instanceId) {
-                            if (typeof this.onmessageHandler === 'function') {
-                                this.onmessageHandler({ data: payload });
+                try {
+                    this.mqttClient = window.mqtt.connect(brokerUrl, {
+                        clientId: 'gs_' + this.instanceId,
+                        keepalive: 30,
+                        clean: true,
+                        reconnectPeriod: 4000,
+                        connectTimeout: 6000
+                    });
+
+                    this.mqttClient.on('connect', () => {
+                        this.isConnected = true;
+                        console.log(`🟢 [MQTT ONLINE] Connected to ${brokerUrl} on topic: ${this.topicName}`);
+                        
+                        this.mqttClient.subscribe(this.topicName, { qos: 0 }, (err) => {
+                            if (!err) {
+                                this.flushQueue();
+                                this.notifyConnectionStatus(true);
+                                // Trigger initial handshake broadcast upon connection
+                                if (typeof this.onmessageHandler === 'function') {
+                                    this.onmessageHandler({ data: { action: 'mqtt_connected' } });
+                                }
                             }
+                        });
+                    });
+
+                    this.mqttClient.on('message', (topic, message) => {
+                        try {
+                            const payload = JSON.parse(message.toString());
+                            if (payload && payload._senderId !== this.instanceId) {
+                                if (typeof this.onmessageHandler === 'function') {
+                                    this.onmessageHandler({ data: payload });
+                                }
+                            }
+                        } catch (e) {
+                            console.error('MQTT message parse error:', e);
                         }
-                    } catch (e) {}
-                });
-            } catch (e) {
-                console.warn('⚠️ HiveMQ Fallback Exception:', e);
+                    });
+
+                    this.mqttClient.on('error', (err) => {
+                        console.warn(`⚠️ Broker error on ${brokerUrl}:`, err);
+                        this.isConnected = false;
+                        this.notifyConnectionStatus(false);
+                        try { this.mqttClient.end(true); } catch(e){}
+                        currentBrokerIdx++;
+                        setTimeout(tryConnect, 1000);
+                    });
+
+                } catch (e) {
+                    console.warn(`⚠️ Broker init exception on ${brokerUrl}:`, e);
+                    currentBrokerIdx++;
+                    setTimeout(tryConnect, 1000);
+                }
+            };
+
+            tryConnect();
+        }
+
+        flushQueue() {
+            if (!this.mqttClient || !this.mqttClient.connected) return;
+            while (this.pendingQueue.length > 0) {
+                const msg = this.pendingQueue.shift();
+                try {
+                    this.mqttClient.publish(this.topicName, JSON.stringify(msg), { qos: 0 });
+                } catch (e) {}
             }
         }
 
-        updateRoomCode(newCode) {
-            if (!newCode || newCode === this.roomCode) return;
-            const oldTopic = `gameshow_money_drop/${this.roomCode}`;
-            this.roomCode = newCode;
-            const newTopic = `gameshow_money_drop/${this.roomCode}`;
-
-            if (this.mqttClient && this.mqttClient.connected) {
-                try {
-                    this.mqttClient.unsubscribe(oldTopic);
-                    this.mqttClient.subscribe(newTopic, { qos: 0 });
-                    console.log('🔄 Room topic updated to:', newTopic);
-                } catch(e) {}
-            }
+        notifyConnectionStatus(online) {
+            const statusEls = document.querySelectorAll('.network-status-badge');
+            statusEls.forEach(el => {
+                if (online) {
+                    el.style.color = '#00e676';
+                    el.innerText = '🟢 Trực tuyến (WebSockets Connected)';
+                } else {
+                    el.style.color = '#ff5252';
+                    el.innerText = '🔴 Ngoại tuyến (Đang kết nối lại...)';
+                }
+            });
         }
 
         postMessage(msg) {
             if (!msg) return;
-            const payload = Object.assign({}, msg, { _senderId: this.instanceId });
+            const payload = Object.assign({}, msg, { _senderId: this.instanceId, _timestamp: Date.now() });
 
-            // Automatically check if action updates room code PIN
-            if (payload.action === 'update_pin' && payload.data && payload.data.pin) {
-                this.updateRoomCode(payload.data.pin);
-            }
-
-            // 1. Post to local BroadcastChannel (same browser on same device)
+            // 1. Send via local BroadcastChannel (same browser tab/window)
             try {
                 this.localChannel.postMessage(payload);
-            } catch (e) {
-                console.warn('BroadcastChannel error:', e);
-            }
+            } catch (e) {}
 
-            // 2. Publish to MQTT WebSocket Broker (Cross-device / Cross-network)
+            // 2. Send via MQTT WebSocket (cross-device)
             if (this.mqttClient && this.mqttClient.connected) {
                 try {
-                    const topic = `gameshow_money_drop/${this.roomCode}`;
-                    this.mqttClient.publish(topic, JSON.stringify(payload), { qos: 0 });
+                    this.mqttClient.publish(this.topicName, JSON.stringify(payload), { qos: 0 });
                 } catch (e) {
-                    console.warn('MQTT publish error:', e);
+                    this.pendingQueue.push(payload);
                 }
+            } else {
+                this.pendingQueue.push(payload);
+                if (this.pendingQueue.length > 50) this.pendingQueue.shift();
             }
         }
     }
 
-    // Expose GameSyncChannel globally
     window.GameSyncChannel = GameSyncChannel;
 })();

@@ -59,10 +59,10 @@ function forceLockPlayers() {
 // Listen to messages from other windows/tabs (e.g., live player bets)
 channel.onmessage = function(event) {
     const { action, data } = event.data;
-    if (action === 'request_pin') {
+    if (action === 'mqtt_connected' || action === 'request_pin') {
         sendCommand('update_pin', { pin: currentPin });
     }
-    if (action === 'sync_bets_to_mc') {
+    if (action === 'sync_bets_to_mc' && data) {
         const b1 = data.b1 || 0;
         const b2 = data.b2 || 0;
         const b3 = data.b3 || 0;
@@ -73,6 +73,13 @@ channel.onmessage = function(event) {
         document.getElementById('mc-bet-4').innerText = b4.toLocaleString('vi-VN') + " $A";
     }
 };
+
+// Periodic heartbeat broadcast every 3s to guarantee cross-device sync
+setInterval(() => {
+    if (typeof channel !== 'undefined' && channel.postMessage) {
+        sendCommand('update_pin', { pin: currentPin });
+    }
+}, 3000);
 
 function sendCommand(action, data = {}) {
     channel.postMessage({

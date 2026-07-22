@@ -251,12 +251,27 @@ channel.onmessage = function(event) {
     const { action, data } = event.data;
 
     switch(action) {
+        case 'mqtt_connected':
+            channel.postMessage({ action: 'request_pin' });
+            channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
+            break;
+
         case 'update_pin':
-            currentPin = data.pin;
-            localStorage.setItem('game_pin', currentPin);
-            if (data.forceLock || localStorage.getItem('player_auth_pin') !== currentPin) {
-                localStorage.removeItem('player_auth_pin');
-                lockPlayerScreen();
+            if (data && data.pin) {
+                currentPin = data.pin;
+                localStorage.setItem('game_pin', currentPin);
+                
+                const pinNotice = document.getElementById('pin-status-notice');
+                if (pinNotice) {
+                    pinNotice.innerText = `🟢 Đã đồng bộ với MC - Mã PIN: ${currentPin}`;
+                    pinNotice.style.color = '#00e676';
+                    pinNotice.style.borderColor = 'rgba(0,230,118,0.3)';
+                }
+
+                if (data.forceLock || localStorage.getItem('player_auth_pin') !== currentPin) {
+                    localStorage.removeItem('player_auth_pin');
+                    lockPlayerScreen();
+                }
             }
             break;
 
@@ -453,5 +468,12 @@ function formatTimer(timeLeft) {
 
 window.addEventListener('DOMContentLoaded', () => {
     checkInitialAuth();
+    // Periodically request PIN from MC if screen is locked
+    setInterval(() => {
+        const overlay = document.getElementById('pin-lock-overlay');
+        if (overlay && overlay.style.display !== 'none') {
+            channel.postMessage({ action: 'request_pin' });
+        }
+    }, 2000);
 });
 
