@@ -40,10 +40,11 @@ function updatePinDisplay() {
 
 function submitPin() {
     const errorEl = document.getElementById('pin-error');
-    if (enteredPinDigits === currentPin) {
+    if (enteredPinDigits === currentPin || localStorage.getItem('player_authenticated') === 'true') {
         if (errorEl) errorEl.innerText = "";
-        unlockPlayerScreen();
+        localStorage.setItem('player_authenticated', 'true');
         localStorage.setItem('player_auth_pin', currentPin);
+        unlockPlayerScreen();
         channel.postMessage({
             action: 'player_authenticated',
             data: { pin: currentPin, senderId: playerTabId }
@@ -62,6 +63,10 @@ function unlockPlayerScreen() {
 }
 
 function lockPlayerScreen() {
+    if (localStorage.getItem('player_authenticated') === 'true') {
+        unlockPlayerScreen();
+        return;
+    }
     const overlay = document.getElementById('pin-lock-overlay');
     if (overlay) overlay.style.display = 'flex';
     enteredPinDigits = "";
@@ -70,13 +75,20 @@ function lockPlayerScreen() {
 
 function checkInitialAuth() {
     channel.postMessage({ action: 'request_pin' });
-    const savedAuth = localStorage.getItem('player_auth_pin');
-    const storedPin = localStorage.getItem('game_pin') || '1234';
-    if (savedAuth && savedAuth === storedPin) {
+    const isAuth = localStorage.getItem('player_authenticated') === 'true';
+    if (isAuth) {
         unlockPlayerScreen();
         channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
     } else {
-        lockPlayerScreen();
+        const savedAuth = localStorage.getItem('player_auth_pin');
+        const storedPin = localStorage.getItem('game_pin') || '1234';
+        if (savedAuth && savedAuth === storedPin) {
+            localStorage.setItem('player_authenticated', 'true');
+            unlockPlayerScreen();
+            channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
+        } else {
+            lockPlayerScreen();
+        }
     }
 }
 
@@ -364,7 +376,9 @@ channel.onmessage = function(event) {
                     pinNotice.style.borderColor = 'rgba(0,230,118,0.3)';
                 }
 
-                if (data.forceLock || localStorage.getItem('player_auth_pin') !== currentPin) {
+                if (localStorage.getItem('player_authenticated') === 'true') {
+                    unlockPlayerScreen();
+                } else if (data.forceLock || localStorage.getItem('player_auth_pin') !== currentPin) {
                     localStorage.removeItem('player_auth_pin');
                     lockPlayerScreen();
                 }
