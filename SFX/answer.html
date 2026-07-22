@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MÀN HÌNH ĐÁP ÁN - ANSWER SCREEN</title>
+    <style>
+        @font-face {
+            font-family: 'Myriad Pro';
+            src: local('Myriad Pro'), local('MyriadPro-Regular'), local('MyriadPro');
+        }
+
+        @font-face {
+            font-family: 'LHF_Mono';
+            src: url('LHF_Mono.otf') format('opentype'), url('LHF Mono.otf') format('opentype');
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: Arial, sans-serif; background-color: #000; color: #fff;
+            height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 10px;
+        }
+
+        /* KHU VỰC CHỨA CÁC Ô CỬA LỚN */
+        .doors-container {
+            display: flex; justify-content: center; align-items: center; width: 100%; max-width: 1920px; gap: 30px;
+        }
+
+        /* KHUNG CHỨA CỬA LỚN (MAX-WIDTH 480PX) */
+        .door-wrapper {
+            flex: 1; max-width: 480px; display: flex; flex-direction: column; align-items: center; position: relative;
+        }
+
+        /* TỶ LỆ CỦA Ô CỬA (4:2.6) */
+        .door-frame {
+            width: 100%; aspect-ratio: 4 / 2.6; position: relative;
+            border: 3px solid #d8d8d8; border-radius: 4px; overflow: hidden; background: #000;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.8), inset 0 0 5px rgba(255,255,255,0.2);
+        }
+
+        /* LỚP PHỦ CHO Ô CỬA KHÔNG SỬ DỤNG (ĐÈ UNUSEDOOR.PNG) */
+        .unused-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('unusedoor.png');
+            background-size: 100% 100%; background-repeat: no-repeat;
+            z-index: 10;
+            display: none;
+            pointer-events: auto;
+        }
+        .unused-overlay.active {
+            display: block;
+        }
+
+        /* LỚP NỀN ĐÁY (MẶC ĐỊNH LÀ INDOOR.PNG) */
+        .bottom-bg-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('indoor.png');
+            background-size: 100% 100%; background-repeat: no-repeat; z-index: 1;
+            transition: background-image 0.2s ease;
+        }
+
+        /* ĐỔI SANG DROPDOOR.PNG KHI SẬP */
+        .bottom-bg-layer.collapsed-bg {
+            background-image: url('dropdoor.png') !important;
+        }
+
+        /* TEXT ĐÁP ÁN TRÊN NỀN INDOOR.PNG */
+        .answer-text-inside {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center; padding: 20px 20px 42px 20px;
+            font-size: 32px; font-weight: bold; text-align: center; color: #ffffff;
+            font-family: 'Myriad Pro', 'MyriadPro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            text-shadow: 0 3px 6px rgba(0,0,0,1), 0 0 15px rgba(0,0,0,0.8); z-index: 2;
+            opacity: 0; transform: scale(0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+        .answer-text-inside.show { opacity: 1; transform: scale(1); }
+        .answer-text-inside.hide-on-drop { opacity: 0 !important; transform: scale(0.3) !important; transition: all 0.2s ease !important; }
+
+        /* CHỮ BÁO TIỀN RƠI CĂN GIỮA ĐỒNG ĐỀU */
+        .fall-status-text {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding-bottom: 38px;
+            color: #ff3333; font-size: 26px; font-weight: 900; text-align: center;
+            text-transform: uppercase; line-height: 1.3; z-index: 2;
+            text-shadow: 0 2px 4px #000, 0 0 10px #000, 0 0 20px #000;
+            opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+            font-family: 'LHF_Mono', 'LHF Mono', monospace;
+        }
+        .fall-status-text.active { opacity: 1; }
+
+        /* LỚP BỀ MẶT CỬA DOOR.PNG */
+        .door-surface {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3;
+            display: flex; transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        .door-wing {
+            width: 50%; height: 100%; background-size: 200% 100%; background-position: left center;
+            background-image: url('door.png'); transition: background-image 0.2s ease; background-repeat: no-repeat;
+        }
+        .door-wing.right { background-position: right center; }
+
+        /* Wipe mở cánh cửa */
+        .door-surface.wiped .door-wing.left { transform: translateX(-100%); }
+        .door-surface.wiped .door-wing.right { transform: translateX(100%); }
+
+        /* Khép cửa sập 1s */
+        .door-surface.closing { transition: transform 1s ease-in-out !important; }
+        .door-surface.closing .door-wing { transform: translateX(0) !important; }
+
+        /* Ẩn bề mặt khi sập hố */
+        .door-surface.dropped { display: none; }
+
+        /* Đổi ảnh moneydoor.png */
+        .bg-moneydoor { background-image: url('moneydoor.png') !important; }
+
+        /* THANH HIỂN THỊ TIỀN CƯỢC Ở ĐÁY Ô CỬA */
+        .bet-box {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 38px;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 12; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .bet-box.show { opacity: 1; }
+        .bet-amount {
+            font-size: 13px; font-weight: 900; color: #ffffff;
+            font-family: 'Myriad Pro', 'MyriadPro', Arial, sans-serif;
+            letter-spacing: 1px; text-shadow: 0 1px 3px #000, 0 0 5px rgba(0,0,0,0.9);
+            transform: translateY(6px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="doors-container">
+        <div class="door-wrapper" id="ans-wrap-1">
+            <div class="door-frame">
+                <div class="unused-overlay" id="unused-1"></div>
+                <div class="bottom-bg-layer" id="bg-layer-1"></div>
+                <div class="answer-text-inside" id="inside-txt-1"></div>
+                <div class="fall-status-text" id="fall-txt-1"></div>
+                <div class="door-surface" id="surface-1">
+                    <div class="door-wing left" id="wing-l-1"></div>
+                    <div class="door-wing right" id="wing-r-1"></div>
+                </div>
+                <div class="bet-box" id="bet-box-1">
+                    <span class="bet-amount" id="bet-val-1">0 $A</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="door-wrapper" id="ans-wrap-2">
+            <div class="door-frame">
+                <div class="unused-overlay" id="unused-2"></div>
+                <div class="bottom-bg-layer" id="bg-layer-2"></div>
+                <div class="answer-text-inside" id="inside-txt-2"></div>
+                <div class="fall-status-text" id="fall-txt-2"></div>
+                <div class="door-surface" id="surface-2">
+                    <div class="door-wing left" id="wing-l-2"></div>
+                    <div class="door-wing right" id="wing-r-2"></div>
+                </div>
+                <div class="bet-box" id="bet-box-2">
+                    <span class="bet-amount" id="bet-val-2">0 $A</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="door-wrapper" id="ans-wrap-3">
+            <div class="door-frame">
+                <div class="unused-overlay" id="unused-3"></div>
+                <div class="bottom-bg-layer" id="bg-layer-3"></div>
+                <div class="answer-text-inside" id="inside-txt-3"></div>
+                <div class="fall-status-text" id="fall-txt-3"></div>
+                <div class="door-surface" id="surface-3">
+                    <div class="door-wing left" id="wing-l-3"></div>
+                    <div class="door-wing right" id="wing-r-3"></div>
+                </div>
+                <div class="bet-box" id="bet-box-3">
+                    <span class="bet-amount" id="bet-val-3">0 $A</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="door-wrapper" id="ans-wrap-4">
+            <div class="door-frame">
+                <div class="unused-overlay" id="unused-4"></div>
+                <div class="bottom-bg-layer" id="bg-layer-4"></div>
+                <div class="answer-text-inside" id="inside-txt-4"></div>
+                <div class="fall-status-text" id="fall-txt-4"></div>
+                <div class="door-surface" id="surface-4">
+                    <div class="door-wing left" id="wing-l-4"></div>
+                    <div class="door-wing right" id="wing-r-4"></div>
+                </div>
+                <div class="bet-box" id="bet-box-4">
+                    <span class="bet-amount" id="bet-val-4">0 $A</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="network_sync.js"></script>
+    <script src="answer.js"></script>
+</body>
+</html>
