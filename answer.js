@@ -8,6 +8,27 @@ function setUnusedStatus(doorId, isUnused) {
         if (isUnused) overlay.classList.add('active');
         else overlay.classList.remove('active');
     }
+    const betBox = document.getElementById(`bet-box-${doorId}`);
+    if (betBox && isUnused) {
+        betBox.classList.remove('show');
+    }
+}
+
+function updateBetDisplays() {
+    for (let i = 1; i <= 4; i++) {
+        let betVal = 0;
+        if (activeRound === 8) {
+            if (i === 2) betVal = currentBets.b1 || 0;
+            else if (i === 3) betVal = currentBets.b2 || 0;
+            else betVal = 0;
+        } else {
+            betVal = currentBets[`b${i}`] || 0;
+        }
+        const valEl = document.getElementById(`bet-val-${i}`);
+        if (valEl) {
+            valEl.innerText = `${betVal.toLocaleString('vi-VN')} $A`;
+        }
+    }
 }
 
 channel.onmessage = function(event) {
@@ -20,14 +41,40 @@ channel.onmessage = function(event) {
             currentBets.b3 = data.b3 || 0;
             currentBets.b4 = data.b4 || 0;
             
+            updateBetDisplays();
+
             for(let i = 1; i <= 4; i++) {
                 const textEl = document.getElementById(`fall-txt-${i}`);
                 if (textEl && textEl.classList.contains('active')) {
-                    const betVal = currentBets[`b${i}`] || 0;
+                    let actualDoorBetKey = `b${i}`;
+                    if (activeRound === 8) {
+                        if (i === 2) actualDoorBetKey = 'b1';
+                        else if (i === 3) actualDoorBetKey = 'b2';
+                    }
+                    const betVal = currentBets[actualDoorBetKey] || 0;
                     if (betVal > 0) {
                         textEl.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
                     } else {
                         textEl.innerHTML = `ĐÃ RƠI`;
+                    }
+                }
+            }
+            break;
+
+        case 'update_content':
+            if (data && data.type === 'question') {
+                for (let i = 1; i <= 4; i++) {
+                    let isUnused = false;
+                    if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
+                    if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
+
+                    if (!isUnused) {
+                        const wingL = document.getElementById(`wing-l-${i}`);
+                        if (wingL) wingL.classList.add('bg-moneydoor');
+                        const wingR = document.getElementById(`wing-r-${i}`);
+                        if (wingR) wingR.classList.add('bg-moneydoor');
+                        const bgLyr = document.getElementById(`bg-layer-${i}`);
+                        if (bgLyr) bgLyr.classList.add('bg-moneydoor');
                     }
                 }
             }
@@ -55,6 +102,27 @@ channel.onmessage = function(event) {
                     surfaceEl.classList.add('wiped');
                 }
             }
+            updateBetDisplays();
+            break;
+
+        case 'show_all_q_and_a':
+            for (let i = 1; i <= 4; i++) {
+                let isUnused = false;
+                if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
+                if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
+
+                if (!isUnused) {
+                    const bBox = document.getElementById(`bet-box-${i}`);
+                    if (bBox) bBox.classList.add('show');
+                    const wingL = document.getElementById(`wing-l-${i}`);
+                    if (wingL) wingL.classList.add('bg-moneydoor');
+                    const wingR = document.getElementById(`wing-r-${i}`);
+                    if (wingR) wingR.classList.add('bg-moneydoor');
+                    const bgLyr = document.getElementById(`bg-layer-${i}`);
+                    if (bgLyr) bgLyr.classList.add('bg-moneydoor');
+                }
+            }
+            updateBetDisplays();
             break;
 
         case 'timer_control':
@@ -65,6 +133,14 @@ channel.onmessage = function(event) {
             activeRound = parseInt(data.round);
             
             for (let i = 1; i <= 4; i++) {
+                const bBox = document.getElementById(`bet-box-${i}`);
+                if (bBox) bBox.classList.remove('show');
+                const wingL = document.getElementById(`wing-l-${i}`);
+                if (wingL) wingL.classList.remove('bg-moneydoor');
+                const wingR = document.getElementById(`wing-r-${i}`);
+                if (wingR) wingR.classList.remove('bg-moneydoor');
+                const bgLyr = document.getElementById(`bg-layer-${i}`);
+                if (bgLyr) bgLyr.classList.remove('bg-moneydoor');
                 setUnusedStatus(i, false);
             }
 
@@ -73,7 +149,33 @@ channel.onmessage = function(event) {
             } else if (activeRound === 8) {
                 setUnusedStatus(1, true); 
                 setUnusedStatus(4, true); 
+
+                // Auto shift answers if they were previously placed in inside-txt-1/2
+                const txt1 = document.getElementById('inside-txt-1');
+                const txt2 = document.getElementById('inside-txt-2');
+                const txt3 = document.getElementById('inside-txt-3');
+                if (txt1 && txt1.innerText && txt1.innerText !== "---" && (!txt3 || !txt3.innerText || txt3.innerText === "---")) {
+                    if (txt3) {
+                        txt3.innerText = txt2.innerText;
+                        if (txt2.innerText && txt2.innerText !== "---") txt3.classList.add('show');
+                    }
+                    if (txt2) {
+                        txt2.innerText = txt1.innerText;
+                        if (txt1.innerText && txt1.innerText !== "---") txt2.classList.add('show');
+                    }
+                    if (txt1) {
+                        txt1.innerText = "---";
+                        txt1.classList.remove('show');
+                    }
+                    const surf1 = document.getElementById('surface-1');
+                    const surf2 = document.getElementById('surface-2');
+                    const surf3 = document.getElementById('surface-3');
+                    if (surf1) surf1.classList.remove('wiped');
+                    if (surf2 && txt2.innerText !== "---") surf2.classList.add('wiped');
+                    if (surf3 && txt3.innerText !== "---") surf3.classList.add('wiped');
+                }
             }
+            updateBetDisplays();
             break;
 
         case 'open_door':
@@ -85,9 +187,18 @@ channel.onmessage = function(event) {
             }
             if (!doorId) break;
 
+            const wingL = document.getElementById(`wing-l-${doorId}`);
+            if (wingL) wingL.classList.remove('bg-moneydoor');
+            const wingR = document.getElementById(`wing-r-${doorId}`);
+            if (wingR) wingR.classList.remove('bg-moneydoor');
+
+            const betBox = document.getElementById(`bet-box-${doorId}`);
+            if (betBox) betBox.classList.remove('show');
+
             const surface = document.getElementById(`surface-${doorId}`);
             const fallTxt = document.getElementById(`fall-txt-${doorId}`);
             const bgLayer = document.getElementById(`bg-layer-${doorId}`);
+            if (bgLayer) bgLayer.classList.remove('bg-moneydoor');
             const insideText = document.getElementById(`inside-txt-${doorId}`);
 
             if (insideText) {
@@ -129,7 +240,10 @@ channel.onmessage = function(event) {
                 if (surfaceReset) surfaceReset.className = "door-surface"; 
                 
                 const bgLyr = document.getElementById(`bg-layer-${i}`);
-                if (bgLyr) bgLyr.classList.remove('collapsed-bg');
+                if (bgLyr) {
+                    bgLyr.classList.remove('collapsed-bg');
+                    bgLyr.classList.remove('bg-moneydoor');
+                }
                 
                 const insideReset = document.getElementById(`inside-txt-${i}`);
                 if (insideReset) {
@@ -143,8 +257,12 @@ channel.onmessage = function(event) {
                     fallT.innerHTML = "";
                 }
 
+                const betBoxReset = document.getElementById(`bet-box-${i}`);
+                if (betBoxReset) betBoxReset.classList.remove('show');
+
                 setUnusedStatus(i, false);
             }
+            updateBetDisplays();
             break;
     }
 };

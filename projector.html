@@ -19,9 +19,9 @@
 
         :root {
             --q-center-top: 500px;
-            --q-moved-top: 400px; /* Câu hỏi dịch lên cao khi có đáp án */
-            --ans-container-top: 475px;
-            --clock-top: 635px;   /* THÔNG SỐ VỊ TRÍ CLOCK */
+            --q-moved-top: 367px; /* Câu hỏi dịch lên cao khi có đáp án */
+            --ans-container-top: 480px;
+            --clock-top: 610px;   /* THÔNG SỐ VỊ TRÍ CLOCK */
         }
 
         .strap-wrapper { position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; width: 1000px; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
@@ -30,9 +30,9 @@
         .is-active { top: 50% !important; z-index: 20; transform: translate(-50%, -50%) scale(1.1); }
         .zoom-out { transform: translate(-50%, -50%) scale(0) !important; opacity: 0; }
 
-        #central-box { position: absolute; top: var(--q-center-top); left: 50%; transform: translateX(-50%) scale(0); width: 1000px; z-index: 5; color: white; font-size: 40px; text-align: center; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; cursor: pointer; font-family: 'Myriad Pro', sans-serif; }
+        #central-box { position: absolute; top: var(--q-center-top); left: 50%; transform: translateX(-50%) scale(0); width: 950px; z-index: 5; color: white; font-size: 38px; text-align: center; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; cursor: pointer; font-family: 'Myriad Pro', sans-serif; }
         #central-box.show { transform: translateX(-50%) scale(1); opacity: 1; }
-        #central-box.move-up { top: var(--q-moved-top); }
+        #central-box.move-up { top: var(--q-moved-top); font-size: 26px; line-height: 1.35; font-weight: bold; }
 
         #answers-container { position: absolute; top: var(--ans-container-top); left: 50%; transform: translateX(-50%) scale(0); width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 5; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
         #answers-container.show { transform: translateX(-50%) scale(1); opacity: 1; }
@@ -45,7 +45,7 @@
         .ans-img { width: 100%; height: 100%; }
         .ans-text { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            color: white; font-size: 24px; font-weight: bold; width: 100%; text-align: center; 
+            color: white; font-size: 19px; font-weight: bold; width: 100%; text-align: center; 
             display: flex; justify-content: center; align-items: center; padding: 0 10px; 
             box-sizing: border-box; pointer-events: none; font-family: 'Myriad Pro', sans-serif;
         }
@@ -245,6 +245,20 @@
                 case "change_round":
                     if (data && data.round) {
                         currentRound = parseInt(data.round) || 1;
+                        if (currentRound === 8) {
+                            // Auto shift answers if they were previously placed in proj-ans-1/2
+                            const a1 = document.getElementById("proj-ans-1");
+                            const a2 = document.getElementById("proj-ans-2");
+                            const a3 = document.getElementById("proj-ans-3");
+                            if (a1 && a1.innerText && a1.innerText !== "---" && (!a3 || !a3.innerText || a3.innerText === "---")) {
+                                if (a3) a3.innerText = a2.innerText;
+                                if (a2) a2.innerText = a1.innerText;
+                                if (a1) a1.innerText = "---";
+                                if (a1) delete a1.dataset.hiddenByContent;
+                                if (a2) delete a2.dataset.hiddenByContent;
+                                if (a3) delete a3.dataset.hiddenByContent;
+                            }
+                        }
                         applyAnswerVisibility();
                     }
                     break;
@@ -303,10 +317,10 @@
                         const ansEl = document.getElementById(`proj-ans-${targetId}`);
                         if (ansEl) {
                             ansEl.innerText = data.text;
-                            if (!data.text || data.text.trim() === "" || data.text === "---") {
+                            if (!data.text || data.text.trim() === "") {
                                 ansEl.dataset.hiddenByContent = "true";
                             } else {
-                                ansEl.dataset.hiddenByContent = "false";
+                                delete ansEl.dataset.hiddenByContent;
                             }
                         }
                     }
@@ -335,6 +349,8 @@
                 case "timer_control":
                     if (data.status === "start") {
                         stopAllSfxOnProjector();
+                        const sfxFile = (currentRound === 8 || data.round === 8) ? "SFX/drop_timer_q8.mp3" : "SFX/drop_timer.mp3";
+                        timerAudio.src = sfxFile;
                         timerAudio.currentTime = 0;
                         timerAudio.play().catch(e => console.log("Audio play blocked/failed:", e));
                         document.getElementById("clock-container").classList.add("show");

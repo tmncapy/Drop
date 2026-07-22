@@ -410,7 +410,7 @@
             <div class="form-group" style="background: #2c3e50; margin-top: auto;">
                 <label style="color: #fff;">Quản Lý Vòng Đấu</label>
                 <div style="display: flex; flex-direction: column; gap: 4px;">
-                    <button onclick="collectWinningMoney()">THU TIỀN THẮNG VỀ BÀN</button>
+                    <button class="btn-blue" onclick="collectMoneyBack()">💵 THU TIỀN VỀ (BÀN)</button>
                     <button class="btn-orange" onclick="penaltyFine()">PHẠT GIẢM 1 CỌC TIỀN</button>
                     <button class="btn-red" onclick="resetRound()" style="margin-top: 4px;">RESET TOÀN BỘ VÒNG CHƠI</button>
                 </div>
@@ -431,10 +431,11 @@
                 <button class="btn-blue" onclick="playSfx('SFX/drop_question_bed.mp3')">❓ Nền Câu Hỏi</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_Reveal the Question_2.mp3')">💡 Hiện Câu Hỏi</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_question_and_answer_reveal.mp3')">📝 Hiện Q &amp; A</button>
+                <button class="btn-blue" onclick="collectMoneyBack()">💵 Thu Tiền Về</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Hồi Hộp Đặt Cược</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer.mp3')">⏱️ Đếm Ngược 60s</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer_q8.mp3')">⏰ Đếm Ngược Vòng 8</button>
-                <button class="btn-orange" onclick="playSfx('SFX/drop_30s.wav')">➕ Cộng 30 Giây</button>
+                <button class="btn-orange" onclick="add30Seconds()">➕ Cộng 30 Giây</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer_stop.mp3')">🛑 Dừng Thời Gian</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_1.mp3')">💥 Sập Hố 1</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3')">💥 Sập Hố 2</button>
@@ -462,6 +463,8 @@
                     <option value="SFX/drop_letsplay.mp3">drop_letsplay.mp3</option>
                     <option value="SFX/drop_lose.mp3">drop_lose.mp3</option>
                     <option value="SFX/drop_main.mp3">drop_main.mp3</option>
+                    <option value="SFX/drop_moneyback.mp3">drop_moneyback.mp3</option>
+                    <option value="SFX/drop_moneyback2.mp3">drop_moneyback2.mp3</option>
                     <option value="SFX/drop_opening.mp3">drop_opening.mp3</option>
                     <option value="SFX/drop_question_and_answer_reveal.mp3">drop_question_and_answer_reveal.mp3</option>
                     <option value="SFX/drop_question_bed.mp3">drop_question_bed.mp3</option>

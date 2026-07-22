@@ -257,15 +257,7 @@ function loadSelectedQuestion() {
     document.getElementById('topic-a').value = data.topicA || "";
     document.getElementById('topic-b').value = data.topicB || "";
     
-    if (type === 'A') {
-        document.getElementById('question-input').value = data.questionA || "";
-        fillAnswers(data.ansA || []);
-    } else {
-        document.getElementById('question-input').value = data.questionB || "";
-        fillAnswers(data.ansB || []);
-    }
-
-    // Auto-update the round dropdown based on Excel question data
+    // Auto-update the round dropdown based on Excel question data BEFORE filling answers
     const roundSelect = document.getElementById("select-round");
     const roundNum = Number(data.round) || 1;
     let roundVal = "1";
@@ -276,6 +268,14 @@ function loadSelectedQuestion() {
     }
     roundSelect.value = roundVal;
     handleRoundChange();
+
+    if (type === 'A') {
+        document.getElementById('question-input').value = data.questionA || "";
+        fillAnswers(data.ansA || []);
+    } else {
+        document.getElementById('question-input').value = data.questionB || "";
+        fillAnswers(data.ansB || []);
+    }
 }
 
 function fillAnswers(ansList) {
@@ -347,15 +347,40 @@ function handleRoundChange() {
     sendCommand("change_round", { round: parseInt(roundVal), roundNum: exactRound });
 }
 
+function getCurrentRoundNumber() {
+    const selectedQIndexVal = document.getElementById('select-question-index')?.value;
+    if (selectedQIndexVal) {
+        const [idx] = selectedQIndexVal.split('-');
+        if (excelDataStore[idx] && excelDataStore[idx].round) {
+            return Number(excelDataStore[idx].round);
+        }
+    }
+    const roundVal = document.getElementById("select-round")?.value;
+    return parseInt(roundVal) || 1;
+}
+
+function collectMoneyBack() {
+    const r = getCurrentRoundNumber();
+    if (r >= 1 && r <= 4) {
+        playSfx('SFX/drop_moneyback2.mp3');
+    } else {
+        playSfx('SFX/drop_moneyback.mp3');
+    }
+    sendCommand('collect_winning');
+}
+
 function startTimer() {
     stopSfx();
     clearInterval(timerInterval);
     timeLeft = 60;
     updateTimerDisplay();
 
+    const r = getCurrentRoundNumber();
+
     sendCommand("timer_control", {
         status: "start",
-        time: timeLeft
+        time: timeLeft,
+        round: r
     });
 
     timerInterval = setInterval(() => {
@@ -380,6 +405,7 @@ function add30Seconds() {
     clearInterval(timerInterval);
     timeLeft += 30;
     updateTimerDisplay();
+    playSfx('SFX/drop_30s.wav', false, false);
     sendCommand('timer_control', { status: 'add30', time: timeLeft });
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -411,7 +437,7 @@ function openDoor(id) {
     playSfx('SFX/drop_trapdoor_1.mp3', false, false);
     sendCommand('open_door', { doorId: id }); 
 }
-function collectWinningMoney() { sendCommand('collect_winning'); }
+function collectWinningMoney() { collectMoneyBack(); }
 function penaltyFine() { sendCommand('penalty_fine'); }
 function addPlayerStacksMC(count) { sendCommand('add_player_stacks', { count: count }); }
 function removePlayerStacksMC(count) { sendCommand('remove_player_stacks', { count: count }); }
@@ -427,6 +453,7 @@ function setCustomStacksMC() {
 }
 function showAllQuestionAndAnswers() {
     playSfx('SFX/drop_question_and_answer_reveal.mp3', false, false);
+    handleRoundChange();
     for (let i = 1; i <= 4; i++) {
         const val = document.getElementById(`ans-${i}`).value;
         sendCommand('update_single_answer', { id: i, text: val });
@@ -435,46 +462,18 @@ function showAllQuestionAndAnswers() {
 }
 
 // Soundboard functions
-let localSfxAudio = null;
-
 function playSfx(filePath, loop = false, stopPrevious = true) {
-    if (stopPrevious && localSfxAudio) {
-        localSfxAudio.pause();
-        localSfxAudio.currentTime = 0;
-    }
-    
-    // Play locally on controller (user clicked, so user gesture is present)
-    const audio = new Audio(filePath);
-    audio.loop = loop;
-    if (stopPrevious) {
-        localSfxAudio = audio;
-    }
-    
     const statusEl = document.getElementById('sfx-status');
-    
-    audio.play().then(() => {
-        if (statusEl) {
-            statusEl.innerText = `🔊 Đang phát: ${filePath}`;
-            statusEl.style.color = '#2ecc71';
-        }
-    }).catch(err => {
-        console.warn("Lỗi phát SFX tại Controller:", err);
-        if (statusEl) {
-            statusEl.innerText = `⚠️ Lỗi/Không thấy file audio: ${filePath} (Vui lòng kiểm tra tên file trong thư mục SFX)`;
-            statusEl.style.color = '#e74c3c';
-        }
-    });
+    if (statusEl) {
+        statusEl.innerText = `🔊 Đã phát tới Projector: ${filePath}`;
+        statusEl.style.color = '#2ecc71';
+    }
 
-    // Also send broadcast command to Projector
+    // Send broadcast command to Projector ONLY
     sendCommand('play_sfx', { file: filePath, loop: loop, stopPrevious: stopPrevious });
 }
 
 function stopSfx() {
-    if (localSfxAudio) {
-        localSfxAudio.pause();
-        localSfxAudio.currentTime = 0;
-        localSfxAudio = null;
-    }
     const statusEl = document.getElementById('sfx-status');
     if (statusEl) {
         statusEl.innerText = `🔇 Đã dừng âm thanh`;
@@ -491,6 +490,7 @@ function playCustomSfx() {
 }
 
 function resetRound() {
+    stopSfx();
     stopTimer();
     document.getElementById('time-display').innerText = `THỜI GIAN ĐẶT CƯỢC: --:--`;
     sendCommand('reset_round');
