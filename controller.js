@@ -71,6 +71,17 @@ channel.onmessage = function(event) {
         document.getElementById('mc-bet-2').innerText = b2.toLocaleString('vi-VN') + " $A";
         document.getElementById('mc-bet-3').innerText = b3.toLocaleString('vi-VN') + " $A";
         document.getElementById('mc-bet-4').innerText = b4.toLocaleString('vi-VN') + " $A";
+
+        if (data.totalMoney !== undefined && data.totalStacks !== undefined) {
+            const moneyEl = document.getElementById('mc-total-money');
+            if (moneyEl) {
+                moneyEl.innerText = `${data.totalMoney.toLocaleString('vi-VN')} $A (${data.totalStacks} cọc)`;
+            }
+            const inputEl = document.getElementById('custom-stacks-input');
+            if (inputEl && document.activeElement !== inputEl) {
+                inputEl.value = data.totalStacks;
+            }
+        }
     }
 };
 
@@ -402,6 +413,18 @@ function openDoor(id) {
 }
 function collectWinningMoney() { sendCommand('collect_winning'); }
 function penaltyFine() { sendCommand('penalty_fine'); }
+function addPlayerStacksMC(count) { sendCommand('add_player_stacks', { count: count }); }
+function removePlayerStacksMC(count) { sendCommand('remove_player_stacks', { count: count }); }
+function setPlayerStacksMC(count) { sendCommand('set_player_stacks', { count: count }); }
+function setCustomStacksMC() {
+    const input = document.getElementById('custom-stacks-input');
+    if (input) {
+        const val = parseInt(input.value);
+        if (!isNaN(val) && val >= 0) {
+            setPlayerStacksMC(val);
+        }
+    }
+}
 function showAllQuestionAndAnswers() {
     playSfx('SFX/drop_question_and_answer_reveal.mp3', false, false);
     for (let i = 1; i <= 4; i++) {

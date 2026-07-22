@@ -374,6 +374,27 @@
                 </div>
             </div>
 
+            <div class="form-group" style="background: #1c2833; border: 1px solid #34495e;">
+                <label style="color: #00e676; font-size: 13px; font-weight: bold;">💰 TĂNG GIẢM CỌC TIỀN NGUỜI CHƠI</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #111213; padding: 5px 8px; border-radius: 4px; margin-bottom: 6px; border: 1px dashed #444;">
+                    <span style="font-size: 11px; color: #aaa;">Tổng tiền còn lại:</span>
+                    <span id="mc-total-money" style="font-size: 13px; font-weight: bold; color: #00e676;">1.000.000 $A (40 cọc)</span>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 6px;">
+                    <button class="btn-blue" onclick="addPlayerStacksMC(1)">➕ Thêm 1 Cọc (+25k)</button>
+                    <button class="btn-blue" onclick="addPlayerStacksMC(4)">➕ Thêm 4 Cọc (+100k)</button>
+                    <button class="btn-orange" onclick="removePlayerStacksMC(1)">➖ Bớt 1 Cọc (-25k)</button>
+                    <button class="btn-orange" onclick="removePlayerStacksMC(4)">➖ Bớt 4 Cọc (-100k)</button>
+                </div>
+
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <input type="number" id="custom-stacks-input" placeholder="Số cọc" value="40" min="0" max="100" style="width: 70px; text-align: center; font-weight: bold; padding: 4px;">
+                    <button class="btn-purple" style="flex: 1;" onclick="setCustomStacksMC()">Đổi Số Cọc</button>
+                    <button class="btn-red" style="width: auto; padding: 4px 8px;" onclick="setPlayerStacksMC(40)" title="Khôi phục 40 cọc (1 triệu)">40 Cọc</button>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label>Kích Hoạt Sập Hố Vật Lý</label>
                 <button class="btn-orange" style="margin-bottom: 6px;" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Kích Hoạt (Nhạc Hồi Hộp)</button>

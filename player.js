@@ -95,15 +95,118 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// --- MULTI-TAB PLAYER STATE SYNC ---
-function broadcastPlayerStackState() {
-    const stackLocationMap = {};
-    for (let i = 1; i <= 40; i++) {
-        const stack = document.getElementById(`money-${i}`);
-        if (stack && stack.parentNode) {
-            stackLocationMap[`money-${i}`] = stack.parentNode.id;
+// --- MULTI-TAB PLAYER STATE SYNC & MONEY STACK MANAGEMENT ---
+function createMoneyStackElement(stackId) {
+    const moneyStack = document.createElement('div');
+    moneyStack.className = 'money-stack';
+    moneyStack.draggable = true;
+    moneyStack.id = stackId;
+    const img = document.createElement('img');
+    img.src = '50$A.png'; 
+    img.alt = '50 $A';
+    moneyStack.appendChild(img);
+
+    moneyStack.addEventListener('dragstart', (e) => {
+        if (isLock) return e.preventDefault();
+        if (selectedDoor) { selectedDoor.classList.remove('selected'); selectedDoor = null; }
+        e.dataTransfer.setData('text/plain', e.currentTarget.id);
+    });
+    return moneyStack;
+}
+
+function getNextFreeStackId() {
+    let maxId = 0;
+    const allStacks = document.querySelectorAll('.money-stack');
+    allStacks.forEach(s => {
+        const num = parseInt(s.id.replace('money-', '')) || 0;
+        if (num > maxId) maxId = num;
+    });
+    return `money-${maxId + 1}`;
+}
+
+function updateTotalMoneyBoardGuide() {
+    const allStacks = document.querySelectorAll('.money-stack');
+    const totalCount = allStacks.length;
+    const totalMoney = totalCount * VALUE_PER_STACK;
+    const guideEl = document.getElementById('table-guide');
+    if (guideEl) {
+        guideEl.innerText = `Bàn Tiền (${totalCount} cọc = ${totalMoney.toLocaleString('vi-VN')} $A)`;
+    }
+}
+
+function addPlayerStacks(count = 1) {
+    count = Math.max(1, parseInt(count) || 1);
+    for (let i = 0; i < count; i++) {
+        const newId = getNextFreeStackId();
+        const stackEl = createMoneyStackElement(newId);
+        moneyBoard.appendChild(stackEl);
+    }
+    updateTotalMoneyBoardGuide();
+    syncBetsToController();
+    broadcastPlayerStackState();
+}
+
+function removePlayerStacks(count = 1) {
+    count = Math.max(1, parseInt(count) || 1);
+    let removed = 0;
+    // 1. First remove from moneyBoard
+    while (removed < count) {
+        const availableMoney = moneyBoard.querySelector('.money-stack');
+        if (availableMoney) {
+            availableMoney.remove();
+            removed++;
+        } else {
+            break;
         }
     }
+    // 2. If moneyBoard empty, remove from doors
+    if (removed < count) {
+        for (let i = 4; i >= 1; i--) {
+            const door = document.getElementById(`door-${i}`);
+            if (!door) continue;
+            while (removed < count) {
+                const stackInDoor = door.querySelector('.money-stack');
+                if (stackInDoor) {
+                    stackInDoor.remove();
+                    removed++;
+                    let currentBet = (parseInt(door.getAttribute('data-bet')) || 0) - VALUE_PER_STACK;
+                    if (currentBet < 0) currentBet = 0;
+                    door.setAttribute('data-bet', currentBet);
+                    updateDoorBetDisplay(door);
+                } else {
+                    break;
+                }
+            }
+            if (removed >= count) break;
+        }
+    }
+    updateTotalMoneyBoardGuide();
+    syncBetsToController();
+    broadcastPlayerStackState();
+}
+
+function setPlayerStacks(targetCount) {
+    targetCount = Math.max(0, parseInt(targetCount) || 0);
+    const currentStacks = document.querySelectorAll('.money-stack').length;
+    if (targetCount > currentStacks) {
+        addPlayerStacks(targetCount - currentStacks);
+    } else if (targetCount < currentStacks) {
+        removePlayerStacks(currentStacks - targetCount);
+    } else {
+        updateTotalMoneyBoardGuide();
+        syncBetsToController();
+        broadcastPlayerStackState();
+    }
+}
+
+function broadcastPlayerStackState() {
+    const stackLocationMap = {};
+    const allStacks = document.querySelectorAll('.money-stack');
+    allStacks.forEach(stack => {
+        if (stack && stack.parentNode) {
+            stackLocationMap[stack.id] = stack.parentNode.id;
+        }
+    });
     const bets = {
         b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
         b2: parseInt(document.getElementById('door-2').getAttribute('data-bet')) || 0,
@@ -115,7 +218,8 @@ function broadcastPlayerStackState() {
         data: {
             senderId: playerTabId,
             stackLocationMap: stackLocationMap,
-            bets: bets
+            bets: bets,
+            totalStacks: allStacks.length
         }
     });
 }
@@ -153,32 +257,24 @@ function removeMoneyFromDoor(doorId) {
 }
 
 function syncBetsToController() {
+    const allStacks = document.querySelectorAll('.money-stack');
     const betData = {
         b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
         b2: parseInt(document.getElementById('door-2').getAttribute('data-bet')) || 0,
         b3: parseInt(document.getElementById('door-3').getAttribute('data-bet')) || 0,
-        b4: parseInt(document.getElementById('door-4').getAttribute('data-bet')) || 0
+        b4: parseInt(document.getElementById('door-4').getAttribute('data-bet')) || 0,
+        totalStacks: allStacks.length,
+        totalMoney: allStacks.length * VALUE_PER_STACK
     };
     channel.postMessage({ action: 'sync_bets_to_mc', data: betData });
 }
 
-// Khởi tạo 40 cọc tiền
+// Khởi tạo 40 cọc tiền ban đầu
 for (let i = 1; i <= 40; i++) {
-    const moneyStack = document.createElement('div');
-    moneyStack.className = 'money-stack';
-    moneyStack.draggable = true;
-    moneyStack.id = `money-${i}`;
-    const img = document.createElement('img');
-    img.src = '50$A.png'; img.alt = '50 $A';
-    moneyStack.appendChild(img);
+    const moneyStack = createMoneyStackElement(`money-${i}`);
     moneyBoard.appendChild(moneyStack);
-
-    moneyStack.addEventListener('dragstart', (e) => {
-        if(isLock) return e.preventDefault();
-        if (selectedDoor) { selectedDoor.classList.remove('selected'); selectedDoor = null; }
-        e.dataTransfer.setData('text/plain', e.currentTarget.id);
-    });
 }
+updateTotalMoneyBoardGuide();
 
 function updateDoorBetDisplay(door) {
     const currentBet = parseInt(door.getAttribute('data-bet')) || 0;
@@ -288,25 +384,52 @@ channel.onmessage = function(event) {
             }
             break;
 
+        case 'add_player_stacks':
+            addPlayerStacks(data ? (parseInt(data.count) || 1) : 1);
+            break;
+
+        case 'remove_player_stacks':
+            removePlayerStacks(data ? (parseInt(data.count) || 1) : 1);
+            break;
+
+        case 'set_player_stacks':
+            setPlayerStacks(data ? (parseInt(data.count) || 0) : 0);
+            break;
+
+        case 'penalty_fine':
+            removePlayerStacks(1);
+            break;
+
         case 'sync_player_state':
             if (data.senderId === playerTabId) break;
             
             if (data.stackLocationMap) {
-                Object.keys(data.stackLocationMap).forEach(stackId => {
-                    const stack = document.getElementById(stackId);
-                    const targetId = data.stackLocationMap[stackId];
-                    if (stack && targetId) {
-                        const targetElem = document.getElementById(targetId);
-                        if (targetElem && stack.parentNode !== targetElem) {
+                const targetLocationMap = data.stackLocationMap;
+                
+                // 1. Remove local stacks not present in incoming state
+                const currentLocalStacks = document.querySelectorAll('.money-stack');
+                currentLocalStacks.forEach(stack => {
+                    if (!targetLocationMap[stack.id]) {
+                        stack.remove();
+                    }
+                });
+
+                // 2. Add or reposition stacks according to targetLocationMap
+                Object.keys(targetLocationMap).forEach(stackId => {
+                    const targetId = targetLocationMap[stackId];
+                    const targetElem = document.getElementById(targetId);
+                    if (targetElem) {
+                        let stack = document.getElementById(stackId);
+                        if (!stack) {
+                            stack = createMoneyStackElement(stackId);
+                        }
+                        if (stack.parentNode !== targetElem) {
                             targetElem.appendChild(stack);
-                            if (targetId === 'money-board') {
-                                stack.draggable = true;
-                            } else {
-                                stack.draggable = false;
-                            }
+                            stack.draggable = (targetId === 'money-board');
                         }
                     }
                 });
+                updateTotalMoneyBoardGuide();
             }
 
             if (data.bets) {
@@ -424,9 +547,7 @@ channel.onmessage = function(event) {
             break;
 
         case 'penalty_fine':
-            const moneyInGrid = moneyBoard.querySelector('.money-stack');
-            if (moneyInGrid) moneyInGrid.remove();
-            broadcastPlayerStackState();
+            removePlayerStacks(1);
             break;
 
         case 'reset_round':
