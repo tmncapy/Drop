@@ -12,7 +12,7 @@ let enteredPinDigits = "";
 let currentPin = localStorage.getItem('game_pin') || '1234';
 const playerTabId = 'player_' + Math.random().toString(36).substring(2, 9);
 
-const channel = new BroadcastChannel('gameshow_money_drop');
+const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
 
 // --- PIN SECURITY & KEYPAD ---
 function keypadPress(val) {

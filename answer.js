@@ -1,4 +1,4 @@
-const channel = new BroadcastChannel('gameshow_money_drop');
+const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
 let currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
 let activeRound = 1;
 
