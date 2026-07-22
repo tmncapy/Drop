@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Giao Diện Đặt Cược - PLAYER</title>
     <style>
+        @font-face {
+            font-family: 'Myriad Pro';
+            src: local('Myriad Pro'), local('MyriadPro-Regular'), local('MyriadPro');
+        }
+
+        @font-face {
+            font-family: 'LHF_Mono';
+            src: url('LHF_Mono.otf') format('opentype'), url('LHF Mono.otf') format('opentype');
+        }
+
         * {
             box-sizing: border-box; margin: 0; padding: 0;
             -webkit-user-select: none; -ms-user-select: none; user-select: none;
@@ -26,11 +36,18 @@
         }
 
         .answer-box {
+            font-family: 'Myriad Pro', 'MyriadPro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             color: #fff; font-size: 16px; font-weight: bold; margin-bottom: 10px;
             background: #27ae60; padding: 8px 16px; border-radius: 4px;
             border: 1px solid #2ecc71; min-height: 44px; display: flex;
             align-items: center; justify-content: center; width: 100%; text-align: center;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: background-color 0.3s;
+        }
+
+        .dropped-money-font {
+            font-family: 'LHF_Mono', 'LHF Mono', monospace !important;
+            font-size: 18px;
+            color: #ffff00;
         }
 
         .door-wrapper.failed .answer-box {
@@ -51,6 +68,46 @@
         .door.dropped {
             transform: rotateX(85deg); opacity: 0.1; background-color: #000;
             box-shadow: none; pointer-events: none;
+        }
+
+        .bet-control-row {
+            display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px;
+        }
+
+        .bet-control-row .bet-amount {
+            margin-top: 0; flex: 1;
+        }
+
+        .bet-btn {
+            width: 42px; height: 38px; border-radius: 6px; border: none;
+            font-size: 22px; font-weight: bold; color: #ffffff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4); transition: all 0.15s ease;
+            flex-shrink: 0; user-select: none;
+        }
+
+        .bet-btn:active { transform: translateY(2px) scale(0.95); }
+
+        .bet-btn.add-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71); border: 1px solid #2ecc71;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        .bet-btn.add-btn:hover {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        .bet-btn.sub-btn {
+            background: linear-gradient(135deg, #c0392b, #e74c3c); border: 1px solid #ff5252;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        .bet-btn.sub-btn:hover {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+        }
+
+        .door-wrapper.failed .bet-btn {
+            opacity: 0.3; pointer-events: none;
         }
 
         .bet-amount {
@@ -76,7 +133,7 @@
         .table-wrapper { width: 100%; display: flex; flex-direction: column; align-items: center; }
 
         .timer-box {
-            background: #222; color: #ff3d00; font-family: 'Courier New', Courier, monospace;
+            background: #222; color: #ff3d00; font-family: 'LHF_Mono', 'LHF Mono', monospace;
             font-size: 28px; font-weight: bold; padding: 6px 24px; border: 3px solid #34495e;
             border-bottom: none; border-radius: 10px 10px 0 0; box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
             text-shadow: 0 0 10px rgba(255, 61, 0, 0.5); z-index: 2; transition: color 0.3s;
@@ -102,30 +159,176 @@
         .money-stack img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; box-shadow: 0 4px 6px rgba(0,0,0,0.4); display: block; pointer-events: none; }
         
         .door .money-stack { width: 100%; height: 100%; cursor: pointer; pointer-events: none; }
+
+        /* PIN Lock Overlay Styles */
+        .pin-lock-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(10, 10, 15, 0.96);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .pin-card {
+            background: #1c1e21;
+            border: 2px solid #ffcc00;
+            border-radius: 12px;
+            padding: 24px 20px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(255,204,0,0.25);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pin-icon { font-size: 38px; }
+        .pin-card h2 { color: #ffcc00; font-size: 18px; font-weight: bold; margin: 0; text-transform: uppercase; }
+        .pin-card p { color: #cccccc; font-size: 13px; margin: 0; line-height: 1.4; }
+
+        .pin-display-box {
+            background: #000000;
+            border: 2px solid #4e4f50;
+            border-radius: 8px;
+            width: 200px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #00e676;
+            letter-spacing: 10px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.8);
+        }
+
+        .pin-error-msg {
+            color: #ff5252;
+            font-size: 13px;
+            font-weight: bold;
+            min-height: 18px;
+        }
+
+        .pin-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 220px;
+        }
+
+        .pin-keypad button {
+            height: 48px;
+            border-radius: 8px;
+            border: 1px solid #3a3b3c;
+            background: #2a2c2e;
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        .pin-keypad button:active {
+            background: #ffcc00;
+            color: #000000;
+            transform: scale(0.95);
+        }
+        .pin-keypad button.keypad-func {
+            background: #3a3b3c;
+            color: #ffcc00;
+            font-size: 16px;
+        }
+
+        .pin-submit-btn {
+            width: 220px;
+            height: 44px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            margin-top: 4px;
+            transition: all 0.15s ease;
+        }
+        .pin-submit-btn:hover { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .pin-submit-btn:active { transform: translateY(2px); }
     </style>
 </head>
 <body>
+
+    <!-- PIN Lock Overlay -->
+    <div id="pin-lock-overlay" class="pin-lock-overlay">
+        <div class="pin-card">
+            <div class="pin-icon">🔒</div>
+            <h2>BẢO MẬT PLAYER</h2>
+            <p>Nhập mã PIN 4 chữ số do MC cung cấp để vào giao diện chơi:</p>
+            
+            <div class="pin-display-box" id="pin-display"></div>
+            <div id="pin-error" class="pin-error-msg"></div>
+
+            <div class="pin-keypad">
+                <button onclick="keypadPress('1')">1</button>
+                <button onclick="keypadPress('2')">2</button>
+                <button onclick="keypadPress('3')">3</button>
+                <button onclick="keypadPress('4')">4</button>
+                <button onclick="keypadPress('5')">5</button>
+                <button onclick="keypadPress('6')">6</button>
+                <button onclick="keypadPress('7')">7</button>
+                <button onclick="keypadPress('8')">8</button>
+                <button onclick="keypadPress('9')">9</button>
+                <button onclick="keypadPress('C')" class="keypad-func">C</button>
+                <button onclick="keypadPress('0')">0</button>
+                <button onclick="keypadPress('DEL')" class="keypad-func">⌫</button>
+            </div>
+            <button class="pin-submit-btn" onclick="submitPin()">XÁC NHẬN VÀO GAME</button>
+        </div>
+    </div>
 
     <div class="doors-container">
         <div class="door-wrapper" id="wrap-1">
             <div class="answer-box" id="ans-txt-1">---</div>
             <div class="door" id="door-1" data-bet="0"></div>
-            <div class="bet-amount" id="bet-1">0 $A</div>
+            <div class="bet-control-row">
+                <button class="bet-btn sub-btn" onclick="removeMoneyFromDoor(1)">-</button>
+                <div class="bet-amount" id="bet-1">0 $A</div>
+                <button class="bet-btn add-btn" onclick="addMoneyToDoor(1)">+</button>
+            </div>
         </div>
         <div class="door-wrapper" id="wrap-2">
             <div class="answer-box" id="ans-txt-2">---</div>
             <div class="door" id="door-2" data-bet="0"></div>
-            <div class="bet-amount" id="bet-2">0 $A</div>
+            <div class="bet-control-row">
+                <button class="bet-btn sub-btn" onclick="removeMoneyFromDoor(2)">-</button>
+                <div class="bet-amount" id="bet-2">0 $A</div>
+                <button class="bet-btn add-btn" onclick="addMoneyToDoor(2)">+</button>
+            </div>
         </div>
         <div class="door-wrapper" id="wrap-3">
             <div class="answer-box" id="ans-txt-3">---</div>
             <div class="door" id="door-3" data-bet="0"></div>
-            <div class="bet-amount" id="bet-3">0 $A</div>
+            <div class="bet-control-row">
+                <button class="bet-btn sub-btn" onclick="removeMoneyFromDoor(3)">-</button>
+                <div class="bet-amount" id="bet-3">0 $A</div>
+                <button class="bet-btn add-btn" onclick="addMoneyToDoor(3)">+</button>
+            </div>
         </div>
         <div class="door-wrapper" id="wrap-4">
             <div class="answer-box" id="ans-txt-4">---</div>
             <div class="door" id="door-4" data-bet="0"></div>
-            <div class="bet-amount" id="bet-4">0 $A</div>
+            <div class="bet-control-row">
+                <button class="bet-btn sub-btn" onclick="removeMoneyFromDoor(4)">-</button>
+                <div class="bet-amount" id="bet-4">0 $A</div>
+                <button class="bet-btn add-btn" onclick="addMoneyToDoor(4)">+</button>
+            </div>
         </div>
     </div>
 

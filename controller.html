@@ -6,33 +6,281 @@
     <title>BÀN ĐIỀU KHIỂN - MC CONTROLLER</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; background: #222; color: #fff; padding: 20px; }
-        h1, h2, h3 { text-align: center; color: #ffcc00; margin-bottom: 15px; }
-        .grid-container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
-        .panel { background: #333; padding: 15px; border-radius: 8px; border: 1px solid #555; }
-        .form-group { margin-bottom: 12px; padding: 10px; background: #3d3d3d; border-radius: 6px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #ffcc00;}
-        input, select, textarea { width: 100%; padding: 8px; background: #222; border: 1px solid #666; color: #fff; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #27ae60; color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        @font-face {
+            font-family: 'LHF_Mono';
+            src: url('LHF_Mono.otf') format('opentype'), url('LHF Mono.otf') format('opentype');
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #18191a; 
+            color: #e4e6eb; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+            overflow-x: hidden;
+        }
+        
+        /* Top Header Bar */
+        header {
+            min-height: 46px;
+            background: #242526;
+            border-bottom: 1px solid #3a3b3c;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 16px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        header h1 {
+            font-size: 15px;
+            color: #ffcc00;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .header-badge {
+            background: #2d88ff;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .header-pin-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #1c1e21;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #3a3b3c;
+        }
+        .header-pin-bar label {
+            margin-bottom: 0;
+            color: #2e89ff;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .header-pin-bar input {
+            width: 60px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #ffcc00;
+            padding: 2px 4px;
+        }
+        
+        /* Main Dashboard Grid */
+        .dashboard-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.1fr;
+            gap: 12px;
+            padding: 10px 12px;
+            height: calc(100vh - 46px);
+            overflow: hidden;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            body { height: auto; overflow-y: auto; }
+            .dashboard-container {
+                display: flex;
+                flex-direction: column;
+                height: auto;
+                overflow: visible;
+                gap: 12px;
+            }
+            .panel {
+                overflow: visible;
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            header h1 {
+                justify-content: center;
+            }
+            .header-pin-bar {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .inline-group {
+                flex-wrap: wrap;
+            }
+            .inline-group button {
+                flex: 1 1 calc(50% - 6px);
+                min-height: 38px;
+            }
+            button {
+                min-height: 36px;
+                font-size: 13px;
+            }
+            input[type="text"], select, textarea {
+                font-size: 14px;
+                padding: 8px;
+            }
+        }
+        
+        .panel {
+            background: #242526;
+            border: 1px solid #3a3b3c;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+        
+        .panel-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #ffcc00;
+            border-bottom: 1px solid #3a3b3c;
+            padding-bottom: 5px;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group {
+            background: #1c1e21;
+            border: 1px solid #3a3b3c;
+            border-radius: 6px;
+            padding: 8px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #ffcc00;
+            font-size: 12px;
+        }
+        
+        input[type="text"], input[type="file"], select, textarea {
+            width: 100%;
+            padding: 5px 8px;
+            background: #242526;
+            border: 1px solid #4e4f50;
+            color: #fff;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 12px;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #2e89ff;
+            outline: none;
+        }
+        
+        button {
+            width: 100%;
+            padding: 6px 8px;
+            background: #27ae60;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.15s ease, transform 0.05s ease;
+        }
         button:hover { background: #2ecc71; }
-        .btn-orange { background: #e67e22; }
-        .btn-orange:hover { background: #f39c12; }
+        button:active { transform: translateY(1px); }
+        
+        .btn-orange { background: #d35400; }
+        .btn-orange:hover { background: #e67e22; }
         .btn-red { background: #c0392b; }
         .btn-red:hover { background: #e74c3c; }
         .btn-blue { background: #2980b9; }
         .btn-blue:hover { background: #3498db; }
-        .inline-group { display: flex; gap: 10px; margin-top: 5px; }
+        .btn-purple { background: #8e44ad; }
+        .btn-purple:hover { background: #9b59b6; }
+        
+        .inline-group { display: flex; gap: 6px; margin-top: 4px; }
         .inline-group button { margin-top: 0; }
-        .bet-display { font-size: 20px; font-weight: bold; text-align: center; color: #00e676; margin: 10px 0; background: #000; padding: 10px; border-radius: 4px; border: 1px dashed #555; }
+        
+        .ans-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 4px;
+        }
+        .ans-row input { flex: 1; }
+        .ans-row button { width: 100px; flex-shrink: 0; }
+        
+        .bet-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .bet-box {
+            background: #111213;
+            border: 1px dashed #444;
+            border-radius: 4px;
+            padding: 4px 6px;
+            text-align: center;
+        }
+        .bet-box .title {
+            font-size: 11px;
+            color: #aaa;
+        }
+        .bet-display {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00e676;
+        }
+        
+        .sfx-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+        
+        /* Custom Scrollbar */
+        .panel::-webkit-scrollbar { width: 5px; }
+        .panel::-webkit-scrollbar-track { background: #1c1e21; }
+        .panel::-webkit-scrollbar-thumb { background: #4e4f50; border-radius: 3px; }
+        .panel::-webkit-scrollbar-thumb:hover { background: #666; }
     </style>
 </head>
 <body>
 
-    <h1>HỆ THỐNG ĐIỀU KHIỂN TRÒ CHƠI</h1>
-    
-    <div class="grid-container">
+    <header>
+        <h1>🎮 HỆ THỐNG ĐIỀU KHIỂN TRÒ CHƠI <span class="header-badge">LIVE</span></h1>
+        
+        <div class="header-pin-bar">
+            <label>🔑 MÃ PIN PLAYER:</label>
+            <input type="text" id="pin-code-input" maxlength="4" value="1234">
+            <button class="btn-blue" style="width: auto; padding: 4px 8px;" onclick="updatePinCode()">Cập nhật</button>
+            <button class="btn-orange" style="width: auto; padding: 4px 8px;" onclick="generateRandomPin()">Ngẫu nhiên</button>
+            <button class="btn-red" style="width: auto; padding: 4px 8px;" onclick="forceLockPlayers()">Khóa Player</button>
+        </div>
+
+        <div id="sfx-status" style="font-weight: bold; color: #f39c12; font-size: 12px;">Sẵn sàng phát âm thanh</div>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- COLUMN 1: CONTENT & QUESTIONS -->
         <div class="panel">
-            <h2>NẠP DỮ LIỆU & NỘI DUNG</h2>
+            <div class="panel-title">1. NẠP DỮ LIỆU & NỘI DUNG</div>
             
             <div class="form-group">
                 <label>1. Tải Câu Hỏi Từ Excel</label>
@@ -40,24 +288,27 @@
             </div>
 
             <div class="form-group">
-                <label>2. Chọn Vòng Chơi (Luật ẩn cửa tự động)</label>
-                <select id="select-round" onchange="handleRoundChange()">
-                    <option value="1">Vòng 1 (Hiển thị tất cả 4 cửa)</option>
-                    <option value="5">Vòng 5 (Ẩn cửa số 4 - Còn 3 cửa)</option>
-                    <option value="8">Vòng 8 (Ẩn cửa 1 và 4 - Còn 2 cửa)</option>
-                </select>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                    <div>
+                        <label>Vòng Chơi (Luật Cửa)</label>
+                        <select id="select-round" onchange="handleRoundChange()">
+                            <option value="1">Vòng 1 (4 Cửa)</option>
+                            <option value="5">Vòng 5 (3 Cửa)</option>
+                            <option value="8">Vòng 8 (2 Cửa)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Chọn Câu Hỏi</label>
+                        <select id="select-question-index" onchange="loadSelectedQuestion()">
+                            <option value="">-- Chưa có --</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">
-                <label>2b. Chọn Câu Hỏi Cụ Thể Trong Vòng</label>
-                <select id="select-question-index" onchange="loadSelectedQuestion()">
-                    <option value="">-- Chưa có câu hỏi --</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>3. Chủ Đề Để Lựa Chọn</label>
-                <input type="text" id="topic-a" placeholder="Tên chủ đề A" style="margin-bottom: 5px;">
+                <label>2. Chủ Đề Để Lựa Chọn</label>
+                <input type="text" id="topic-a" placeholder="Tên chủ đề A" style="margin-bottom: 4px;">
                 <input type="text" id="topic-b" placeholder="Tên chủ đề B">
                 <div class="inline-group">
                     <button class="btn-blue" onclick="sendTopics()">Hiện 2 Chủ Đề</button>
@@ -66,64 +317,149 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>4. Câu Hỏi & Đáp Án</label>
-                <textarea id="question-input" rows="2" placeholder="Nội dung câu hỏi chữ lớn..." style="margin-bottom: 5px;"></textarea>
-                <button class="btn-blue" onclick="sendQuestion()">Hiện Câu Hỏi Lên Màn Hình</button>
+            <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
+                <label>3. Câu Hỏi & Đáp Án</label>
+                <textarea id="question-input" rows="2" placeholder="Nội dung câu hỏi chữ lớn..." style="margin-bottom: 6px; resize: vertical;"></textarea>
+                <div class="inline-group" style="margin-bottom: 8px;">
+                    <button class="btn-blue" onclick="sendQuestion()">Hiện Câu Hỏi</button>
+                    <button class="btn-orange" onclick="showAllQuestionAndAnswers()">Hiện Q &amp; A</button>
+                </div>
                 
-                <div style="margin-top: 10px; border-top: 1px solid #555; padding-top: 10px;">
-                    <input type="text" id="ans-1" placeholder="Đáp án cửa 1" style="margin-bottom: 3px;">
-                    <button onclick="sendSingleAnswer(1)">Hiện Đáp Án 1</button>
+                <div style="border-top: 1px solid #444; padding-top: 6px; display: flex; flex-direction: column; gap: 4px;">
+                    <button class="btn-blue" style="margin-bottom: 4px;" onclick="playSfx('SFX/drop_question_bed.mp3')">🎵 Bắt Đầu Hiện Đáp Án</button>
                     
-                    <input type="text" id="ans-2" placeholder="Đáp án cửa 2" style="margin-top: 5px; margin-bottom: 3px;">
-                    <button onclick="sendSingleAnswer(2)">Hiện Đáp Án 2</button>
+                    <div class="ans-row">
+                        <input type="text" id="ans-1" placeholder="Đáp án cửa 1">
+                        <button onclick="sendSingleAnswer(1)">Hiện Cửa 1</button>
+                    </div>
                     
-                    <input type="text" id="ans-3" placeholder="Đáp án cửa 3" style="margin-top: 5px; margin-bottom: 3px;">
-                    <button onclick="sendSingleAnswer(3)">Hiện Đáp Án 3</button>
+                    <div class="ans-row">
+                        <input type="text" id="ans-2" placeholder="Đáp án cửa 2">
+                        <button onclick="sendSingleAnswer(2)">Hiện Cửa 2</button>
+                    </div>
                     
-                    <input type="text" id="ans-4" placeholder="Đáp án cửa 4" style="margin-top: 5px; margin-bottom: 3px;">
-                    <button onclick="sendSingleAnswer(4)">Hiện Đáp Án 4</button>
+                    <div class="ans-row">
+                        <input type="text" id="ans-3" placeholder="Đáp án cửa 3">
+                        <button onclick="sendSingleAnswer(3)">Hiện Cửa 3</button>
+                    </div>
+                    
+                    <div class="ans-row">
+                        <input type="text" id="ans-4" placeholder="Đáp án cửa 4">
+                        <button onclick="sendSingleAnswer(4)">Hiện Cửa 4</button>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- COLUMN 2: TIMER, BETS & TRAPDOORS -->
         <div class="panel">
-            <h2>HỆ THỐNG THỜI GIAN & HỐ SẬP</h2>
+            <div class="panel-title">2. THỜI GIAN & HỐ SẬP</div>
             
             <div class="form-group">
-                <label id="time-display">THỜI GIAN ĐẶT CƯỢC: --:--</label>
+                <label id="time-display" style="font-size: 13px; text-align: center; color: #00e676; font-family: 'LHF_Mono', 'LHF Mono', monospace;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
                 <div class="inline-group">
-                    <button onclick="startTimer()">Bắt Đầu Đếm (60s)</button>
+                    <button onclick="startTimer()">Bắt Đầu (60s)</button>
                     <button class="btn-orange" onclick="add30Seconds()">+30 Giây</button>
-                    <button class="btn-red" onclick="stopTimer()">Dừng Thời Gian</button>
+                    <button class="btn-red" onclick="stopTimer()">Dừng Đếm</button>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Theo Dõi Tiền Đặt Cược Trực Tuyến</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div>Cửa 1: <div class="bet-display" id="mc-bet-1">0 $A</div></div>
-                    <div>Cửa 2: <div class="bet-display" id="mc-bet-2">0 $A</div></div>
-                    <div>Cửa 3: <div class="bet-display" id="mc-bet-3">0 $A</div></div>
-                    <div>Cửa 4: <div class="bet-display" id="mc-bet-4">0 $A</div></div>
+                <div class="bet-grid">
+                    <div class="bet-box"><div class="title">Cửa 1</div><div class="bet-display" id="mc-bet-1">0 $A</div></div>
+                    <div class="bet-box"><div class="title">Cửa 2</div><div class="bet-display" id="mc-bet-2">0 $A</div></div>
+                    <div class="bet-box"><div class="title">Cửa 3</div><div class="bet-display" id="mc-bet-3">0 $A</div></div>
+                    <div class="bet-box"><div class="title">Cửa 4</div><div class="bet-display" id="mc-bet-4">0 $A</div></div>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Kích Hoạt Sập Hố Vật Lý</label>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn-orange" style="margin-bottom: 6px;" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Kích Hoạt (Nhạc Hồi Hộp)</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
                     <button class="btn-red" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
                     <button class="btn-red" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
                     <button class="btn-red" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
                     <button class="btn-red" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
                 </div>
+                <button class="btn-red" style="margin-top: 6px; font-weight: bold; font-size: 14px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">💥 SẬP</button>
             </div>
 
-            <div class="form-group" style="background: #2c3e50;">
+            <div class="form-group" style="background: #2c3e50; margin-top: auto;">
                 <label style="color: #fff;">Quản Lý Vòng Đấu</label>
-                <button onclick="collectWinningMoney()">THU TIỀN THẮNG VỀ BÀN</button>
-                <button class="btn-orange" onclick="penaltyFine()">PHẠT GIẢM 1 CỌC TIỀN</button>
-                <button class="btn-red" onclick="resetRound()" style="margin-top: 10px;">RESET TOÀN BỘ VÒNG CHƠI mới</button>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <button onclick="collectWinningMoney()">THU TIỀN THẮNG VỀ BÀN</button>
+                    <button class="btn-orange" onclick="penaltyFine()">PHẠT GIẢM 1 CỌC TIỀN</button>
+                    <button class="btn-red" onclick="resetRound()" style="margin-top: 4px;">RESET TOÀN BỘ VÒNG CHƠI</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN 3: SOUNDBOARD SFX -->
+        <div class="panel">
+            <div class="panel-title">3. BẢNG ÂM THANH (SOUNDBOARD SFX)</div>
+            
+            <div class="sfx-grid">
+                <button class="btn-blue" onclick="playSfx('SFX/drop_opening.mp3')">🎵 Mở Đầu (Opening)</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_welcome_contestants.mp3')">👋 Chào Thí Sinh</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_host_entrance.mp3')">🎤 MC Ra Sân Khấu</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_letsplay.mp3')">🚀 Let's Play</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_category.mp3')">🎯 Hiện Chủ Đề</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_chosen_category.mp3')">📌 Chốt Chủ Đề</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_question_bed.mp3')">❓ Nền Câu Hỏi</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_Reveal the Question_2.mp3')">💡 Hiện Câu Hỏi</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_question_and_answer_reveal.mp3')">📝 Hiện Q &amp; A</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Hồi Hộp Đặt Cược</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_timer.mp3')">⏱️ Đếm Ngược 60s</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_timer_q8.mp3')">⏰ Đếm Ngược Vòng 8</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_30s.wav')">➕ Cộng 30 Giây</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_timer_stop.mp3')">🛑 Dừng Thời Gian</button>
+                <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_1.mp3')">💥 Sập Hố 1</button>
+                <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3')">💥 Sập Hố 2</button>
+                <button style="background: #27ae60;" onclick="playSfx('SFX/drop_win.mp3')">🏆 Chiến Thắng</button>
+                <button class="btn-red" onclick="playSfx('SFX/drop_lose.mp3')">❌ Thua Cuộc</button>
+                <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_in.mp3')">📺 Quảng Cáo Vào</button>
+                <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_out.mp3')">📺 Quảng Cáo Ra</button>
+                <button style="background: #2c3e50;" onclick="playSfx('SFX/drop_closing.mp3')">🎬 Kết Thúc Show</button>
+                <button style="background: #2c3e50;" onclick="playSfx('SFX/drop_main.mp3')">🌟 Nhạc Main</button>
+            </div>
+
+            <button class="btn-red" style="font-weight: bold; background: #d32f2f; margin-top: 4px;" onclick="stopSfx()">🔇 DỪNG TOÀN BỘ ÂM THANH</button>
+
+            <div class="form-group" style="margin-top: auto;">
+                <label>Phát File Âm Thanh Tùy Chọn:</label>
+                <select id="sfx-select-list" onchange="document.getElementById('custom-sfx-input').value = this.value" style="margin-bottom: 4px;">
+                    <option value="SFX/drop_30s.wav">drop_30s.wav</option>
+                    <option value="SFX/drop_category.mp3">drop_category.mp3</option>
+                    <option value="SFX/drop_chosen_category.mp3">drop_chosen_category.mp3</option>
+                    <option value="SFX/drop_closing.mp3">drop_closing.mp3</option>
+                    <option value="SFX/drop_commercial_in.mp3">drop_commercial_in.mp3</option>
+                    <option value="SFX/drop_commercial_out.mp3">drop_commercial_out.mp3</option>
+                    <option value="SFX/drop_host_entrance.mp3">drop_host_entrance.mp3</option>
+                    <option value="SFX/drop_intrigue.mp3">drop_intrigue.mp3</option>
+                    <option value="SFX/drop_letsplay.mp3">drop_letsplay.mp3</option>
+                    <option value="SFX/drop_lose.mp3">drop_lose.mp3</option>
+                    <option value="SFX/drop_main.mp3">drop_main.mp3</option>
+                    <option value="SFX/drop_opening.mp3">drop_opening.mp3</option>
+                    <option value="SFX/drop_question_and_answer_reveal.mp3">drop_question_and_answer_reveal.mp3</option>
+                    <option value="SFX/drop_question_bed.mp3">drop_question_bed.mp3</option>
+                    <option value="SFX/drop_Reveal the Question_2.mp3">drop_Reveal the Question_2.mp3</option>
+                    <option value="SFX/drop_timer.mp3">drop_timer.mp3</option>
+                    <option value="SFX/drop_timer_q8.mp3">drop_timer_q8.mp3</option>
+                    <option value="SFX/drop_timer_stop.mp3">drop_timer_stop.mp3</option>
+                    <option value="SFX/drop_trapdoor_1.mp3">drop_trapdoor_1.mp3</option>
+                    <option value="SFX/drop_trapdoor_2.mp3.mp3">drop_trapdoor_2.mp3.mp3</option>
+                    <option value="SFX/drop_variant.wav">drop_variant.wav</option>
+                    <option value="SFX/drop_variant_2_3_4.mp3">drop_variant_2_3_4.mp3</option>
+                    <option value="SFX/drop_welcome_contestants.mp3">drop_welcome_contestants.mp3</option>
+                    <option value="SFX/drop_win.mp3">drop_win.mp3</option>
+                </select>
+                <div class="inline-group">
+                    <input type="text" id="custom-sfx-input" placeholder="Tên file SFX..." value="SFX/drop_30s.wav">
+                    <button class="btn-blue" style="width: 80px; flex-shrink: 0;" onclick="playCustomSfx()">Phát</button>
+                    <button class="btn-red" style="width: 70px; flex-shrink: 0;" onclick="stopSfx()">Tắt</button>
+                </div>
             </div>
         </div>
     </div>
@@ -131,3 +467,4 @@
     <script src="controller.js"></script>
 </body>
 </html>
+

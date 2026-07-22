@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MÀN HÌNH ĐÁP ÁN - ANSWER SCREEN</title>
     <style>
+        @font-face {
+            font-family: 'Myriad Pro';
+            src: local('Myriad Pro'), local('MyriadPro-Regular'), local('MyriadPro');
+        }
+
+        @font-face {
+            font-family: 'LHF_Mono';
+            src: url('LHF_Mono.otf') format('opentype'), url('LHF Mono.otf') format('opentype');
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
@@ -24,7 +34,7 @@
 
         /* TỶ LỆ CỦA Ô CỬA (4:2.6) */
         .door-frame {
-            width: 100%; aspect-ratio: 4 / 2.6; position: relative; border: 4px solid #ffcc00;
+            width: 100%; aspect-ratio: 4 / 2.6; position: relative; border: none;
             border-radius: 6px; overflow: hidden; background: #000; box-shadow: 0 15px 30px rgba(0,0,0,0.6);
         }
 
@@ -59,6 +69,7 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center; padding: 20px;
             font-size: 32px; font-weight: bold; text-align: center; color: #ffffff;
+            font-family: 'Myriad Pro', 'MyriadPro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             text-shadow: 0 3px 6px rgba(0,0,0,1), 0 0 15px rgba(0,0,0,0.8); z-index: 2;
             opacity: 0; transform: scale(0.3);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
@@ -68,7 +79,7 @@
         .answer-text-inside.show { opacity: 1; transform: scale(1); }
         .answer-text-inside.hide-on-drop { opacity: 0 !important; transform: scale(0.3) !important; transition: all 0.2s ease !important; }
 
-        /* CHỮ BÁO TIỀN RƠI CĂN GIỮA ĐỒNG ĐỀU */
+        /* CHỮ BÁO TIỀI RƠI CĂN GIỮA ĐỒNG ĐỀU */
         .fall-status-text {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -76,6 +87,7 @@
             text-transform: uppercase; line-height: 1.3; z-index: 2;
             text-shadow: 0 2px 4px #000, 0 0 10px #000, 0 0 20px #000;
             opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
+            font-family: 'LHF_Mono', 'LHF Mono', monospace;
         }
         .fall-status-text.active { opacity: 1; }
 
@@ -114,7 +126,7 @@
                 <div class="unused-overlay" id="unused-1"></div>
                 <div class="bottom-bg-layer" id="bg-layer-1"></div>
                 <div class="answer-text-inside" id="inside-txt-1"></div>
-                <div class="fall-status-text" id="fall-txt-1">0 $A <br> ĐÃ RƠI</div>
+                <div class="fall-status-text" id="fall-txt-1"></div>
                 <div class="door-surface" id="surface-1">
                     <div class="door-wing left" id="wing-l-1"></div>
                     <div class="door-wing right" id="wing-r-1"></div>
@@ -127,7 +139,7 @@
                 <div class="unused-overlay" id="unused-2"></div>
                 <div class="bottom-bg-layer" id="bg-layer-2"></div>
                 <div class="answer-text-inside" id="inside-txt-2"></div>
-                <div class="fall-status-text" id="fall-txt-2">0 $A <br> ĐÃ RƠI</div>
+                <div class="fall-status-text" id="fall-txt-2"></div>
                 <div class="door-surface" id="surface-2">
                     <div class="door-wing left" id="wing-l-2"></div>
                     <div class="door-wing right" id="wing-r-2"></div>
@@ -140,7 +152,7 @@
                 <div class="unused-overlay" id="unused-3"></div>
                 <div class="bottom-bg-layer" id="bg-layer-3"></div>
                 <div class="answer-text-inside" id="inside-txt-3"></div>
-                <div class="fall-status-text" id="fall-txt-3">0 $A <br> ĐÃ RƠI</div>
+                <div class="fall-status-text" id="fall-txt-3"></div>
                 <div class="door-surface" id="surface-3">
                     <div class="door-wing left" id="wing-l-3"></div>
                     <div class="door-wing right" id="wing-r-3"></div>
@@ -153,7 +165,7 @@
                 <div class="unused-overlay" id="unused-4"></div>
                 <div class="bottom-bg-layer" id="bg-layer-4"></div>
                 <div class="answer-text-inside" id="inside-txt-4"></div>
-                <div class="fall-status-text" id="fall-txt-4">0 $A <br> ĐÃ RƠI</div>
+                <div class="fall-status-text" id="fall-txt-4"></div>
                 <div class="door-surface" id="surface-4">
                     <div class="door-wing left" id="wing-l-4"></div>
                     <div class="door-wing right" id="wing-r-4"></div>

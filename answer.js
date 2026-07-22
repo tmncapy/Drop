@@ -1,6 +1,4 @@
 const channel = new BroadcastChannel('gameshow_money_drop');
-const timerAudio=new Audio("SFX/drop_timer.mp3");
-timerAudio.loop=true;
 let currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
 let activeRound = 1;
 
@@ -23,7 +21,15 @@ channel.onmessage = function(event) {
             currentBets.b4 = data.b4 || 0;
             
             for(let i = 1; i <= 4; i++) {
-                document.getElementById(`fall-txt-${i}`).innerHTML = `${currentBets[`b${i}`].toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
+                const textEl = document.getElementById(`fall-txt-${i}`);
+                if (textEl && textEl.classList.contains('active')) {
+                    const betVal = currentBets[`b${i}`] || 0;
+                    if (betVal > 0) {
+                        textEl.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
+                    } else {
+                        textEl.innerHTML = `ĐÃ RƠI`;
+                    }
+                }
             }
             break;
 
@@ -49,29 +55,7 @@ channel.onmessage = function(event) {
             break;
 
         case 'timer_control':
-if(data.status==="start"){
-
-    timerAudio.currentTime=0;
-
-    timerAudio.play();
-
-}
-
-if(data.status==="stop"){
-
-    timerAudio.pause();
-
-    timerAudio.currentTime=0;
-
-}
-
-if(data.status==="timeout"){
-
-    timerAudio.pause();
-
-    timerAudio.currentTime=0;
-
-}
+            // No audio playback on answer.html as per constraints
             break;
 
         case 'change_round':
@@ -109,15 +93,27 @@ if(data.status==="timeout"){
                     surface.classList.remove('closing');
                     surface.classList.add('dropped'); 
                     if (bgLayer) bgLayer.classList.add('collapsed-bg'); 
-                    if (fallTxt) fallTxt.classList.add('active');   
+                    
+                    if (fallTxt) {
+                        const betVal = currentBets[`b${doorId}`] || 0;
+                        if (betVal > 0) {
+                            fallTxt.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
+                        } else {
+                            fallTxt.innerHTML = `ĐÃ RƠI`;
+                        }
+                        fallTxt.classList.add('active');
+                    }
                 }, 1000);
             }
             break;
 
         case 'reset_round':
+            currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
             for (let i = 1; i <= 4; i++) {
-                document.getElementById(`wing-l-${i}`).classList.remove('bg-moneydoor');
-                document.getElementById(`wing-r-${i}`).classList.remove('bg-moneydoor');
+                const wingL = document.getElementById(`wing-l-${i}`);
+                if (wingL) wingL.classList.remove('bg-moneydoor');
+                const wingR = document.getElementById(`wing-r-${i}`);
+                if (wingR) wingR.classList.remove('bg-moneydoor');
                 
                 const surfaceReset = document.getElementById(`surface-${i}`);
                 if (surfaceReset) surfaceReset.className = "door-surface"; 
@@ -132,7 +128,10 @@ if(data.status==="timeout"){
                 }
 
                 const fallT = document.getElementById(`fall-txt-${i}`);
-                if (fallT) fallT.classList.remove('active');
+                if (fallT) {
+                    fallT.classList.remove('active');
+                    fallT.innerHTML = "";
+                }
 
                 setUnusedStatus(i, false);
             }

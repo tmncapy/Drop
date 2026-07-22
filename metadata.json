@@ -1,0 +1,6 @@
+{
+  "name": "Money Drop Gameshow",
+  "description": "Hệ thống đồng bộ đa màn hình vận hành Gameshow Đừng Để Tiền Rơi: Bàn điều khiển kỹ thuật, MC Host Dashboard, Giao diện đặt cược người chơi và Màn hình máy chiếu sân khấu lớn.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
