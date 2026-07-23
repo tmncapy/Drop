@@ -225,6 +225,7 @@
         let activeSfxAudio = null;
         let clickCount = 0; 
         let isAudioUnlocked = false;
+        let clockHideTimeout = null;
 
         function unlockAudio() {
             if (!isAudioUnlocked) {
@@ -318,6 +319,10 @@
 
             document.getElementById("central-box").classList.remove("show", "move-up");
             document.getElementById("answers-container").classList.remove("show");
+            if (clockHideTimeout) {
+                clearTimeout(clockHideTimeout);
+                clockHideTimeout = null;
+            }
             document.getElementById("clock-container").classList.remove("show");
             const hudElReset = document.getElementById("progress-hud-overlay");
             if (hudElReset) hudElReset.classList.remove("show");
@@ -550,16 +555,32 @@
 
                 case "timer_control":
                     if (data.status === "start") {
+                        if (clockHideTimeout) {
+                            clearTimeout(clockHideTimeout);
+                            clockHideTimeout = null;
+                        }
                         stopAllSfxOnProjector();
                         const sfxFile = (currentRound === 8 || data.round === 8) ? "SFX/drop_timer_q8.mp3" : "SFX/drop_timer.mp3";
                         timerAudio.src = sfxFile;
                         timerAudio.currentTime = 0;
                         timerAudio.play().catch(e => console.log("Audio play blocked/failed:", e));
                         document.getElementById("clock-container").classList.add("show");
-                    }
-                    if (data.status === "stop") {
+                    } else if (data.status === "add30") {
+                        if (clockHideTimeout) {
+                            clearTimeout(clockHideTimeout);
+                            clockHideTimeout = null;
+                        }
+                        document.getElementById("clock-container").classList.add("show");
+                    } else if (data.status === "stop" || data.status === "timeout") {
                         timerAudio.pause();
                         timerAudio.currentTime = 0;
+                        if (clockHideTimeout) {
+                            clearTimeout(clockHideTimeout);
+                        }
+                        clockHideTimeout = setTimeout(() => {
+                            document.getElementById("clock-container").classList.remove("show");
+                            clockHideTimeout = null;
+                        }, 3000);
                     }
                     break;
             }
