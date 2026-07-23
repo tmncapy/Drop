@@ -379,7 +379,7 @@ function collectMoneyBack() {
         playSfx('SFX/drop_moneyback.mp3');
     }
     sendCommand('collect_winning');
-    showWinningMoneyOnProjector();
+    hideWinningMoneyOnProjector();
 }
 
 function showWinningMoneyOnProjector() {
