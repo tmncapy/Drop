@@ -201,25 +201,47 @@ channel.onmessage = function(event) {
             if (bgLayer) bgLayer.classList.remove('bg-moneydoor');
             const insideText = document.getElementById(`inside-txt-${doorId}`);
 
+            const vSplit = document.getElementById(`v-split-${doorId}`);
+
             if (insideText) {
                 insideText.classList.remove('show');
                 insideText.classList.add('hide-on-drop');
             }
 
             if (surface) {
-                surface.classList.add('closing');
-                surface.classList.remove('wiped');
+                surface.classList.remove('wiped', 'closing');
+                surface.classList.add('dropped');
+            }
 
+            if (vSplit) {
+                vSplit.classList.remove('split-out');
+                vSplit.classList.add('active');
+                // Trigger reflow for smooth animation start
+                void vSplit.offsetWidth;
+                // Phase 1: Entrance Split Vertical In (Cửa sập gập khép từ trên & dưới vào giữa)
+                vSplit.classList.add('split-in');
+
+                // Phase 2: Exit Split Vertical Out (Sau đó mở ra thông báo số tiền đã rơi)
                 setTimeout(() => {
-                    surface.classList.remove('closing');
-                    surface.classList.add('dropped'); 
                     if (bgLayer) bgLayer.classList.add('collapsed-bg'); 
-                    
                     if (fallTxt) {
                         fallTxt.innerHTML = `${droppedBetVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
                         fallTxt.classList.add('active');
                     }
-                }, 1000);
+
+                    vSplit.classList.remove('split-in');
+                    vSplit.classList.add('split-out');
+
+                    setTimeout(() => {
+                        vSplit.classList.remove('active', 'split-out');
+                    }, 900);
+                }, 900);
+            } else {
+                if (bgLayer) bgLayer.classList.add('collapsed-bg'); 
+                if (fallTxt) {
+                    fallTxt.innerHTML = `${droppedBetVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
+                    fallTxt.classList.add('active');
+                }
             }
             break;
 
@@ -234,6 +256,9 @@ channel.onmessage = function(event) {
                 const surfaceReset = document.getElementById(`surface-${i}`);
                 if (surfaceReset) surfaceReset.className = "door-surface"; 
                 
+                const vSplitReset = document.getElementById(`v-split-${i}`);
+                if (vSplitReset) vSplitReset.className = "v-split-container";
+
                 const bgLyr = document.getElementById(`bg-layer-${i}`);
                 if (bgLyr) {
                     bgLyr.classList.remove('collapsed-bg');
