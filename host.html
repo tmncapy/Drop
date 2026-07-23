@@ -152,25 +152,36 @@
             }
             if (action === 'open_door') {
                 let doorId = data.doorId;
-                if (currentRound === 8) {
+                if (currentRound >= 5 && currentRound <= 7) {
+                    if (data.doorId === 1) doorId = 2;
+                    else if (data.doorId === 2) doorId = 3;
+                    else if (data.doorId === 3) doorId = 4;
+                    else doorId = null;
+                } else if (currentRound === 8) {
                     if (data.doorId === 1) doorId = 2;
                     else if (data.doorId === 2) doorId = 3;
                     else doorId = null;
                 }
                 if (doorId) {
-                    document.getElementById(`img-door-${doorId}`).classList.add('dropped');
-                    const txtDrop = document.getElementById(`drop-text-${doorId}`);
                     const betVal = currentBets[`b${data.doorId}`] || 0;
-                    txtDrop.innerText = betVal.toLocaleString('vi-VN') + " $A đã rơi";
-                    txtDrop.style.display = 'block';
+                    const imgDoor = document.getElementById(`img-door-${doorId}`);
+                    if (imgDoor) imgDoor.classList.add('dropped');
+                    const txtDrop = document.getElementById(`drop-text-${doorId}`);
+                    if (txtDrop) {
+                        txtDrop.innerText = betVal.toLocaleString('vi-VN') + " $A đã rơi";
+                        txtDrop.style.display = 'block';
+                    }
 
                     const label = document.getElementById(`label-ans-${doorId}`);
-                    if (betVal > 0) {
-                        label.classList.add('host-win'); 
-                    } else {
-                        label.classList.add('host-lose'); 
+                    if (label) {
+                        if (betVal > 0) {
+                            label.classList.add('host-win'); 
+                        } else {
+                            label.classList.add('host-lose'); 
+                        }
                     }
-                    document.getElementById('explain-text').style.display = 'inline';
+                    const expEl = document.getElementById('explain-text');
+                    if (expEl) expEl.style.display = 'inline';
                 }
             }
             if (action === 'change_round') {
@@ -183,6 +194,16 @@
                 } else if (data.round === 8) {
                     document.getElementById('wrapper-1').style.opacity = '0'; 
                     document.getElementById('wrapper-4').style.opacity = '0';
+
+                    // Auto shift labels if previously placed in label-ans-1/2
+                    const l1 = document.getElementById('label-ans-1');
+                    const l2 = document.getElementById('label-ans-2');
+                    const l3 = document.getElementById('label-ans-3');
+                    if (l1 && l1.innerText && l1.innerText !== "---" && (!l3 || !l3.innerText || l3.innerText === "---")) {
+                        if (l3) l3.innerText = l2.innerText;
+                        if (l2) l2.innerText = l1.innerText;
+                        if (l1) l1.innerText = "---";
+                    }
                 }
             }
             if (action === 'timer_control') {

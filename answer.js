@@ -47,23 +47,6 @@ channel.onmessage = function(event) {
             currentBets.b4 = data.b4 || 0;
             
             updateBetDisplays();
-
-            for(let i = 1; i <= 4; i++) {
-                const textEl = document.getElementById(`fall-txt-${i}`);
-                if (textEl && textEl.classList.contains('active')) {
-                    let actualDoorBetKey = `b${i}`;
-                    if (activeRound >= 5 && activeRound <= 7) {
-                        if (i === 2) actualDoorBetKey = 'b1';
-                        else if (i === 3) actualDoorBetKey = 'b2';
-                        else if (i === 4) actualDoorBetKey = 'b3';
-                    } else if (activeRound === 8) {
-                        if (i === 2) actualDoorBetKey = 'b1';
-                        else if (i === 3) actualDoorBetKey = 'b2';
-                    }
-                    const betVal = currentBets[actualDoorBetKey] || 0;
-                    textEl.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
-                }
-            }
             break;
 
         case 'update_content':
@@ -202,6 +185,8 @@ channel.onmessage = function(event) {
             }
             if (!doorId) break;
 
+            const droppedBetVal = currentBets[`b${data.doorId}`] || 0;
+
             const wingL = document.getElementById(`wing-l-${doorId}`);
             if (wingL) wingL.classList.remove('bg-moneydoor');
             const wingR = document.getElementById(`wing-r-${doorId}`);
@@ -231,8 +216,7 @@ channel.onmessage = function(event) {
                     if (bgLayer) bgLayer.classList.add('collapsed-bg'); 
                     
                     if (fallTxt) {
-                        const betVal = currentBets[`b${data.doorId}`] || 0;
-                        fallTxt.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
+                        fallTxt.innerHTML = `${droppedBetVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
                         fallTxt.classList.add('active');
                     }
                 }, 1000);
