@@ -259,6 +259,77 @@
         .panel::-webkit-scrollbar-track { background: #1c1e21; }
         .panel::-webkit-scrollbar-thumb { background: #4e4f50; border-radius: 3px; }
         .panel::-webkit-scrollbar-thumb:hover { background: #666; }
+
+        /* Navigation Tab Bar */
+        .tab-bar {
+            display: flex;
+            background: #1c1e21;
+            border-bottom: 1px solid #3a3b3c;
+            padding: 0 12px;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            background: transparent;
+            color: #b0b3b8;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 0;
+            width: auto;
+            transition: all 0.2s ease;
+        }
+        .tab-button:hover {
+            color: #ffffff;
+            background: #242526;
+        }
+        .tab-button.active {
+            color: #ffcc00;
+            border-bottom-color: #ffcc00;
+            background: #242526;
+        }
+
+        .progress-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+            overflow-y: auto;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .q-status-btn {
+            background: #1c1e21;
+            border: 2px solid #3a3b3c;
+            color: #fff;
+            padding: 12px 6px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+        .q-status-btn.played {
+            background: #1b4332;
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+        .q-status-btn.unplay {
+            background: #4a1212;
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
     </style>
 </head>
 <body>
@@ -277,7 +348,12 @@
         <div id="sfx-status" style="font-weight: bold; color: #f39c12; font-size: 12px;">Sẵn sàng phát âm thanh</div>
     </header>
 
-    <div class="dashboard-container">
+    <div class="tab-bar">
+        <button class="tab-button active" id="tab-btn-main" onclick="switchControllerTab('main')">🎮 BÀN ĐIỀU KHIỂN CHÍNH</button>
+        <button class="tab-button" id="tab-btn-progress" onclick="switchControllerTab('progress')">📊 TIẾN TRÌNH CHƠI</button>
+    </div>
+
+    <div id="main-dashboard" class="dashboard-container">
         <!-- COLUMN 1: CONTENT & QUESTIONS -->
         <div class="panel">
             <div class="panel-title">1. NẠP DỮ LIỆU & NỘI DUNG</div>
@@ -430,7 +506,7 @@
                 <button class="btn-blue" onclick="playSfx('SFX/drop_chosen_category.mp3')">📌 Chốt Chủ Đề</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_question_bed.mp3')">❓ Nền Câu Hỏi</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_Reveal the Question_2.mp3')">💡 Hiện Câu Hỏi</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_question_and_answer_reveal.mp3')">📝 Hiện Q &amp; A</button>
+                <button class="btn-blue" onclick="showAllQuestionAndAnswers()">📝 Hiện Q &amp; A</button>
                 <button class="btn-blue" onclick="collectMoneyBack()">💵 Thu Tiền Về</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Hồi Hộp Đặt Cược</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer.mp3')">⏱️ Đếm Ngược 60s</button>
@@ -484,6 +560,57 @@
                     <button class="btn-blue" style="width: 80px; flex-shrink: 0;" onclick="playCustomSfx()">Phát</button>
                     <button class="btn-red" style="width: 70px; flex-shrink: 0;" onclick="stopSfx()">Tắt</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: PROGRESS DASHBOARD -->
+    <div id="progress-dashboard" class="progress-container" style="display: none;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%;">
+            <div style="background: #242526; border: 1px solid #3a3b3c; border-radius: 8px; padding: 14px; text-align: center;">
+                <div style="font-size: 12px; color: #aaa; text-transform: uppercase; font-weight: 600;">Số câu hỏi đã trải qua</div>
+                <div id="ctrl-played-text" style="font-size: 28px; font-weight: bold; color: #2ecc71; margin-top: 6px;">2 / 8</div>
+            </div>
+            <div style="background: #242526; border: 1px solid #3a3b3c; border-radius: 8px; padding: 14px; text-align: center;">
+                <div style="font-size: 12px; color: #aaa; text-transform: uppercase; font-weight: 600;">Số câu hỏi còn lại</div>
+                <div id="ctrl-remaining-text" style="font-size: 28px; font-weight: bold; color: #e74c3c; margin-top: 6px;">6 câu</div>
+            </div>
+            <div style="background: #242526; border: 1px solid #3a3b3c; border-radius: 8px; padding: 14px; text-align: center;">
+                <div style="font-size: 12px; color: #aaa; text-transform: uppercase; font-weight: 600;">Số tiền hiện có</div>
+                <div id="ctrl-money-text" style="font-size: 28px; font-weight: bold; color: #ffcc00; margin-top: 6px;">1.000.000 $A</div>
+            </div>
+        </div>
+
+        <div class="panel" style="width: 100%;">
+            <div class="panel-title">1. TRẠNG THÁI CÁC CÂU HỎI (CÂU 1 - 8)</div>
+            <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Bấm vào ô tương ứng để bật/tắt trạng thái Đã Chơi / Chưa Chơi cho từng câu hỏi:</p>
+            
+            <div id="questions-status-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-bottom: 14px;">
+                <!-- Generated dynamically by controller.js -->
+            </div>
+
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;">
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(0)">Reset (0 câu)</button>
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(1)">Đã chơi 1</button>
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(2)">Đã chơi 2</button>
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(3)">Đã chơi 3</button>
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(4)">Đã chơi 4</button>
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(5)">Đã chơi 5</button>
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(6)">Đã chơi 6</button>
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(7)">Đã chơi 7</button>
+                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(8)">Đã chơi 8</button>
+            </div>
+
+            <div class="panel-title">2. ĐIỀU KHIỂN HIỂN THỊ MÀN HÌNH PROJECTOR</div>
+            <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Phát giao diện tiến trình chơi lên màn hình Projector:</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn-blue" style="padding: 12px; font-size: 14px; background: #27ae60;" onclick="showProgressOnProjector()">
+                    🚀 HIỂN THỊ TIẾN TRÌNH TRÊN PROJECTOR
+                </button>
+                <button class="btn-red" style="padding: 12px; font-size: 14px;" onclick="hideProgressOnProjector()">
+                    🛑 ẨN MÀN HÌNH TIẾN TRÌNH
+                </button>
             </div>
         </div>
     </div>

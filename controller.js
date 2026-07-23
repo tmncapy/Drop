@@ -14,10 +14,17 @@ let timerInterval = null;
 
 let currentPin = localStorage.getItem('game_pin') || '1234';
 
+// Progress state tracking
+let totalQuestionsCount = 8;
+let questionStates = [true, true, false, false, false, false, false, false]; // Default: Q1, Q2 played (2 played, 6 remaining)
+let currentMoneyAmount = 1000000;
+let isProgressShowingOnProjector = false;
+
 // Populate dropdown and PIN on load
 window.addEventListener('DOMContentLoaded', () => {
     updateQuestionSelector();
     initPinCode();
+    updateProgressDataUI();
 });
 
 function initPinCode() {
@@ -73,6 +80,7 @@ channel.onmessage = function(event) {
         document.getElementById('mc-bet-4').innerText = b4.toLocaleString('vi-VN') + " $A";
 
         if (data.totalMoney !== undefined && data.totalStacks !== undefined) {
+            currentMoneyAmount = data.totalMoney;
             const moneyEl = document.getElementById('mc-total-money');
             if (moneyEl) {
                 moneyEl.innerText = `${data.totalMoney.toLocaleString('vi-VN')} $A (${data.totalStacks} cọc)`;
@@ -80,6 +88,10 @@ channel.onmessage = function(event) {
             const inputEl = document.getElementById('custom-stacks-input');
             if (inputEl && document.activeElement !== inputEl) {
                 inputEl.value = data.totalStacks;
+            }
+            updateProgressDataUI();
+            if (isProgressShowingOnProjector) {
+                showProgressOnProjector();
             }
         }
     }
@@ -494,4 +506,101 @@ function resetRound() {
     stopTimer();
     document.getElementById('time-display').innerText = `THỜI GIAN ĐẶT CƯỢC: --:--`;
     sendCommand('reset_round');
+}
+
+// --- PROGRESS TAB FUNCTIONS ---
+function switchControllerTab(tabName) {
+    const mainDash = document.getElementById('main-dashboard');
+    const progDash = document.getElementById('progress-dashboard');
+    const btnMain = document.getElementById('tab-btn-main');
+    const btnProg = document.getElementById('tab-btn-progress');
+
+    if (tabName === 'progress') {
+        if (mainDash) mainDash.style.display = 'none';
+        if (progDash) progDash.style.display = 'flex';
+        if (btnMain) btnMain.classList.remove('active');
+        if (btnProg) btnProg.classList.add('active');
+        updateProgressDataUI();
+    } else {
+        if (mainDash) mainDash.style.display = 'grid';
+        if (progDash) progDash.style.display = 'none';
+        if (btnMain) btnMain.classList.add('active');
+        if (btnProg) btnProg.classList.remove('active');
+    }
+}
+
+function updateProgressDataUI() {
+    let playedCount = 0;
+    for (let i = 0; i < totalQuestionsCount; i++) {
+        if (questionStates[i]) playedCount++;
+    }
+    const remainingCount = totalQuestionsCount - playedCount;
+
+    const playedTextEl = document.getElementById('ctrl-played-text');
+    const remainingTextEl = document.getElementById('ctrl-remaining-text');
+    const moneyTextEl = document.getElementById('ctrl-money-text');
+
+    if (playedTextEl) playedTextEl.innerText = `${playedCount} / ${totalQuestionsCount}`;
+    if (remainingTextEl) remainingTextEl.innerText = `${remainingCount} câu`;
+    if (moneyTextEl) moneyTextEl.innerText = `${currentMoneyAmount.toLocaleString('vi-VN')} $A`;
+
+    // Render questions status buttons
+    const gridEl = document.getElementById('questions-status-grid');
+    if (gridEl) {
+        gridEl.innerHTML = '';
+        for (let i = 0; i < totalQuestionsCount; i++) {
+            const btn = document.createElement('button');
+            const isPlayed = !!questionStates[i];
+            btn.className = `q-status-btn ${isPlayed ? 'played' : 'unplay'}`;
+            btn.innerHTML = `
+                <span style="font-size:13px;">Câu ${i + 1}</span>
+                <span style="font-size:11px;">${isPlayed ? '✅ Đã chơi' : '🔴 Chưa chơi'}</span>
+            `;
+            btn.onclick = () => toggleQuestionStatus(i);
+            gridEl.appendChild(btn);
+        }
+    }
+}
+
+function toggleQuestionStatus(index) {
+    if (index >= 0 && index < totalQuestionsCount) {
+        questionStates[index] = !questionStates[index];
+        updateProgressDataUI();
+        if (isProgressShowingOnProjector) {
+            showProgressOnProjector();
+        }
+    }
+}
+
+function setPlayedCount(count) {
+    for (let i = 0; i < totalQuestionsCount; i++) {
+        questionStates[i] = (i < count);
+    }
+    updateProgressDataUI();
+    if (isProgressShowingOnProjector) {
+        showProgressOnProjector();
+    }
+}
+
+function showProgressOnProjector() {
+    isProgressShowingOnProjector = true;
+    let playedCount = 0;
+    for (let i = 0; i < totalQuestionsCount; i++) {
+        if (questionStates[i]) playedCount++;
+    }
+    const remainingCount = totalQuestionsCount - playedCount;
+
+    sendCommand('show_progress', {
+        playedCount: playedCount,
+        remainingCount: remainingCount,
+        totalQuestions: totalQuestionsCount,
+        totalMoneyText: `${currentMoneyAmount.toLocaleString('vi-VN')} $A`,
+        totalMoney: currentMoneyAmount,
+        questionStates: questionStates
+    });
+}
+
+function hideProgressOnProjector() {
+    isProgressShowingOnProjector = false;
+    sendCommand('hide_progress');
 }

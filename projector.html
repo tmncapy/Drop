@@ -58,6 +58,120 @@
         #clock-container.show { transform: translateX(-50%) scale(0.75); opacity: 1; }
         #clock-bg { width: 100%; height: 100%; }
         #clock-time { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 40px; font-weight: bold; font-family: 'LHF_Mono', 'LHF Mono', monospace; }
+
+        /* --- PROGRESS HUD OVERLAY --- */
+        #progress-hud-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 70;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 0;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        #progress-hud-overlay.show {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .progress-capsule {
+            position: relative;
+            width: 1650px;
+            height: 430px;
+            background: radial-gradient(ellipse at center, #5c0f0f 0%, #300505 60%, #150202 100%);
+            border-radius: 215px;
+            border: 12px solid #d0d0d0;
+            box-shadow: 0 0 0 6px #4a4a4a, inset 0 0 55px rgba(0,0,0,0.85), 0 30px 70px rgba(0,0,0,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 60px;
+            box-sizing: border-box;
+        }
+
+        .progress-money-text {
+            color: #ffffff;
+            font-size: 104px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-shadow: 0 5px 20px rgba(0,0,0,0.9), 0 0 30px rgba(255,255,255,0.25);
+            margin-bottom: 24px;
+            font-family: 'Myriad Pro', Arial, sans-serif;
+            line-height: 1;
+        }
+
+        .progress-slots-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .progress-slot {
+            width: 118px;
+            height: 118px;
+            border-radius: 20px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.7);
+            overflow: hidden;
+            font-family: 'Myriad Pro', Arial, sans-serif;
+            font-size: 68px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .progress-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .progress-slot .slot-number {
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.85);
+        }
+
+        .progress-slot.played-slot {
+            background: #ffffff;
+            border: 4px solid #ffffff;
+        }
+
+        .progress-slot.unplay-slot {
+            background: linear-gradient(180deg, #c0292b 0%, #7a0909 100%);
+            border: 4px solid #e74c3c;
+            box-shadow: inset 0 4px 8px rgba(255,255,255,0.4), 0 10px 22px rgba(0,0,0,0.7);
+        }
+
+        .progress-gauge-icon {
+            width: 118px;
+            height: 118px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2a2a2a 0%, #111111 80%);
+            border: 6px solid #d0d0d0;
+            box-shadow: inset 0 0 14px #000, 0 8px 18px rgba(0,0,0,0.8);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -65,6 +179,16 @@
     <div class="projector-container" onclick="unlockAudio()">
         <img src="mainscreen.png" class="bg-main">
         <img src="outlinescreen.png" class="bg-outline">
+
+        <!-- Progress HUD Overlay -->
+        <div id="progress-hud-overlay">
+            <div class="progress-capsule">
+                <div class="progress-money-text" id="prog-money-val">1.000.000 $A</div>
+                <div class="progress-slots-row" id="prog-slots-container">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </div>
 
         <div id="audio-unlock-banner" style="position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(230, 126, 34, 0.9); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; display: none;">
             🔊 Nhấp vào đây để BẬT ÂM THANH
@@ -187,6 +311,8 @@
             document.getElementById("central-box").classList.remove("show", "move-up");
             document.getElementById("answers-container").classList.remove("show");
             document.getElementById("clock-container").classList.remove("show");
+            const hudElReset = document.getElementById("progress-hud-overlay");
+            if (hudElReset) hudElReset.classList.remove("show");
 
             // Reset text and drop states
             currentRound = 1;
@@ -223,6 +349,69 @@
 
                 case "reset_round":
                     resetBigscreen();
+                    break;
+
+                case "show_progress":
+                    const moneyValEl = document.getElementById('prog-money-val');
+                    if (moneyValEl && data && data.totalMoneyText) {
+                        moneyValEl.innerText = data.totalMoneyText;
+                    }
+
+                    const slotsContainer = document.getElementById('prog-slots-container');
+                    if (slotsContainer && data && Array.isArray(data.questionStates)) {
+                        slotsContainer.innerHTML = '';
+                        const qStates = data.questionStates;
+                        
+                        for (let i = 0; i < qStates.length; i++) {
+                            const isPlayed = qStates[i];
+                            const slotDiv = document.createElement('div');
+                            
+                            if (isPlayed) {
+                                slotDiv.className = 'progress-slot played-slot';
+                                slotDiv.innerHTML = `
+                                    <img src="played.png" onerror="this.onerror=null;this.style.display='none';this.nextElementSibling.style.display='flex';" alt="Played">
+                                    <div class="fallback-bundle" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;background:#fff;">
+                                        <svg width="48" height="38" viewBox="0 0 50 40">
+                                            <rect x="5" y="10" width="40" height="24" rx="3" fill="#27ae60" stroke="#1e824c" stroke-width="2"/>
+                                            <rect x="20" y="10" width="10" height="24" fill="#e74c3c"/>
+                                            <circle cx="25" cy="22" r="5" fill="#f1c40f"/>
+                                        </svg>
+                                    </div>
+                                `;
+                            } else {
+                                slotDiv.className = 'progress-slot unplay-slot';
+                                slotDiv.innerHTML = `
+                                    <img src="unplay.png" onerror="this.onerror=null;this.style.display='none';" alt="Unplay">
+                                    <span class="slot-number">${i + 1}</span>
+                                `;
+                            }
+                            slotsContainer.appendChild(slotDiv);
+                        }
+
+                        // Add Gauge Icon at the end of the row
+                        const gaugeDiv = document.createElement('div');
+                        gaugeDiv.className = 'progress-gauge-icon';
+                        gaugeDiv.innerHTML = `
+                            <svg width="94" height="94" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="46" fill="none" stroke="#d0d0d0" stroke-width="4"/>
+                                <circle cx="50" cy="50" r="42" fill="#181818" stroke="#333" stroke-width="2"/>
+                                <path d="M 20 70 A 38 38 0 1 1 80 70" fill="none" stroke="#444" stroke-dasharray="3,3" stroke-width="5"/>
+                                <path d="M 50 12 A 38 38 0 0 1 80 70" fill="none" stroke="#e74c3c" stroke-dasharray="4,2" stroke-width="5"/>
+                                <circle cx="50" cy="50" r="6" fill="#e74c3c"/>
+                                <line x1="50" y1="50" x2="72" y2="30" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+                                <circle cx="50" cy="50" r="3" fill="#ffffff"/>
+                            </svg>
+                        `;
+                        slotsContainer.appendChild(gaugeDiv);
+                    }
+
+                    const hudEl = document.getElementById('progress-hud-overlay');
+                    if (hudEl) hudEl.classList.add('show');
+                    break;
+
+                case "hide_progress":
+                    const hudElHide = document.getElementById('progress-hud-overlay');
+                    if (hudElHide) hudElHide.classList.remove('show');
                     break;
 
                 case "open_door":
