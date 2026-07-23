@@ -17,12 +17,7 @@ function setUnusedStatus(doorId, isUnused) {
 function updateBetDisplays() {
     for (let i = 1; i <= 4; i++) {
         let betVal = 0;
-        if (activeRound >= 5 && activeRound <= 7) {
-            if (i === 2) betVal = currentBets.b1 || 0;
-            else if (i === 3) betVal = currentBets.b2 || 0;
-            else if (i === 4) betVal = currentBets.b3 || 0;
-            else betVal = 0;
-        } else if (activeRound === 8) {
+        if (activeRound === 8) {
             if (i === 2) betVal = currentBets.b1 || 0;
             else if (i === 3) betVal = currentBets.b2 || 0;
             else betVal = 0;
@@ -53,7 +48,7 @@ channel.onmessage = function(event) {
             if (data && data.type === 'question') {
                 for (let i = 1; i <= 4; i++) {
                     let isUnused = false;
-                    if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
+                    if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
                     if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                     if (!isUnused) {
@@ -71,12 +66,7 @@ channel.onmessage = function(event) {
         case 'update_single_answer':
             let targetDoorId = data.id; 
 
-            if (activeRound >= 5 && activeRound <= 7) {
-                if (data.id === 1) targetDoorId = 2;
-                else if (data.id === 2) targetDoorId = 3;
-                else if (data.id === 3) targetDoorId = 4;
-                else targetDoorId = null;
-            } else if (activeRound === 8) {
+            if (activeRound === 8) {
                 if (data.id === 1) targetDoorId = 2;
                 else if (data.id === 2) targetDoorId = 3;
                 else targetDoorId = null;
@@ -101,7 +91,7 @@ channel.onmessage = function(event) {
         case 'show_all_q_and_a':
             for (let i = 1; i <= 4; i++) {
                 let isUnused = false;
-                if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
+                if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
                 if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                 if (!isUnused) {
@@ -138,47 +128,17 @@ channel.onmessage = function(event) {
             }
 
             if (activeRound >= 5 && activeRound <= 7) {
-                setUnusedStatus(1, true); 
+                setUnusedStatus(4, true); 
             } else if (activeRound === 8) {
                 setUnusedStatus(1, true); 
                 setUnusedStatus(4, true); 
-
-                // Auto shift answers if they were previously placed in inside-txt-1/2
-                const txt1 = document.getElementById('inside-txt-1');
-                const txt2 = document.getElementById('inside-txt-2');
-                const txt3 = document.getElementById('inside-txt-3');
-                if (txt1 && txt1.innerText && txt1.innerText !== "---" && (!txt3 || !txt3.innerText || txt3.innerText === "---")) {
-                    if (txt3) {
-                        txt3.innerText = txt2.innerText;
-                        if (txt2.innerText && txt2.innerText !== "---") txt3.classList.add('show');
-                    }
-                    if (txt2) {
-                        txt2.innerText = txt1.innerText;
-                        if (txt1.innerText && txt1.innerText !== "---") txt2.classList.add('show');
-                    }
-                    if (txt1) {
-                        txt1.innerText = "---";
-                        txt1.classList.remove('show');
-                    }
-                    const surf1 = document.getElementById('surface-1');
-                    const surf2 = document.getElementById('surface-2');
-                    const surf3 = document.getElementById('surface-3');
-                    if (surf1) surf1.classList.remove('wiped');
-                    if (surf2 && txt2.innerText !== "---") surf2.classList.add('wiped');
-                    if (surf3 && txt3.innerText !== "---") surf3.classList.add('wiped');
-                }
             }
             updateBetDisplays();
             break;
 
         case 'open_door':
             let doorId = data.doorId;
-            if (activeRound >= 5 && activeRound <= 7) {
-                if (data.doorId === 1) doorId = 2;
-                else if (data.doorId === 2) doorId = 3;
-                else if (data.doorId === 3) doorId = 4;
-                else doorId = null;
-            } else if (activeRound === 8) {
+            if (activeRound === 8) {
                 if (data.doorId === 1) doorId = 2;
                 else if (data.doorId === 2) doorId = 3;
                 else doorId = null;

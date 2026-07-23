@@ -378,6 +378,16 @@ function getCurrentRoundNumber() {
 
 function collectMoneyBack() {
     const r = getCurrentRoundNumber();
+    if (r === 8) {
+        if (currentMoneyAmount > 0) {
+            playSfx('SFX/drop_win.mp3');
+            showWinningMoneyOnProjector();
+        } else {
+            sendCommand('collect_winning');
+            hideWinningMoneyOnProjector();
+        }
+        return;
+    }
     if (r >= 1 && r <= 4) {
         playSfx('SFX/drop_moneyback2.mp3');
     } else {
@@ -474,6 +484,16 @@ function updateTimerDisplay() {
 function openDoor(id) { 
     playSfx('SFX/drop_trapdoor_1.mp3', false, false);
     sendCommand('open_door', { doorId: id }); 
+
+    const r = getCurrentRoundNumber();
+    if (r === 8) {
+        setTimeout(() => {
+            if (currentMoneyAmount > 0) {
+                playSfx('SFX/drop_win.mp3');
+                showWinningMoneyOnProjector();
+            }
+        }, 2500);
+    }
 }
 function collectWinningMoney() { collectMoneyBack(); }
 function penaltyFine() { sendCommand('penalty_fine'); }

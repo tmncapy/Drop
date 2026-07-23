@@ -482,6 +482,11 @@
                     if (winOverlayShow) winOverlayShow.classList.add('show');
                     const bgMainShow = document.querySelector('.bg-main');
                     if (bgMainShow) bgMainShow.classList.add('hide');
+
+                    const centralBoxWin = document.getElementById('central-box');
+                    if (centralBoxWin) centralBoxWin.classList.remove('show');
+                    const ansWin = document.getElementById('answers-container');
+                    if (ansWin) ansWin.style.display = 'none';
                     break;
 
                 case "hide_winning_money":
@@ -490,17 +495,14 @@
                     if (winOverlayHide) winOverlayHide.classList.remove('show');
                     const bgMainHide = document.querySelector('.bg-main');
                     if (bgMainHide) bgMainHide.classList.remove('hide');
+                    const ansRestore = document.getElementById('answers-container');
+                    if (ansRestore) ansRestore.style.display = 'flex';
                     break;
 
                 case "open_door":
                     if (data && data.doorId) {
                         let frameId = data.doorId;
-                        if (currentRound >= 5 && currentRound <= 7) {
-                            if (data.doorId === 1) frameId = 2;
-                            else if (data.doorId === 2) frameId = 3;
-                            else if (data.doorId === 3) frameId = 4;
-                            else frameId = null;
-                        } else if (currentRound === 8) {
+                        if (currentRound === 8) {
                             if (data.doorId === 1) frameId = 2;
                             else if (data.doorId === 2) frameId = 3;
                             else frameId = null;

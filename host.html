@@ -157,12 +157,7 @@
             }
             if (action === 'open_door') {
                 let doorId = data.doorId;
-                if (currentRound >= 5 && currentRound <= 7) {
-                    if (data.doorId === 1) doorId = 2;
-                    else if (data.doorId === 2) doorId = 3;
-                    else if (data.doorId === 3) doorId = 4;
-                    else doorId = null;
-                } else if (currentRound === 8) {
+                if (currentRound === 8) {
                     if (data.doorId === 1) doorId = 2;
                     else if (data.doorId === 2) doorId = 3;
                     else doorId = null;
