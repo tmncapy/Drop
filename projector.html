@@ -234,7 +234,15 @@
             }
         }
 
+        let lastSfxPlay = { file: '', time: 0 };
+
         function playSfxOnProjector(filePath, loop = false, stopPrevious = true) {
+            const now = Date.now();
+            if (lastSfxPlay.file === filePath && (now - lastSfxPlay.time < 200)) {
+                return; // Ignore duplicate playback call within 200ms
+            }
+            lastSfxPlay = { file: filePath, time: now };
+
             if (stopPrevious && activeSfxAudio) {
                 activeSfxAudio.pause();
                 activeSfxAudio.currentTime = 0;

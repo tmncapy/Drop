@@ -17,12 +17,33 @@
             this.mqttClient = null;
             this.isConnected = false;
             this.pendingQueue = [];
+            this.processedMsgIds = new Map();
+
+            // Helper to prevent duplicate handling from BroadcastChannel + MQTT
+            this.isDuplicateAndRecord = (payload) => {
+                if (!payload || !payload._msgId) return false;
+                const now = Date.now();
+                if (this.processedMsgIds.size > 200) {
+                    for (const [id, time] of this.processedMsgIds.entries()) {
+                        if (now - time > 10000) {
+                            this.processedMsgIds.delete(id);
+                        }
+                    }
+                }
+                if (this.processedMsgIds.has(payload._msgId)) {
+                    return true;
+                }
+                this.processedMsgIds.set(payload._msgId, now);
+                return false;
+            };
 
             // 1. Listen to BroadcastChannel for local tabs on same device
             this.localChannel.onmessage = (event) => {
                 if (event.data && event.data._senderId !== this.instanceId) {
-                    if (typeof this.onmessageHandler === 'function') {
-                        this.onmessageHandler(event);
+                    if (!this.isDuplicateAndRecord(event.data)) {
+                        if (typeof this.onmessageHandler === 'function') {
+                            this.onmessageHandler(event);
+                        }
                     }
                 }
             };
@@ -114,8 +135,10 @@
                         try {
                             const payload = JSON.parse(message.toString());
                             if (payload && payload._senderId !== this.instanceId) {
-                                if (typeof this.onmessageHandler === 'function') {
-                                    this.onmessageHandler({ data: payload });
+                                if (!this.isDuplicateAndRecord(payload)) {
+                                    if (typeof this.onmessageHandler === 'function') {
+                                        this.onmessageHandler({ data: payload });
+                                    }
                                 }
                             }
                         } catch (e) {
@@ -167,7 +190,8 @@
 
         postMessage(msg) {
             if (!msg) return;
-            const payload = Object.assign({}, msg, { _senderId: this.instanceId, _timestamp: Date.now() });
+            const msgId = msg._msgId || (this.instanceId + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
+            const payload = Object.assign({}, msg, { _senderId: this.instanceId, _timestamp: Date.now(), _msgId: msgId });
 
             // 1. Send via local BroadcastChannel (same browser tab/window)
             try {

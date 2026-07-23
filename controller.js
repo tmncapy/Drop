@@ -474,7 +474,14 @@ function showAllQuestionAndAnswers() {
 }
 
 // Soundboard functions
+let lastPlaySfxCall = { file: '', time: 0 };
 function playSfx(filePath, loop = false, stopPrevious = true) {
+    const now = Date.now();
+    if (lastPlaySfxCall.file === filePath && (now - lastPlaySfxCall.time < 150)) {
+        return; // Ignore rapid duplicate clicks within 150ms
+    }
+    lastPlaySfxCall = { file: filePath, time: now };
+
     const statusEl = document.getElementById('sfx-status');
     if (statusEl) {
         statusEl.innerText = `🔊 Đã phát tới Projector: ${filePath}`;
