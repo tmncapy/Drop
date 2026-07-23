@@ -17,7 +17,12 @@ function setUnusedStatus(doorId, isUnused) {
 function updateBetDisplays() {
     for (let i = 1; i <= 4; i++) {
         let betVal = 0;
-        if (activeRound === 8) {
+        if (activeRound >= 5 && activeRound <= 7) {
+            if (i === 2) betVal = currentBets.b1 || 0;
+            else if (i === 3) betVal = currentBets.b2 || 0;
+            else if (i === 4) betVal = currentBets.b3 || 0;
+            else betVal = 0;
+        } else if (activeRound === 8) {
             if (i === 2) betVal = currentBets.b1 || 0;
             else if (i === 3) betVal = currentBets.b2 || 0;
             else betVal = 0;
@@ -47,16 +52,16 @@ channel.onmessage = function(event) {
                 const textEl = document.getElementById(`fall-txt-${i}`);
                 if (textEl && textEl.classList.contains('active')) {
                     let actualDoorBetKey = `b${i}`;
-                    if (activeRound === 8) {
+                    if (activeRound >= 5 && activeRound <= 7) {
+                        if (i === 2) actualDoorBetKey = 'b1';
+                        else if (i === 3) actualDoorBetKey = 'b2';
+                        else if (i === 4) actualDoorBetKey = 'b3';
+                    } else if (activeRound === 8) {
                         if (i === 2) actualDoorBetKey = 'b1';
                         else if (i === 3) actualDoorBetKey = 'b2';
                     }
                     const betVal = currentBets[actualDoorBetKey] || 0;
-                    if (betVal > 0) {
-                        textEl.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
-                    } else {
-                        textEl.innerHTML = `ĐÃ RƠI`;
-                    }
+                    textEl.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
                 }
             }
             break;
@@ -65,7 +70,7 @@ channel.onmessage = function(event) {
             if (data && data.type === 'question') {
                 for (let i = 1; i <= 4; i++) {
                     let isUnused = false;
-                    if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
+                    if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
                     if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                     if (!isUnused) {
@@ -83,7 +88,12 @@ channel.onmessage = function(event) {
         case 'update_single_answer':
             let targetDoorId = data.id; 
 
-            if (activeRound === 8) {
+            if (activeRound >= 5 && activeRound <= 7) {
+                if (data.id === 1) targetDoorId = 2;
+                else if (data.id === 2) targetDoorId = 3;
+                else if (data.id === 3) targetDoorId = 4;
+                else targetDoorId = null;
+            } else if (activeRound === 8) {
                 if (data.id === 1) targetDoorId = 2;
                 else if (data.id === 2) targetDoorId = 3;
                 else targetDoorId = null;
@@ -108,7 +118,7 @@ channel.onmessage = function(event) {
         case 'show_all_q_and_a':
             for (let i = 1; i <= 4; i++) {
                 let isUnused = false;
-                if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
+                if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
                 if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                 if (!isUnused) {
@@ -145,7 +155,7 @@ channel.onmessage = function(event) {
             }
 
             if (activeRound >= 5 && activeRound <= 7) {
-                setUnusedStatus(4, true); 
+                setUnusedStatus(1, true); 
             } else if (activeRound === 8) {
                 setUnusedStatus(1, true); 
                 setUnusedStatus(4, true); 
@@ -180,7 +190,12 @@ channel.onmessage = function(event) {
 
         case 'open_door':
             let doorId = data.doorId;
-            if (activeRound === 8) {
+            if (activeRound >= 5 && activeRound <= 7) {
+                if (data.doorId === 1) doorId = 2;
+                else if (data.doorId === 2) doorId = 3;
+                else if (data.doorId === 3) doorId = 4;
+                else doorId = null;
+            } else if (activeRound === 8) {
                 if (data.doorId === 1) doorId = 2;
                 else if (data.doorId === 2) doorId = 3;
                 else doorId = null;
@@ -217,11 +232,7 @@ channel.onmessage = function(event) {
                     
                     if (fallTxt) {
                         const betVal = currentBets[`b${data.doorId}`] || 0;
-                        if (betVal > 0) {
-                            fallTxt.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
-                        } else {
-                            fallTxt.innerHTML = `ĐÃ RƠI`;
-                        }
+                        fallTxt.innerHTML = `${betVal.toLocaleString('vi-VN')} $A <br> ĐÃ RƠI`;
                         fallTxt.classList.add('active');
                     }
                 }, 1000);
