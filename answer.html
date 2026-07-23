@@ -116,7 +116,7 @@
         /* Ẩn bề mặt khi sập hố */
         .door-surface.dropped { display: none; }
 
-        /* V-SPLIT CỬA SẬP (SPLIT VERTICAL IN & OUT) */
+        /* SPLIT CỬA SẬP (SPLIT HORIZONTAL IN & OUT) */
         .v-split-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 8; pointer-events: none; overflow: hidden; display: none;
@@ -126,38 +126,38 @@
         }
 
         .v-panel {
-            position: absolute; left: 0; width: 100%; height: 50%;
+            position: absolute; top: 0; width: 50%; height: 100%;
             background-image: url('door.png');
-            background-size: 100% 200%;
+            background-size: 200% 100%;
             background-repeat: no-repeat;
             transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
             box-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
-        .v-panel.top {
-            top: 0; background-position: top center;
-            transform: translateY(-100%);
-            border-bottom: 2px solid rgba(0,0,0,0.7);
+        .v-panel.left {
+            left: 0; background-position: left center;
+            transform: translateX(-100%);
+            border-right: 2px solid rgba(0,0,0,0.7);
         }
-        .v-panel.bottom {
-            bottom: 0; background-position: bottom center;
-            transform: translateY(100%);
-            border-top: 2px solid rgba(0,0,0,0.7);
-        }
-
-        /* Entrance Split Vertical In: 2 nửa khép từ trên và dưới vào giữa */
-        .v-split-container.split-in .v-panel.top {
-            transform: translateY(0) !important;
-        }
-        .v-split-container.split-in .v-panel.bottom {
-            transform: translateY(0) !important;
+        .v-panel.right {
+            right: 0; background-position: right center;
+            transform: translateX(100%);
+            border-left: 2px solid rgba(0,0,0,0.7);
         }
 
-        /* Exit Split Vertical Out: 2 nửa mở tách từ giữa lên trên và xuống dưới */
-        .v-split-container.split-out .v-panel.top {
-            transform: translateY(-100%) !important;
+        /* Entrance Split Horizontal In: 2 cánh khép từ 2 bên trái/phải vào giữa */
+        .v-split-container.split-in .v-panel.left {
+            transform: translateX(0) !important;
         }
-        .v-split-container.split-out .v-panel.bottom {
-            transform: translateY(100%) !important;
+        .v-split-container.split-in .v-panel.right {
+            transform: translateX(0) !important;
+        }
+
+        /* Exit Split Horizontal Out: 2 cánh mở tách từ giữa ra 2 bên trái/phải */
+        .v-split-container.split-out .v-panel.left {
+            transform: translateX(-100%) !important;
+        }
+        .v-split-container.split-out .v-panel.right {
+            transform: translateX(100%) !important;
         }
 
         /* Đổi ảnh moneydoor.png */
@@ -191,8 +191,8 @@
                 <div class="answer-text-inside" id="inside-txt-4"></div>
                 <div class="fall-status-text" id="fall-txt-4"></div>
                 <div class="v-split-container" id="v-split-4">
-                    <div class="v-panel top" id="v-panel-top-4"></div>
-                    <div class="v-panel bottom" id="v-panel-bottom-4"></div>
+                    <div class="v-panel left" id="v-panel-left-4"></div>
+                    <div class="v-panel right" id="v-panel-right-4"></div>
                 </div>
                 <div class="door-surface" id="surface-4">
                     <div class="door-wing left" id="wing-l-4"></div>
@@ -211,8 +211,8 @@
                 <div class="answer-text-inside" id="inside-txt-3"></div>
                 <div class="fall-status-text" id="fall-txt-3"></div>
                 <div class="v-split-container" id="v-split-3">
-                    <div class="v-panel top" id="v-panel-top-3"></div>
-                    <div class="v-panel bottom" id="v-panel-bottom-3"></div>
+                    <div class="v-panel left" id="v-panel-left-3"></div>
+                    <div class="v-panel right" id="v-panel-right-3"></div>
                 </div>
                 <div class="door-surface" id="surface-3">
                     <div class="door-wing left" id="wing-l-3"></div>
@@ -231,8 +231,8 @@
                 <div class="answer-text-inside" id="inside-txt-2"></div>
                 <div class="fall-status-text" id="fall-txt-2"></div>
                 <div class="v-split-container" id="v-split-2">
-                    <div class="v-panel top" id="v-panel-top-2"></div>
-                    <div class="v-panel bottom" id="v-panel-bottom-2"></div>
+                    <div class="v-panel left" id="v-panel-left-2"></div>
+                    <div class="v-panel right" id="v-panel-right-2"></div>
                 </div>
                 <div class="door-surface" id="surface-2">
                     <div class="door-wing left" id="wing-l-2"></div>
@@ -251,8 +251,8 @@
                 <div class="answer-text-inside" id="inside-txt-1"></div>
                 <div class="fall-status-text" id="fall-txt-1"></div>
                 <div class="v-split-container" id="v-split-1">
-                    <div class="v-panel top" id="v-panel-top-1"></div>
-                    <div class="v-panel bottom" id="v-panel-bottom-1"></div>
+                    <div class="v-panel left" id="v-panel-left-1"></div>
+                    <div class="v-panel right" id="v-panel-right-1"></div>
                 </div>
                 <div class="door-surface" id="surface-1">
                     <div class="door-wing left" id="wing-l-1"></div>
