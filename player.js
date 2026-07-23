@@ -525,10 +525,6 @@ channel.onmessage = function(event) {
                     ansBox.classList.remove('dropped-money-font');
                 }
                 betBox.style.visibility = 'hidden';
-                door.innerHTML = '';
-                door.setAttribute('data-bet', '0');
-                syncBetsToController(); 
-                broadcastPlayerStackState();
             }
             break;
 
@@ -540,6 +536,10 @@ channel.onmessage = function(event) {
                         moneyBoard.appendChild(stack); 
                         stack.draggable = true;       
                     });
+                    d.setAttribute('data-bet', '0');
+                    updateDoorBetDisplay(d);
+                } else {
+                    d.querySelectorAll('.money-stack').forEach(s => s.remove());
                     d.setAttribute('data-bet', '0');
                     updateDoorBetDisplay(d);
                 }
