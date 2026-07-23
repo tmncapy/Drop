@@ -172,6 +172,52 @@
             justify-content: center;
             flex-shrink: 0;
         }
+
+        /* --- WINNING MONEY OVERLAY (CENTER SCREEN) --- */
+        #winning-money-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            z-index: 85;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #winning-money-overlay.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+        #winning-money-card {
+            background: radial-gradient(ellipse at center, #5c0f0f 0%, #300505 70%, #120202 100%);
+            border: 8px solid #ffea00;
+            border-radius: 40px;
+            padding: 35px 80px;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(255, 234, 0, 0.5), inset 0 0 35px rgba(255, 234, 0, 0.25), 0 20px 50px rgba(0,0,0,0.9);
+        }
+        #winning-money-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffffff;
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            text-shadow: 0 3px 8px rgba(0,0,0,0.8);
+        }
+        #winning-money-text {
+            font-family: 'Myriad Pro', Arial, sans-serif;
+            font-size: 100px;
+            font-weight: 900;
+            color: #ffea00;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(255, 234, 0, 0.8), 0 5px 15px rgba(0, 0, 0, 0.9);
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -187,6 +233,14 @@
                 <div class="progress-slots-row" id="prog-slots-container">
                     <!-- Rendered dynamically -->
                 </div>
+            </div>
+        </div>
+
+        <!-- Winning Money Overlay (Center Screen) -->
+        <div id="winning-money-overlay">
+            <div id="winning-money-card">
+                <div id="winning-money-title">SỐ TIỀN THẮNG CUỘC</div>
+                <div id="winning-money-text">0 $A</div>
             </div>
         </div>
 
@@ -326,6 +380,8 @@
             document.getElementById("clock-container").classList.remove("show");
             const hudElReset = document.getElementById("progress-hud-overlay");
             if (hudElReset) hudElReset.classList.remove("show");
+            const winOverlayReset = document.getElementById("winning-money-overlay");
+            if (winOverlayReset) winOverlayReset.classList.remove("show");
 
             // Reset text and drop states
             currentRound = 1;
@@ -425,6 +481,24 @@
                 case "hide_progress":
                     const hudElHide = document.getElementById('progress-hud-overlay');
                     if (hudElHide) hudElHide.classList.remove('show');
+                    break;
+
+                case "show_winning_money":
+                    const winTextEl = document.getElementById('winning-money-text');
+                    if (winTextEl && data) {
+                        if (data.moneyText) {
+                            winTextEl.innerText = data.moneyText;
+                        } else if (data.money !== undefined) {
+                            winTextEl.innerText = `${data.money.toLocaleString('vi-VN')} $A`;
+                        }
+                    }
+                    const winOverlayShow = document.getElementById('winning-money-overlay');
+                    if (winOverlayShow) winOverlayShow.classList.add('show');
+                    break;
+
+                case "hide_winning_money":
+                    const winOverlayHide = document.getElementById('winning-money-overlay');
+                    if (winOverlayHide) winOverlayHide.classList.remove('show');
                     break;
 
                 case "open_door":
@@ -571,9 +645,18 @@
                             clockHideTimeout = null;
                         }
                         document.getElementById("clock-container").classList.add("show");
-                    } else if (data.status === "stop" || data.status === "timeout") {
+                    } else if (data.status === "stop") {
                         timerAudio.pause();
                         timerAudio.currentTime = 0;
+                        if (clockHideTimeout) {
+                            clearTimeout(clockHideTimeout);
+                        }
+                        clockHideTimeout = setTimeout(() => {
+                            document.getElementById("clock-container").classList.remove("show");
+                            clockHideTimeout = null;
+                        }, 3000);
+                    } else if (data.status === "timeout") {
+                        // Do NOT stop timerAudio on timeout (let music play out)
                         if (clockHideTimeout) {
                             clearTimeout(clockHideTimeout);
                         }

@@ -515,7 +515,7 @@
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer_stop.mp3')">🛑 Dừng Thời Gian</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_1.mp3')">💥 Sập Hố 1</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3')">💥 Sập Hố 2</button>
-                <button style="background: #27ae60;" onclick="playSfx('SFX/drop_win.mp3')">🏆 Chiến Thắng</button>
+                <button style="background: #27ae60;" onclick="playSfx('SFX/drop_win.mp3'); showWinningMoneyOnProjector();">🏆 Chiến Thắng</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_lose.mp3')">❌ Thua Cuộc</button>
                 <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_in.mp3')">📺 Quảng Cáo Vào</button>
                 <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_out.mp3')">📺 Quảng Cáo Ra</button>
@@ -610,6 +610,12 @@
                 </button>
                 <button class="btn-red" style="padding: 12px; font-size: 14px;" onclick="hideProgressOnProjector()">
                     🛑 ẨN MÀN HÌNH TIẾN TRÌNH
+                </button>
+                <button class="btn-blue" style="padding: 12px; font-size: 14px; background: #f39c12; color: #fff;" onclick="showWinningMoneyOnProjector()">
+                    🏆 HIỂN THỊ TIỀN THẮNG (PROJECTOR)
+                </button>
+                <button class="btn-red" style="padding: 12px; font-size: 14px;" onclick="hideWinningMoneyOnProjector()">
+                    🛑 ẨN TIỀN THẮNG
                 </button>
             </div>
         </div>

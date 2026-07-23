@@ -379,6 +379,18 @@ function collectMoneyBack() {
         playSfx('SFX/drop_moneyback.mp3');
     }
     sendCommand('collect_winning');
+    showWinningMoneyOnProjector();
+}
+
+function showWinningMoneyOnProjector() {
+    sendCommand('show_winning_money', {
+        money: currentMoneyAmount,
+        moneyText: `${currentMoneyAmount.toLocaleString('vi-VN')} $A`
+    });
+}
+
+function hideWinningMoneyOnProjector() {
+    sendCommand('hide_winning_money');
 }
 
 function startTimer() {
