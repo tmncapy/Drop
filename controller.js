@@ -393,6 +393,15 @@ function hideWinningMoneyOnProjector() {
     sendCommand('hide_winning_money');
 }
 
+function sendMsgToHost() {
+    const input = document.getElementById('host-msg-input');
+    if (!input) return;
+    const msg = input.value.trim();
+    if (!msg) return;
+    sendCommand('tech_to_host_msg', { msg: msg });
+    input.value = '';
+}
+
 function startTimer() {
     stopSfx();
     clearInterval(timerInterval);

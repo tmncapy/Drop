@@ -483,6 +483,14 @@
                 <button class="btn-red" style="margin-top: 6px; font-weight: bold; font-size: 14px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">💥 SẬP</button>
             </div>
 
+            <div class="form-group" style="background: #23192e; border: 1px solid #5b2c6f;">
+                <label style="color: #bb86fc;">💬 GỬI TIN NHẮN ĐẾN HOST (MC)</label>
+                <div class="inline-group">
+                    <input type="text" id="host-msg-input" placeholder="Nhập tin nhắn nhắn Host..." onkeypress="if(event.key==='Enter') sendMsgToHost()">
+                    <button class="btn-purple" style="width: 70px; flex-shrink: 0;" onclick="sendMsgToHost()">Gửi</button>
+                </div>
+            </div>
+
             <div class="form-group" style="background: #2c3e50; margin-top: auto;">
                 <label style="color: #fff;">Quản Lý Vòng Đấu</label>
                 <div style="display: flex; flex-direction: column; gap: 4px;">
