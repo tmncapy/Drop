@@ -8,39 +8,30 @@ let selectedDoor = null;
 let isLock = true; 
 let currentRound = 1;
 
-let enteredPinDigits = "";
 let currentPin = localStorage.getItem('game_pin') || '1234';
 const playerTabId = 'player_' + Math.random().toString(36).substring(2, 9);
 
 const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
 
-// --- PIN SECURITY & KEYPAD ---
-function keypadPress(val) {
-    if (val === 'C') {
-        enteredPinDigits = "";
-    } else if (val === 'DEL') {
-        enteredPinDigits = enteredPinDigits.slice(0, -1);
-    } else {
-        if (enteredPinDigits.length < 4) {
-            enteredPinDigits += val;
-        }
+// --- ANTI-SPAM BETTING/WITHDRAWAL DELAY (0.2s = 200ms) ---
+let lastBetActionTime = 0;
+const BET_COOLDOWN_MS = 200;
+
+function isBetActionAllowed() {
+    const now = Date.now();
+    if (now - lastBetActionTime < BET_COOLDOWN_MS) {
+        return false;
     }
-    updatePinDisplay();
-    if (enteredPinDigits.length === 4) {
-        submitPin();
-    }
+    lastBetActionTime = now;
+    return true;
 }
 
-function updatePinDisplay() {
-    const display = document.getElementById('pin-display');
-    if (display) {
-        display.innerText = '•'.repeat(enteredPinDigits.length);
-    }
-}
-
+// --- PIN SECURITY ---
 function submitPin() {
+    const pinInput = document.getElementById('pin-input');
+    const val = pinInput ? pinInput.value.trim() : "";
     const errorEl = document.getElementById('pin-error');
-    if (enteredPinDigits === currentPin || localStorage.getItem('player_authenticated') === 'true') {
+    if (val === currentPin) {
         if (errorEl) errorEl.innerText = "";
         localStorage.setItem('player_authenticated', 'true');
         localStorage.setItem('player_auth_pin', currentPin);
@@ -52,8 +43,10 @@ function submitPin() {
         channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
     } else {
         if (errorEl) errorEl.innerText = "❌ Mã PIN sai! Vui lòng thử lại.";
-        enteredPinDigits = "";
-        updatePinDisplay();
+        if (pinInput) {
+            pinInput.value = "";
+            pinInput.focus();
+        }
     }
 }
 
@@ -62,50 +55,35 @@ function unlockPlayerScreen() {
     if (overlay) overlay.style.display = 'none';
 }
 
-function lockPlayerScreen() {
-    if (localStorage.getItem('player_authenticated') === 'true') {
-        unlockPlayerScreen();
-        return;
-    }
+function lockPlayerScreen(clearInput = true) {
     const overlay = document.getElementById('pin-lock-overlay');
     if (overlay) overlay.style.display = 'flex';
-    enteredPinDigits = "";
-    updatePinDisplay();
+    const pinInput = document.getElementById('pin-input');
+    if (pinInput) {
+        if (clearInput) {
+            pinInput.value = "";
+        }
+        if (document.activeElement !== pinInput) {
+            pinInput.focus();
+        }
+    }
 }
 
 function checkInitialAuth() {
     channel.postMessage({ action: 'request_pin' });
     const isAuth = localStorage.getItem('player_authenticated') === 'true';
-    if (isAuth) {
+    const savedAuth = localStorage.getItem('player_auth_pin');
+    const storedPin = localStorage.getItem('game_pin') || '1234';
+    if (isAuth && savedAuth && savedAuth === storedPin) {
         unlockPlayerScreen();
         channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
     } else {
-        const savedAuth = localStorage.getItem('player_auth_pin');
-        const storedPin = localStorage.getItem('game_pin') || '1234';
-        if (savedAuth && savedAuth === storedPin) {
-            localStorage.setItem('player_authenticated', 'true');
-            unlockPlayerScreen();
-            channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
-        } else {
-            lockPlayerScreen();
-        }
+        localStorage.removeItem('player_authenticated');
+        localStorage.removeItem('player_auth_pin');
+        lockPlayerScreen(true);
     }
 }
 
-document.addEventListener('keydown', (e) => {
-    const overlay = document.getElementById('pin-lock-overlay');
-    if (overlay && overlay.style.display !== 'none') {
-        if (e.key >= '0' && e.key <= '9') {
-            keypadPress(e.key);
-        } else if (e.key === 'Backspace') {
-            keypadPress('DEL');
-        } else if (e.key === 'Enter') {
-            submitPin();
-        } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
-            keypadPress('C');
-        }
-    }
-});
 
 // --- MULTI-TAB PLAYER STATE SYNC & MONEY STACK MANAGEMENT ---
 function createMoneyStackElement(stackId) {
@@ -238,6 +216,7 @@ function broadcastPlayerStackState() {
 
 function addMoneyToDoor(doorId) {
     if (isLock) return;
+    if (!isBetActionAllowed()) return;
     const door = document.getElementById(`door-${doorId}`);
     if (!door || door.classList.contains('dropped')) return;
 
@@ -254,6 +233,7 @@ function addMoneyToDoor(doorId) {
 
 function removeMoneyFromDoor(doorId) {
     if (isLock) return;
+    if (!isBetActionAllowed()) return;
     const door = document.getElementById(`door-${doorId}`);
     if (!door || door.classList.contains('dropped')) return;
 
@@ -298,7 +278,8 @@ function updateDoorBetDisplay(door) {
 doors.forEach(door => {
     door.addEventListener('click', (e) => {
         e.stopPropagation();
-        if(isLock || door.classList.contains('dropped')) return;
+        if (isLock || door.classList.contains('dropped')) return;
+        if (!isBetActionAllowed()) return;
 
         if (selectedDoor && selectedDoor !== door) {
             const moneyInSelectedDoor = selectedDoor.querySelector('.money-stack');
@@ -328,7 +309,8 @@ doors.forEach(door => {
     door.addEventListener('dragleave', () => { door.classList.remove('drag-over'); });
     door.addEventListener('drop', (e) => {
         e.preventDefault(); door.classList.remove('drag-over');
-        if(isLock || door.classList.contains('dropped')) return;
+        if (isLock || door.classList.contains('dropped')) return;
+        if (!isBetActionAllowed()) return;
         const id = e.dataTransfer.getData('text/plain');
         const draggedElement = document.getElementById(id);
         if (draggedElement && draggedElement.parentNode === moneyBoard) {
@@ -342,6 +324,7 @@ doors.forEach(door => {
 
 tableDesk.addEventListener('click', () => {
     if (selectedDoor) {
+        if (!isBetActionAllowed()) return;
         const moneyInDoor = selectedDoor.querySelector('.money-stack');
         if (moneyInDoor) {
             moneyBoard.appendChild(moneyInDoor); moneyInDoor.draggable = true; 
@@ -366,27 +349,33 @@ channel.onmessage = function(event) {
 
         case 'update_pin':
             if (data && data.pin) {
+                const oldPin = currentPin;
                 currentPin = data.pin;
                 localStorage.setItem('game_pin', currentPin);
                 
                 const pinNotice = document.getElementById('pin-status-notice');
                 if (pinNotice) {
-                    pinNotice.innerText = `🟢 Đã đồng bộ với MC - Mã PIN: ${currentPin}`;
+                    pinNotice.innerText = `🟢 Đã đồng bộ mã PIN từ MC`;
                     pinNotice.style.color = '#00e676';
                     pinNotice.style.borderColor = 'rgba(0,230,118,0.3)';
                 }
 
-                if (localStorage.getItem('player_authenticated') === 'true') {
-                    unlockPlayerScreen();
-                } else if (data.forceLock || localStorage.getItem('player_auth_pin') !== currentPin) {
+                const savedAuth = localStorage.getItem('player_auth_pin');
+
+                // Lock screen ONLY if controller changed the PIN or explicitly requested forceLock:
+                if (data.forceLock || (oldPin && oldPin !== currentPin)) {
+                    localStorage.removeItem('player_authenticated');
                     localStorage.removeItem('player_auth_pin');
-                    lockPlayerScreen();
+                    lockPlayerScreen(true);
+                } else if (localStorage.getItem('player_authenticated') === 'true' && savedAuth === currentPin) {
+                    unlockPlayerScreen();
                 }
             }
             break;
 
         case 'player_authenticated':
             if (data.pin === currentPin) {
+                localStorage.setItem('player_authenticated', 'true');
                 localStorage.setItem('player_auth_pin', data.pin);
                 unlockPlayerScreen();
             }
@@ -603,6 +592,21 @@ function formatTimer(timeLeft) {
 
 window.addEventListener('DOMContentLoaded', () => {
     checkInitialAuth();
+
+    const pinInput = document.getElementById('pin-input');
+    if (pinInput) {
+        pinInput.addEventListener('input', () => {
+            if (pinInput.value.trim().length === 4) {
+                submitPin();
+            }
+        });
+        pinInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                submitPin();
+            }
+        });
+    }
+
     // Periodically request PIN from MC if screen is locked
     setInterval(() => {
         const overlay = document.getElementById('pin-lock-overlay');
