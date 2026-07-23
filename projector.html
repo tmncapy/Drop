@@ -14,7 +14,8 @@
             width: 1920px; height: 1080px; position: relative; margin: auto;
             background-color: #000; overflow: hidden;
         }
-        .bg-main { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .bg-main { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; transition: opacity 0.5s ease; }
+        .bg-main.hide { opacity: 0; }
         .bg-outline { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 90; pointer-events: none; }
 
         :root {
@@ -192,31 +193,15 @@
             transform: translate(-50%, -50%) scale(1);
             pointer-events: auto;
         }
-        #winning-money-card {
-            background: radial-gradient(ellipse at center, #5c0f0f 0%, #300505 70%, #120202 100%);
-            border: 8px solid #ffea00;
-            border-radius: 40px;
-            padding: 35px 80px;
-            text-align: center;
-            box-shadow: 0 0 60px rgba(255, 234, 0, 0.5), inset 0 0 35px rgba(255, 234, 0, 0.25), 0 20px 50px rgba(0,0,0,0.9);
-        }
-        #winning-money-title {
-            font-size: 32px;
-            font-weight: bold;
-            color: #ffffff;
-            letter-spacing: 3px;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            text-shadow: 0 3px 8px rgba(0,0,0,0.8);
-        }
         #winning-money-text {
             font-family: 'Myriad Pro', Arial, sans-serif;
-            font-size: 100px;
+            font-size: 110px;
             font-weight: 900;
             color: #ffea00;
             letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(255, 234, 0, 0.8), 0 5px 15px rgba(0, 0, 0, 0.9);
+            text-shadow: 0 0 30px rgba(255, 234, 0, 0.9), 0 0 12px rgba(0, 0, 0, 0.9), 0 5px 25px rgba(0, 0, 0, 1), 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000;
             white-space: nowrap;
+            text-align: center;
         }
     </style>
 </head>
@@ -238,10 +223,7 @@
 
         <!-- Winning Money Overlay (Center Screen) -->
         <div id="winning-money-overlay">
-            <div id="winning-money-card">
-                <div id="winning-money-title">SỐ TIỀN THẮNG CUỘC</div>
-                <div id="winning-money-text">0 $A</div>
-            </div>
+            <div id="winning-money-text">0 $A</div>
         </div>
 
         <div id="audio-unlock-banner" style="position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(230, 126, 34, 0.9); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; display: none;">
@@ -382,6 +364,8 @@
             if (hudElReset) hudElReset.classList.remove("show");
             const winOverlayReset = document.getElementById("winning-money-overlay");
             if (winOverlayReset) winOverlayReset.classList.remove("show");
+            const bgMainReset = document.querySelector('.bg-main');
+            if (bgMainReset) bgMainReset.classList.remove('hide');
 
             // Reset text and drop states
             currentRound = 1;
@@ -494,11 +478,15 @@
                     }
                     const winOverlayShow = document.getElementById('winning-money-overlay');
                     if (winOverlayShow) winOverlayShow.classList.add('show');
+                    const bgMainShow = document.querySelector('.bg-main');
+                    if (bgMainShow) bgMainShow.classList.add('hide');
                     break;
 
                 case "hide_winning_money":
                     const winOverlayHide = document.getElementById('winning-money-overlay');
                     if (winOverlayHide) winOverlayHide.classList.remove('show');
+                    const bgMainHide = document.querySelector('.bg-main');
+                    if (bgMainHide) bgMainHide.classList.remove('hide');
                     break;
 
                 case "open_door":
