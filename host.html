@@ -122,11 +122,16 @@
                 if (data.type === 'B') document.getElementById('host-topic-B').classList.add('active');
             }
             if (action === 'send_question_text_to_screens') {
-                document.getElementById('host-question-text').innerText = data.text;
+                if (data && data.text) {
+                    document.getElementById('host-question-text').innerText = data.text;
+                }
             }
             if (action === 'update_content') {
-                if (data.type === 'question') {
-                    document.getElementById('host-question-text').innerText = data.data.question;
+                if (data && data.type === 'question') {
+                    const qText = (data.data && data.data.question) ? data.data.question : (data.question || data.text || "");
+                    if (qText) {
+                        document.getElementById('host-question-text').innerText = qText;
+                    }
                 }
             }
             if (action === 'update_single_answer') {

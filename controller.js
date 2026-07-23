@@ -281,12 +281,29 @@ function loadSelectedQuestion() {
     roundSelect.value = roundVal;
     handleRoundChange();
 
+    let questionText = "";
     if (type === 'A') {
-        document.getElementById('question-input').value = data.questionA || "";
+        questionText = data.questionA || "";
+        document.getElementById('question-input').value = questionText;
         fillAnswers(data.ansA || []);
     } else {
-        document.getElementById('question-input').value = data.questionB || "";
+        questionText = data.questionB || "";
+        document.getElementById('question-input').value = questionText;
         fillAnswers(data.ansB || []);
+    }
+
+    // Send updated topics, question text, and answers to all screens (including Host)
+    sendCommand("show_topics", {
+        topicA: document.getElementById("topic-a").value,
+        topicB: document.getElementById("topic-b").value
+    });
+    sendCommand('update_content', { 
+        type: 'question', 
+        data: { question: questionText } 
+    }); 
+    for (let i = 1; i <= 4; i++) {
+        const ansVal = document.getElementById(`ans-${i}`) ? document.getElementById(`ans-${i}`).value : "";
+        sendCommand('update_single_answer', { id: i, text: ansVal });
     }
 }
 
@@ -328,10 +345,12 @@ function lockTopic(type) {
 
 function sendQuestion() { 
     playSfx('SFX/drop_Reveal the Question_2.mp3', false, false);
+    const qText = document.getElementById('question-input').value;
     sendCommand('update_content', { 
         type: 'question', 
-        data: { question: document.getElementById('question-input').value } 
+        data: { question: qText } 
     }); 
+    sendCommand('send_question_text_to_screens', { text: qText });
 }
 
 function sendSingleAnswer(id) { 
@@ -486,7 +505,13 @@ function setCustomStacksMC() {
 }
 function showAllQuestionAndAnswers() {
     playSfx('SFX/drop_question_and_answer_reveal.mp3', false, false);
+    const qText = document.getElementById('question-input').value;
     handleRoundChange();
+    sendCommand('update_content', { 
+        type: 'question', 
+        data: { question: qText } 
+    }); 
+    sendCommand('send_question_text_to_screens', { text: qText });
     for (let i = 1; i <= 4; i++) {
         const val = document.getElementById(`ans-${i}`).value;
         sendCommand('update_single_answer', { id: i, text: val });
