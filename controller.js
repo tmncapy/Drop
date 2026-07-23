@@ -291,20 +291,6 @@ function loadSelectedQuestion() {
         document.getElementById('question-input').value = questionText;
         fillAnswers(data.ansB || []);
     }
-
-    // Send updated topics, question text, and answers to all screens (including Host)
-    sendCommand("show_topics", {
-        topicA: document.getElementById("topic-a").value,
-        topicB: document.getElementById("topic-b").value
-    });
-    sendCommand('update_content', { 
-        type: 'question', 
-        data: { question: questionText } 
-    }); 
-    for (let i = 1; i <= 4; i++) {
-        const ansVal = document.getElementById(`ans-${i}`) ? document.getElementById(`ans-${i}`).value : "";
-        sendCommand('update_single_answer', { id: i, text: ansVal });
-    }
 }
 
 function fillAnswers(ansList) {
