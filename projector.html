@@ -9,10 +9,12 @@
             src: url('LHF_Mono.otf') format('opentype'), url('LHF Mono.otf') format('opentype');
         }
 
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Myriad Pro', Arial, sans-serif; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Myriad Pro', Arial, sans-serif; pointer-events: none !important; user-select: none; }
         .projector-container { 
             width: 1920px; height: 1080px; position: relative; margin: auto;
             background-color: #000; overflow: hidden;
+            pointer-events: none !important;
+            user-select: none;
         }
         .bg-main { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; transition: opacity 0.5s ease; }
         .bg-main.hide { opacity: 0; }
@@ -25,13 +27,13 @@
             --clock-top: 610px;   /* THÔNG SỐ VỊ TRÍ CLOCK */
         }
 
-        .strap-wrapper { position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; width: 1000px; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .strap-wrapper { position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; width: 1000px; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; pointer-events: none; }
         .category-strap { width: 100%; height: auto; }
         .strap-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 32px; font-weight: bold; pointer-events: none; font-family: 'Myriad Pro', sans-serif; }
-        .is-active { top: 50% !important; z-index: 20; transform: translate(-50%, -50%) scale(1.1); }
-        .zoom-out { transform: translate(-50%, -50%) scale(0) !important; opacity: 0; }
+        .is-active { top: 50% !important; z-index: 20; transform: translate(-50%, -50%) scale(1.1) !important; }
+        .zoom-out { transform: translateX(-50%) scale(0) !important; opacity: 0; }
 
-        #central-box { position: absolute; top: var(--q-center-top); left: 50%; transform: translateX(-50%) scale(0); width: 950px; z-index: 5; color: white; font-size: 38px; text-align: center; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; cursor: pointer; font-family: 'Myriad Pro', sans-serif; }
+        #central-box { position: absolute; top: var(--q-center-top); left: 50%; transform: translateX(-50%) scale(0); width: 950px; z-index: 5; color: white; font-size: 38px; text-align: center; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; cursor: default; pointer-events: none; font-family: 'Myriad Pro', sans-serif; }
         #central-box.show { transform: translateX(-50%) scale(1); opacity: 1; }
         #central-box.move-up { top: var(--q-moved-top); font-size: 26px; line-height: 1.35; font-weight: bold; }
 
@@ -226,7 +228,11 @@
             <div id="winning-money-text">0 $A</div>
         </div>
 
-        <div id="central-box" onclick="showAnswers()">CHỜ MC CHỌN CHỦ ĐỀ...</div>
+        <div id="audio-unlock-banner" style="position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(230, 126, 34, 0.9); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; display: none;">
+            🔊 Nhấp vào đây để BẬT ÂM THANH
+        </div>
+
+        <div id="central-box">CHỜ MC CHỌN CHỦ ĐỀ...</div>
 
         <div id="answers-container">
             <div class="ans-frame" id="proj-frame-1"><img src="indoor.png" class="ans-img"><div class="ans-text" id="proj-ans-1">---</div></div>
@@ -240,10 +246,10 @@
             <div id="clock-time">1:00</div>
         </div>
 
-        <div class="strap-wrapper" style="top: 400px; display: none;" id="item-a" data-state="0" onclick="processClick(this)">
+        <div class="strap-wrapper" style="top: 400px; display: none;" id="item-a" data-state="0">
             <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ A</div>
         </div>
-        <div class="strap-wrapper" style="top: 550px; display: none;" id="item-b" data-state="0" onclick="processClick(this)">
+        <div class="strap-wrapper" style="top: 550px; display: none;" id="item-b" data-state="0">
             <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ B</div>
         </div>
     </div>
@@ -532,18 +538,30 @@
                 case "show_topics":
                     const bgMain = document.querySelector('.bg-main');
                     if (bgMain) {
-                        bgMain.src = "main1.png";
+                        bgMain.classList.add("hide");
                     }
 
                     document.querySelector("#item-a .strap-text").innerText = data.topicA || "CHỦ ĐỀ A";
                     document.querySelector("#item-b .strap-text").innerText = data.topicB || "CHỦ ĐỀ B";
                     
-                    document.getElementById("item-a").style.display = "block";
-                    document.getElementById("item-b").style.display = "block";
-                    document.getElementById("item-a").classList.remove("is-active", "zoom-out");
-                    document.getElementById("item-b").classList.remove("is-active", "zoom-out");
-                    document.getElementById("item-a").setAttribute("data-state", "0");
-                    document.getElementById("item-b").setAttribute("data-state", "0");
+                    const itemA = document.getElementById("item-a");
+                    const itemB = document.getElementById("item-b");
+
+                    itemA.style.display = "block";
+                    itemB.style.display = "block";
+
+                    itemA.classList.add("zoom-out");
+                    itemB.classList.add("zoom-out");
+                    itemA.classList.remove("is-active");
+                    itemB.classList.remove("is-active");
+                    itemA.setAttribute("data-state", "0");
+                    itemB.setAttribute("data-state", "0");
+
+                    void itemA.offsetWidth;
+                    setTimeout(() => {
+                        itemA.classList.remove("zoom-out");
+                        itemB.classList.remove("zoom-out");
+                    }, 50);
                     break;
 
                 case "lock_topic":
