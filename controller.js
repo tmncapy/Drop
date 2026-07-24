@@ -355,7 +355,7 @@ function sendQuestion() {
 function sendSingleAnswer(id) { 
     const r = getCurrentRoundNumber();
     let minDoorId = 1;
-    if (r >= 5) {
+    if (r === 8) {
         minDoorId = 2;
     }
 
