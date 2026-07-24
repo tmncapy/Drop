@@ -33,8 +33,14 @@
         }
 
         .strap-wrapper { position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; width: 1000px; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; pointer-events: none; }
-        .category-strap { width: 100%; height: auto; }
-        .strap-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 32px; font-weight: bold; pointer-events: none; font-family: 'Myriad Pro', sans-serif; }
+        .category-strap { width: 100%; height: auto; display: block; }
+        .strap-text { 
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%); 
+            width: 88%; height: 100%;
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            color: white; font-size: 32px; font-weight: bold; pointer-events: none; 
+            font-family: 'Myriad Pro', sans-serif; line-height: 1.2;
+        }
         .is-active { top: 50% !important; z-index: 20; transform: translate(-50%, -50%) scale(1.1) !important; }
         .zoom-out { transform: translateX(-50%) scale(0) !important; opacity: 0; }
 
@@ -233,10 +239,6 @@
             <div id="winning-money-text">0 $A</div>
         </div>
 
-        <div id="audio-unlock-banner" style="position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(230, 126, 34, 0.9); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; display: none;">
-            🔊 Nhấp vào đây để BẬT ÂM THANH
-        </div>
-
         <div id="central-box">CHỜ MC CHỌN CHỦ ĐỀ...</div>
 
         <div id="answers-container">
@@ -274,8 +276,6 @@
         function unlockAudio() {
             if (!isAudioUnlocked) {
                 isAudioUnlocked = true;
-                const banner = document.getElementById('audio-unlock-banner');
-                if (banner) banner.style.display = 'none';
             }
         }
 
@@ -301,8 +301,6 @@
                 unlockAudio();
             }).catch(e => {
                 console.warn("SFX Play error/blocked on Projector:", e);
-                const banner = document.getElementById('audio-unlock-banner');
-                if (banner) banner.style.display = 'block';
             });
         }
 
