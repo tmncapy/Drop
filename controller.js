@@ -74,10 +74,14 @@ channel.onmessage = function(event) {
         const b2 = data.b2 || 0;
         const b3 = data.b3 || 0;
         const b4 = data.b4 || 0;
-        document.getElementById('mc-bet-1').innerText = b1.toLocaleString('vi-VN') + " $A";
-        document.getElementById('mc-bet-2').innerText = b2.toLocaleString('vi-VN') + " $A";
-        document.getElementById('mc-bet-3').innerText = b3.toLocaleString('vi-VN') + " $A";
-        document.getElementById('mc-bet-4').innerText = b4.toLocaleString('vi-VN') + " $A";
+        const s1 = Math.round(b1 / 25000);
+        const s2 = Math.round(b2 / 25000);
+        const s3 = Math.round(b3 / 25000);
+        const s4 = Math.round(b4 / 25000);
+        document.getElementById('mc-bet-1').innerText = `${b1.toLocaleString('vi-VN')} $A (${s1} cọc)`;
+        document.getElementById('mc-bet-2').innerText = `${b2.toLocaleString('vi-VN')} $A (${s2} cọc)`;
+        document.getElementById('mc-bet-3').innerText = `${b3.toLocaleString('vi-VN')} $A (${s3} cọc)`;
+        document.getElementById('mc-bet-4').innerText = `${b4.toLocaleString('vi-VN')} $A (${s4} cọc)`;
 
         if (data.totalMoney !== undefined && data.totalStacks !== undefined) {
             currentMoneyAmount = data.totalMoney;
@@ -378,16 +382,6 @@ function getCurrentRoundNumber() {
 
 function collectMoneyBack() {
     const r = getCurrentRoundNumber();
-    if (r === 8) {
-        if (currentMoneyAmount > 0) {
-            playSfx('SFX/drop_win.mp3');
-            showWinningMoneyOnProjector();
-        } else {
-            sendCommand('collect_winning');
-            hideWinningMoneyOnProjector();
-        }
-        return;
-    }
     if (r >= 1 && r <= 4) {
         playSfx('SFX/drop_moneyback2.mp3');
     } else {
@@ -484,16 +478,6 @@ function updateTimerDisplay() {
 function openDoor(id) { 
     playSfx('SFX/drop_trapdoor_1.mp3', false, false);
     sendCommand('open_door', { doorId: id }); 
-
-    const r = getCurrentRoundNumber();
-    if (r === 8) {
-        setTimeout(() => {
-            if (currentMoneyAmount > 0) {
-                playSfx('SFX/drop_win.mp3');
-                showWinningMoneyOnProjector();
-            }
-        }, 2500);
-    }
 }
 function collectWinningMoney() { collectMoneyBack(); }
 function penaltyFine() { sendCommand('penalty_fine'); }
