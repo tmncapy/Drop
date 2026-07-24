@@ -510,6 +510,17 @@
         <div class="panel">
             <div class="panel-title">3. BẢNG ÂM THANH (SOUNDBOARD SFX)</div>
             
+            <div style="background: #1c1e21; padding: 8px 12px; border-radius: 6px; border: 1px solid #3a3b3c; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-weight: bold; color: #ffcc00; font-size: 12px;">
+                    🔊 ÂM LƯỢNG: <span id="vol-display-val" style="color: #00e676; min-width: 38px; display: inline-block; text-align: right;">100%</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+                    <button class="btn-blue" style="width: 28px; height: 26px; padding: 0; font-size: 14px; font-weight: bold; flex-shrink: 0;" onclick="adjustVolume(-0.1)">-</button>
+                    <input type="range" id="volume-slider" min="0" max="100" value="100" style="flex: 1; cursor: pointer; accent-color: #ffcc00; height: 6px;" oninput="onVolumeSliderChange(this.value)">
+                    <button class="btn-blue" style="width: 28px; height: 26px; padding: 0; font-size: 14px; font-weight: bold; flex-shrink: 0;" onclick="adjustVolume(0.1)">+</button>
+                </div>
+            </div>
+
             <div class="sfx-grid">
                 <button class="btn-blue" onclick="playSfx('SFX/drop_opening.mp3')">🎵 Mở Đầu (Opening)</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_welcome_contestants.mp3')">👋 Chào Thí Sinh</button>

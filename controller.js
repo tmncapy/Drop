@@ -20,11 +20,37 @@ let questionStates = [true, true, false, false, false, false, false, false]; // 
 let currentMoneyAmount = 1000000;
 let isProgressShowingOnProjector = false;
 
+// Global Volume Management
+let currentGlobalVolume = localStorage.getItem('game_volume') !== null ? parseFloat(localStorage.getItem('game_volume')) : 1.0;
+
+function setGlobalVolume(vol) {
+    currentGlobalVolume = Math.max(0, Math.min(1, Math.round(vol * 100) / 100));
+    const percent = Math.round(currentGlobalVolume * 100);
+    
+    const slider = document.getElementById('volume-slider');
+    if (slider) slider.value = percent;
+    
+    const display = document.getElementById('vol-display-val');
+    if (display) display.innerText = `${percent}%`;
+    
+    localStorage.setItem('game_volume', currentGlobalVolume.toString());
+    sendCommand('set_volume', { volume: currentGlobalVolume });
+}
+
+function adjustVolume(delta) {
+    setGlobalVolume(currentGlobalVolume + delta);
+}
+
+function onVolumeSliderChange(val) {
+    setGlobalVolume(parseFloat(val) / 100);
+}
+
 // Populate dropdown and PIN on load
 window.addEventListener('DOMContentLoaded', () => {
     updateQuestionSelector();
     initPinCode();
     updateProgressDataUI();
+    setGlobalVolume(currentGlobalVolume);
 });
 
 function initPinCode() {
@@ -68,6 +94,7 @@ channel.onmessage = function(event) {
     const { action, data } = event.data;
     if (action === 'mqtt_connected' || action === 'request_pin') {
         sendCommand('update_pin', { pin: currentPin });
+        sendCommand('set_volume', { volume: currentGlobalVolume });
     }
     if (action === 'sync_bets_to_mc' && data) {
         const b1 = data.b1 || 0;

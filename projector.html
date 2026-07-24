@@ -265,8 +265,10 @@
     <script src="security.js"></script>
     <script>
         const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
+        let globalVolume = 1.0;
         const timerAudio = new Audio("SFX/drop_timer.mp3");
         timerAudio.loop = false;
+        timerAudio.volume = globalVolume;
 
         let activeSfxAudio = null;
         let clickCount = 0; 
@@ -293,6 +295,7 @@
                 activeSfxAudio.currentTime = 0;
             }
             const audio = new Audio(filePath);
+            audio.volume = globalVolume;
             audio.loop = loop;
             if (stopPrevious) {
                 activeSfxAudio = audio;
@@ -396,6 +399,16 @@
             const { action, data } = event.data;
 
             switch(action) {
+                case "set_volume":
+                    if (data && data.volume !== undefined) {
+                        globalVolume = Math.max(0, Math.min(1, parseFloat(data.volume)));
+                        timerAudio.volume = globalVolume;
+                        if (activeSfxAudio) {
+                            activeSfxAudio.volume = globalVolume;
+                        }
+                    }
+                    break;
+
                 case "play_sfx":
                     if (data && data.file) {
                         playSfxOnProjector(data.file, !!data.loop, data.stopPrevious !== false);
@@ -624,6 +637,7 @@
                         stopAllSfxOnProjector();
                         const sfxFile = (currentRound === 8 || data.round === 8) ? "SFX/drop_timer_q8.mp3" : "SFX/drop_timer.mp3";
                         timerAudio.src = sfxFile;
+                        timerAudio.volume = globalVolume;
                         timerAudio.currentTime = 0;
                         timerAudio.play().catch(e => console.log("Audio play blocked/failed:", e));
                         document.getElementById("clock-container").classList.add("show");
