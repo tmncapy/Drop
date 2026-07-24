@@ -459,11 +459,6 @@ channel.onmessage = function(event) {
 
         case 'update_single_answer':
             let pTargetId = data.id;
-            if (currentRound === 8) {
-                if (data.id === 1) pTargetId = 2;
-                else if (data.id === 2) pTargetId = 3;
-                else pTargetId = null;
-            }
             if (pTargetId && document.getElementById(`ans-txt-${pTargetId}`)) {
                 const aEl = document.getElementById(`ans-txt-${pTargetId}`);
                 aEl.innerText = data.text;
