@@ -11,47 +11,318 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; background-color: #050505; color: #fff; overflow: hidden; padding: 20px; height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
-        .topic-container { display: flex; justify-content: center; gap: 40px; margin-top: 5px; }
-        .topic-box { background: linear-gradient(145deg, #1e1e1e, #111); padding: 12px 35px; border-radius: 8px; border: 2px solid #444; font-size: 22px; font-weight: bold; min-width: 230px; text-align: center; transition: all 0.3s; }
-        .topic-box.active { border-color: #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
-        .question-container { background: linear-gradient(180deg, #222, #111); border: 2px solid #ffcc00; border-radius: 10px; padding: 15px 30px; margin: 10px auto; width: 90%; max-width: 1100px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .question-round-title { font-size: 14px; color: #ffcc00; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
-        .question-text { font-size: 24px; font-weight: bold; color: #ffffff; line-height: 1.4; }
-        .timer-container { text-align: center; margin-bottom: 10px; }
-        .timer { font-size: 42px; font-weight: bold; color: #ff3333; font-family: 'LHF_Mono', 'LHF Mono', monospace; background: #111; padding: 3px 20px; border-radius: 6px; display: inline-block; border: 1px solid #333; }
-        .doors-container { display: flex; justify-content: center; gap: 20px; margin-bottom: 15px; }
-        .door-wrapper { width: 260px; display: flex; flex-direction: column; gap: 10px; transition: all 0.3s; }
-        .answer-label { background-color: #222; border: 2px solid #555; border-radius: 6px; padding: 12px; text-align: center; font-size: 18px; font-weight: bold; min-height: 50px; display: flex; align-items: center; justify-content: center; transition: background-color 0.3s, border-color 0.3s; }
-        .answer-label.host-win { background-color: #27ae60 !important; border-color: #2ecc71 !important; color: white; }
-        .answer-label.host-lose { background-color: #c0392b !important; border-color: #e74c3c !important; color: white; }
-        .pit-frame { height: 320px; border: 3px solid #ffcc00; border-radius: 8px; background-color: #000; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
-        .door-image { width: 100%; height: 100%; background-image: url('door.png'); background-size: 100% 100%; transition: all 0.5s ease-in-out; position: absolute; top: 0; left: 0; z-index: 2; }
-        .door-image.dropped { transform: translateY(100%); opacity: 0; }
-        .pit-bg { position: absolute; top:0; left:0; width:100%; height:100%; background-image: url('dropdoor.png'); background-size: 100% 100%; z-index: 1; }
-        .bet-display { position: absolute; bottom: 15px; width: 100%; text-align: center; font-size: 20px; font-weight: bold; color: #ffcc00; text-shadow: 2px 2px 4px #000; z-index: 3; }
-        .dropped-money-text { position: absolute; top: 40%; width: 100%; text-align: center; font-size: 22px; font-weight: bold; color: #ff3333; z-index: 3; display: none; text-shadow: 2px 2px 5px #000; }
-        .tech-box { position: fixed; bottom: 15px; left: 15px; width: 320px; max-height: 120px; background: rgba(20, 20, 20, 0.95); border: 1px dashed #ffcc00; border-radius: 6px; padding: 10px; z-index: 10; font-size: 13px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .tech-box-title { color: #ffcc00; font-weight: bold; margin-bottom: 4px; border-bottom: 1px solid #333; padding-bottom: 2px;}
-        .tech-msg-content { color: #00ffcc; font-style: italic; word-wrap: break-word; }
-        .explain-container { background-color: #111; border: 1px solid #333; padding: 12px; border-radius: 6px; text-align: center; color: #aaa; min-height: 45px; font-size: 16px; margin-top: 5px; }
-        .explain-container span { color: #ffcc00; font-weight: bold; display: none; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #090c10;
+            color: #f0f6fc;
+            overflow: hidden;
+            padding: 16px 24px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Top Header Bar */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .topic-container {
+            display: flex;
+            gap: 16px;
+            flex: 1;
+        }
+        .topic-box {
+            flex: 1;
+            background: #161b22;
+            border: 2px solid #30363d;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            color: #8b949e;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .topic-box.active {
+            border-color: #f1e05a;
+            color: #ffffff;
+            background: linear-gradient(135deg, #21262d, #1c2128);
+            box-shadow: 0 0 20px rgba(241, 224, 90, 0.25);
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .timer {
+            font-size: 42px;
+            font-weight: 900;
+            color: #ff4d4d;
+            font-family: 'LHF_Mono', 'LHF Mono', monospace;
+            background: #161b22;
+            padding: 4px 28px;
+            border-radius: 10px;
+            border: 2px solid #da3633;
+            box-shadow: 0 0 15px rgba(218, 54, 51, 0.3);
+            letter-spacing: 2px;
+        }
+
+        /* Question Box */
+        .question-container {
+            background: linear-gradient(180deg, #161b22 0%, #0d1117 100%);
+            border: 2px solid #f1e05a;
+            border-radius: 12px;
+            padding: 16px 28px;
+            margin: 10px 0;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        }
+        .question-round-title {
+            font-size: 13px;
+            color: #f1e05a;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 6px;
+        }
+        .question-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.4;
+        }
+
+        /* Doors Grid */
+        .doors-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 8px;
+            flex: 1;
+            align-items: stretch;
+        }
+        .door-wrapper {
+            flex: 1;
+            max-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        /* Answer Label */
+        .answer-label {
+            background: #161b22;
+            border: 2px solid #30363d;
+            border-radius: 10px;
+            padding: 14px 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e6edf3;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .answer-label.host-win {
+            background: linear-gradient(135deg, #1f6feb, #2ea043) !important;
+            border-color: #3fb950 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 20px rgba(46, 160, 67, 0.4) !important;
+        }
+        .answer-label.host-lose {
+            background: linear-gradient(135deg, #b62324, #8e1519) !important;
+            border-color: #f85149 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 20px rgba(248, 81, 73, 0.4) !important;
+        }
+
+        /* Trapdoor Pit Area (No PNG graphics) */
+        .pit-frame {
+            flex: 1;
+            min-height: 240px;
+            border: 2px solid #30363d;
+            border-radius: 12px;
+            background: #0d1117;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        /* Pit Floor (When door drops open) */
+        .pit-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #1a0505 0%, #050101 100%);
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pit-bg::after {
+            content: "CỬA ĐÃ SẬP";
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: rgba(248, 81, 73, 0.25);
+            border: 2px dashed rgba(248, 81, 73, 0.25);
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+
+        /* Door Flap (CSS Door surface) */
+        .door-image {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #21262d 0%, #161b22 100%);
+            border-bottom: 3px solid #30363d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .door-image::before {
+            content: "";
+            width: 80%;
+            height: 80%;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 15px,
+                rgba(255,255,255,0.02) 15px,
+                rgba(255,255,255,0.02) 16px
+            );
+        }
+        .door-image.dropped {
+            transform: translateY(105%);
+            opacity: 0;
+        }
+
+        /* Bet Display Overlay */
+        .bet-display {
+            position: absolute;
+            bottom: 14px;
+            left: 5%;
+            width: 90%;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: #f1e05a;
+            background: rgba(13, 17, 23, 0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(241, 224, 90, 0.3);
+            border-radius: 8px;
+            padding: 6px 10px;
+            z-index: 3;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        /* Dropped Money Alert Banner */
+        .dropped-money-text {
+            position: absolute;
+            top: 35%;
+            left: 5%;
+            width: 90%;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffffff;
+            background: rgba(218, 54, 51, 0.95);
+            border: 1px solid #f85149;
+            border-radius: 8px;
+            padding: 10px 6px;
+            z-index: 4;
+            display: none;
+            box-shadow: 0 0 20px rgba(248, 81, 73, 0.6);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Bottom Status Area */
+        .bottom-container {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .explain-container {
+            flex: 1;
+            background: #161b22;
+            border: 1px solid #30363d;
+            padding: 12px 20px;
+            border-radius: 10px;
+            text-align: left;
+            color: #8b949e;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .explain-container span {
+            color: #f1e05a;
+            font-weight: 700;
+            display: none;
+            margin-left: 6px;
+        }
+
+        .tech-box {
+            width: 320px;
+            background: #161b22;
+            border: 1px dashed #58a6ff;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .tech-box-title {
+            color: #58a6ff;
+            font-weight: 700;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 4px;
+        }
+        .tech-msg-content {
+            color: #7ee787;
+            font-style: italic;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
 
-    <div class="topic-container">
-        <div id="host-topic-A" class="topic-box">Chủ đề A</div>
-        <div id="host-topic-B" class="topic-box">Chủ đề B</div>
+    <div class="top-bar">
+        <div class="topic-container">
+            <div id="host-topic-A" class="topic-box">Chủ đề A</div>
+            <div id="host-topic-B" class="topic-box">Chủ đề B</div>
+        </div>
+        <div class="timer-container">
+            <div id="host-timer" class="timer">60</div>
+        </div>
     </div>
 
     <div class="question-container">
         <div class="question-round-title" id="host-round-title">CÂU HỎI 1</div>
         <div class="question-text" id="host-question-text">Đang đợi phòng máy nạp câu hỏi...</div>
-    </div>
-
-    <div class="timer-container">
-        <div id="host-timer" class="timer">60</div>
     </div>
 
     <div class="doors-container">
@@ -93,13 +364,14 @@
         </div>
     </div>
 
-    <div class="explain-container">
-        <div id="explain-box">Giải thích đáp án từ hệ thống: <span id="explain-text">Chưa có dữ liệu</span></div>
-    </div>
-
-    <div class="tech-box">
-        <div class="tech-box-title">💬 Tin nhắn từ phòng Máy Kỹ Thuật:</div>
-        <div class="tech-msg-content" id="tech-msg-display">Hệ thống đang sẵn sàng.</div>
+    <div class="bottom-container">
+        <div class="explain-container">
+            <div id="explain-box">💡 Giải thích đáp án từ hệ thống: <span id="explain-text">Chưa có dữ liệu</span></div>
+        </div>
+        <div class="tech-box">
+            <div class="tech-box-title">💬 Tin nhắn từ phòng Kỹ Thuật:</div>
+            <div class="tech-msg-content" id="tech-msg-display">Hệ thống đang sẵn sàng.</div>
+        </div>
     </div>
 
     <script src="network_sync.js"></script>
