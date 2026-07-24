@@ -353,7 +353,13 @@ function sendQuestion() {
 }
 
 function sendSingleAnswer(id) { 
-    if (id === 1) {
+    const r = getCurrentRoundNumber();
+    let minDoorId = 1;
+    if (r >= 5) {
+        minDoorId = 2;
+    }
+
+    if (id === minDoorId) {
         playSfx('SFX/drop_variant.wav', false, false);
     } else {
         playSfx('SFX/drop_variant_2_3_4.mp3', false, false);
