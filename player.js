@@ -458,8 +458,14 @@ channel.onmessage = function(event) {
             break;
 
         case 'update_single_answer':
-            if (document.getElementById(`ans-txt-${data.id}`)) {
-                const aEl = document.getElementById(`ans-txt-${data.id}`);
+            let pTargetId = data.id;
+            if (currentRound === 8) {
+                if (data.id === 1) pTargetId = 2;
+                else if (data.id === 2) pTargetId = 3;
+                else pTargetId = null;
+            }
+            if (pTargetId && document.getElementById(`ans-txt-${pTargetId}`)) {
+                const aEl = document.getElementById(`ans-txt-${pTargetId}`);
                 aEl.innerText = data.text;
                 aEl.classList.remove('dropped-money-font');
             }
@@ -477,8 +483,27 @@ channel.onmessage = function(event) {
             } else {
                 currentRound = parseInt(data.round) || 1;
             }
-            document.getElementById('wrap-4').style.display = (data.round == '1') ? 'flex' : 'none';
-            document.getElementById('wrap-3').style.display = (data.round == '1' || data.round == '5') ? 'flex' : 'none';
+            const r = currentRound;
+            const w1 = document.getElementById('wrap-1');
+            const w2 = document.getElementById('wrap-2');
+            const w3 = document.getElementById('wrap-3');
+            const w4 = document.getElementById('wrap-4');
+            if (r >= 1 && r <= 4) {
+                if (w1) w1.style.display = 'flex';
+                if (w2) w2.style.display = 'flex';
+                if (w3) w3.style.display = 'flex';
+                if (w4) w4.style.display = 'flex';
+            } else if (r >= 5 && r <= 7) {
+                if (w1) w1.style.display = 'flex';
+                if (w2) w2.style.display = 'flex';
+                if (w3) w3.style.display = 'flex';
+                if (w4) w4.style.display = 'none'; // Door 4 is unused in rounds 5-7
+            } else if (r === 8) {
+                if (w1) w1.style.display = 'none'; // Doors 1 & 4 unused in round 8
+                if (w2) w2.style.display = 'flex';
+                if (w3) w3.style.display = 'flex';
+                if (w4) w4.style.display = 'none';
+            }
             break;
 
         case 'timer_control':
@@ -508,10 +533,18 @@ channel.onmessage = function(event) {
             break;
 
         case 'open_door':
-            const dWrap = document.getElementById(`wrap-${data.doorId}`);
-            const door = document.getElementById(`door-${data.doorId}`);
-            const betBox = document.getElementById(`bet-${data.doorId}`);
-            const ansBox = document.getElementById(`ans-txt-${data.doorId}`);
+            let pDoorId = data.doorId;
+            if (currentRound === 8) {
+                if (data.doorId === 1) pDoorId = 2;
+                else if (data.doorId === 2) pDoorId = 3;
+                else pDoorId = null;
+            }
+            if (!pDoorId) break;
+
+            const dWrap = document.getElementById(`wrap-${pDoorId}`);
+            const door = document.getElementById(`door-${pDoorId}`);
+            const betBox = document.getElementById(`bet-${pDoorId}`);
+            const ansBox = document.getElementById(`ans-txt-${pDoorId}`);
             
             if(door && dWrap) {
                 const currentBet = parseInt(door.getAttribute('data-bet')) || 0;
@@ -524,7 +557,7 @@ channel.onmessage = function(event) {
                     ansBox.innerText = "ĐÃ RƠI HẾT TIỀN";
                     ansBox.classList.remove('dropped-money-font');
                 }
-                betBox.style.visibility = 'hidden';
+                if (betBox) betBox.style.visibility = 'hidden';
             }
             break;
 

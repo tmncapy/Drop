@@ -521,8 +521,8 @@
                     break;
 
                 case "change_round":
-                    if (data && data.round) {
-                        currentRound = parseInt(data.round) || 1;
+                    if (data) {
+                        currentRound = parseInt(data.roundNum || data.round) || 1;
                         if (currentRound === 8) {
                             // Auto shift answers if they were previously placed in proj-ans-1/2
                             const a1 = document.getElementById("proj-ans-1");
