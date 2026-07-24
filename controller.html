@@ -635,7 +635,13 @@
     </div>
 
     <script src="network_sync.js"></script>
+    <script src="security.js"></script>
     <script src="controller.js"></script>
+    <script>
+        if (typeof initPinProtection === 'function') {
+            initPinProtection('controller', 'Bàn Điều Khiển');
+        }
+    </script>
 </body>
 </html>
 

@@ -260,6 +260,7 @@
     </div>
 
     <script src="network_sync.js"></script>
+    <script src="security.js"></script>
     <script>
         const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
         const timerAudio = new Audio("SFX/drop_timer.mp3");

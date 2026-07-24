@@ -318,6 +318,12 @@
     </div>
 
     <script src="network_sync.js"></script>
+    <script src="security.js"></script>
     <script src="player.js"></script>
+    <script>
+        if (typeof initPinProtection === 'function') {
+            initPinProtection('player', 'Người Chơi');
+        }
+    </script>
 </body>
 </html>
