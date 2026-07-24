@@ -446,22 +446,6 @@
                             }
                             slotsContainer.appendChild(slotDiv);
                         }
-
-                        // Add Gauge Icon at the end of the row
-                        const gaugeDiv = document.createElement('div');
-                        gaugeDiv.className = 'progress-gauge-icon';
-                        gaugeDiv.innerHTML = `
-                            <svg width="94" height="94" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="46" fill="none" stroke="#d0d0d0" stroke-width="4"/>
-                                <circle cx="50" cy="50" r="42" fill="#181818" stroke="#333" stroke-width="2"/>
-                                <path d="M 20 70 A 38 38 0 1 1 80 70" fill="none" stroke="#444" stroke-dasharray="3,3" stroke-width="5"/>
-                                <path d="M 50 12 A 38 38 0 0 1 80 70" fill="none" stroke="#e74c3c" stroke-dasharray="4,2" stroke-width="5"/>
-                                <circle cx="50" cy="50" r="6" fill="#e74c3c"/>
-                                <line x1="50" y1="50" x2="72" y2="30" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-                                <circle cx="50" cy="50" r="3" fill="#ffffff"/>
-                            </svg>
-                        `;
-                        slotsContainer.appendChild(gaugeDiv);
                     }
 
                     const hudEl = document.getElementById('progress-hud-overlay');

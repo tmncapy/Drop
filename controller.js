@@ -301,7 +301,7 @@ function fillAnswers(ansList) {
     const r = getCurrentRoundNumber();
     let mapDoors = [1, 2, 3, 4];
     if (r >= 5 && r <= 7) {
-        mapDoors = [1, 2, 3];
+        mapDoors = [2, 3, 4];
     } else if (r === 8) {
         mapDoors = [2, 3];
     }
@@ -355,7 +355,7 @@ function sendQuestion() {
 function sendSingleAnswer(id) { 
     const r = getCurrentRoundNumber();
     let minDoorId = 1;
-    if (r === 8) {
+    if (r >= 5) {
         minDoorId = 2;
     }
 
