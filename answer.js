@@ -1,6 +1,6 @@
 const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
 let currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
-let activeRound = 1;
+let activeRound = null;
 
 function setUnusedStatus(doorId, isUnused) {
     const overlay = document.getElementById(`unused-${doorId}`);
@@ -19,7 +19,9 @@ function updateBetDisplays() {
         let betVal = 0;
         let isUnused = false;
 
-        if (activeRound >= 5 && activeRound <= 7) {
+        if (!activeRound) {
+            isUnused = true;
+        } else if (activeRound >= 5 && activeRound <= 7) {
             if (i === 1) isUnused = true;
             else betVal = currentBets[`b${i}`] || 0;
         } else if (activeRound === 8) {
@@ -35,6 +37,12 @@ function updateBetDisplays() {
         }
     }
 }
+
+// Initial state on reload: all 4 doors are unused
+for (let i = 1; i <= 4; i++) {
+    setUnusedStatus(i, true);
+}
+updateBetDisplays();
 
 channel.onmessage = function(event) {
     const { action, data } = event.data;
@@ -53,8 +61,9 @@ channel.onmessage = function(event) {
             if (data && data.type === 'question') {
                 for (let i = 1; i <= 4; i++) {
                     let isUnused = false;
-                    if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
-                    if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
+                    if (!activeRound) isUnused = true;
+                    else if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
+                    else if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                     if (!isUnused) {
                         const wingL = document.getElementById(`wing-l-${i}`);
@@ -90,8 +99,9 @@ channel.onmessage = function(event) {
         case 'show_all_q_and_a':
             for (let i = 1; i <= 4; i++) {
                 let isUnused = false;
-                if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
-                if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
+                if (!activeRound) isUnused = true;
+                else if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
+                else if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                 if (!isUnused) {
                     const bBox = document.getElementById(`bet-box-${i}`);
@@ -235,6 +245,14 @@ channel.onmessage = function(event) {
                 if (betBoxReset) betBoxReset.classList.remove('show');
 
                 setUnusedStatus(i, false);
+            }
+            if (!activeRound) {
+                for (let i = 1; i <= 4; i++) setUnusedStatus(i, true);
+            } else if (activeRound >= 5 && activeRound <= 7) {
+                setUnusedStatus(1, true);
+            } else if (activeRound === 8) {
+                setUnusedStatus(1, true);
+                setUnusedStatus(4, true);
             }
             updateBetDisplays();
             break;
