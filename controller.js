@@ -298,13 +298,22 @@ function loadSelectedQuestion() {
 }
 
 function fillAnswers(ansList) {
-    for (let i = 1; i <= 4; i++) {
-        const input = document.getElementById("ans-" + i);
+    const r = getCurrentRoundNumber();
+    let mapDoors = [1, 2, 3, 4];
+    if (r >= 5 && r <= 7) {
+        mapDoors = [1, 2, 3];
+    } else if (r === 8) {
+        mapDoors = [2, 3];
+    }
+
+    for (let doorId = 1; doorId <= 4; doorId++) {
+        const input = document.getElementById("ans-" + doorId);
         if (!input) continue;
         const parentRow = input.closest('.ans-row');
         
-        if (ansList && ansList[i - 1] !== undefined && ansList[i - 1] !== null && String(ansList[i - 1]).trim() !== "") {
-            input.value = ansList[i - 1];
+        const ansIndex = mapDoors.indexOf(doorId);
+        if (ansIndex !== -1 && ansList && ansList[ansIndex] !== undefined && ansList[ansIndex] !== null && String(ansList[ansIndex]).trim() !== "") {
+            input.value = ansList[ansIndex];
             if (parentRow) parentRow.style.display = "flex";
             else input.style.display = "block";
         } else {

@@ -18,15 +18,23 @@ function updateBetDisplays() {
     for (let i = 1; i <= 4; i++) {
         let betVal = 0;
         let isUnused = false;
-        if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
-        if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
-        if (!isUnused) {
+        if (activeRound >= 5 && activeRound <= 7) {
+            if (i === 1) isUnused = true;
+            else if (i === 2) betVal = currentBets.b1 || 0;
+            else if (i === 3) betVal = currentBets.b2 || 0;
+            else if (i === 4) betVal = currentBets.b3 || 0;
+        } else if (activeRound === 8) {
+            if (i === 1 || i === 4) isUnused = true;
+            else if (i === 2) betVal = currentBets.b2 || currentBets.b1 || 0;
+            else if (i === 3) betVal = currentBets.b3 || currentBets.b2 || 0;
+        } else {
             betVal = currentBets[`b${i}`] || 0;
         }
+
         const valEl = document.getElementById(`bet-val-${i}`);
         if (valEl) {
-            valEl.innerText = `${betVal.toLocaleString('vi-VN')} $A`;
+            valEl.innerText = `${isUnused ? 0 : betVal.toLocaleString('vi-VN')} $A`;
         }
     }
 }
@@ -48,7 +56,7 @@ channel.onmessage = function(event) {
             if (data && data.type === 'question') {
                 for (let i = 1; i <= 4; i++) {
                     let isUnused = false;
-                    if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
+                    if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
                     if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                     if (!isUnused) {
@@ -67,10 +75,13 @@ channel.onmessage = function(event) {
             let targetDoorId = data.id; 
 
             if (activeRound >= 5 && activeRound <= 7) {
-                if (data.id === 4) targetDoorId = null;
-            } else if (activeRound === 8) {
                 if (data.id === 1) targetDoorId = 2;
                 else if (data.id === 2) targetDoorId = 3;
+                else if (data.id === 3) targetDoorId = 4;
+                else targetDoorId = null;
+            } else if (activeRound === 8) {
+                if (data.id === 1 || data.id === 2) targetDoorId = 2;
+                else if (data.id === 3) targetDoorId = 3;
                 else targetDoorId = null;
             }
 
@@ -93,7 +104,7 @@ channel.onmessage = function(event) {
         case 'show_all_q_and_a':
             for (let i = 1; i <= 4; i++) {
                 let isUnused = false;
-                if (activeRound >= 5 && activeRound <= 7 && i === 4) isUnused = true;
+                if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
                 if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                 if (!isUnused) {
@@ -130,7 +141,7 @@ channel.onmessage = function(event) {
             }
 
             if (activeRound >= 5 && activeRound <= 7) {
-                setUnusedStatus(4, true); 
+                setUnusedStatus(1, true); 
             } else if (activeRound === 8) {
                 setUnusedStatus(1, true); 
                 setUnusedStatus(4, true); 
@@ -141,15 +152,26 @@ channel.onmessage = function(event) {
         case 'open_door':
             let doorId = data.doorId;
             if (activeRound >= 5 && activeRound <= 7) {
-                if (data.doorId === 4) doorId = null;
-            } else if (activeRound === 8) {
                 if (data.doorId === 1) doorId = 2;
                 else if (data.doorId === 2) doorId = 3;
+                else if (data.doorId === 3) doorId = 4;
+                else doorId = null;
+            } else if (activeRound === 8) {
+                if (data.doorId === 1 || data.doorId === 2) doorId = 2;
+                else if (data.doorId === 3) doorId = 3;
                 else doorId = null;
             }
             if (!doorId) break;
 
-            const droppedBetVal = currentBets[`b${doorId}`] || 0;
+            let droppedBetVal = currentBets[`b${doorId}`] || 0;
+            if (activeRound >= 5 && activeRound <= 7) {
+                if (doorId === 2) droppedBetVal = currentBets.b1 || currentBets.b2 || 0;
+                else if (doorId === 3) droppedBetVal = currentBets.b2 || currentBets.b3 || 0;
+                else if (doorId === 4) droppedBetVal = currentBets.b3 || currentBets.b4 || 0;
+            } else if (activeRound === 8) {
+                if (doorId === 2) droppedBetVal = currentBets.b2 || currentBets.b1 || 0;
+                else if (doorId === 3) droppedBetVal = currentBets.b3 || currentBets.b2 || 0;
+            }
 
             const wingL = document.getElementById(`wing-l-${doorId}`);
             if (wingL) wingL.classList.remove('bg-moneydoor');

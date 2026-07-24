@@ -494,10 +494,10 @@ channel.onmessage = function(event) {
                 if (w3) w3.style.display = 'flex';
                 if (w4) w4.style.display = 'flex';
             } else if (r >= 5 && r <= 7) {
-                if (w1) w1.style.display = 'flex';
+                if (w1) w1.style.display = 'none'; // Door 1 is unused in rounds 5-7
                 if (w2) w2.style.display = 'flex';
                 if (w3) w3.style.display = 'flex';
-                if (w4) w4.style.display = 'none'; // Door 4 is unused in rounds 5-7
+                if (w4) w4.style.display = 'flex';
             } else if (r === 8) {
                 if (w1) w1.style.display = 'none'; // Doors 1 & 4 unused in round 8
                 if (w2) w2.style.display = 'flex';
@@ -534,11 +534,6 @@ channel.onmessage = function(event) {
 
         case 'open_door':
             let pDoorId = data.doorId;
-            if (currentRound === 8) {
-                if (data.doorId === 1) pDoorId = 2;
-                else if (data.doorId === 2) pDoorId = 3;
-                else pDoorId = null;
-            }
             if (!pDoorId) break;
 
             const dWrap = document.getElementById(`wrap-${pDoorId}`);

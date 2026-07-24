@@ -419,11 +419,6 @@
             }
             if (action === 'update_single_answer') {
                 let targetId = data.id;
-                if (currentRound === 8) {
-                    if (data.id === 1) targetId = 2;
-                    else if (data.id === 2) targetId = 3;
-                    else targetId = null;
-                }
                 if (targetId) {
                     document.getElementById(`label-ans-${targetId}`).innerText = data.text;
                 }
@@ -440,13 +435,8 @@
             }
             if (action === 'open_door') {
                 let doorId = data.doorId;
-                if (currentRound === 8) {
-                    if (data.doorId === 1) doorId = 2;
-                    else if (data.doorId === 2) doorId = 3;
-                    else doorId = null;
-                }
                 if (doorId) {
-                    const betVal = currentBets[`b${doorId}`] || currentBets[`b${data.doorId}`] || 0;
+                    const betVal = currentBets[`b${doorId}`] || 0;
                     const imgDoor = document.getElementById(`img-door-${doorId}`);
                     if (imgDoor) imgDoor.classList.add('dropped');
                     const txtDrop = document.getElementById(`drop-text-${doorId}`);
@@ -473,20 +463,10 @@
                 document.getElementById('host-round-title').innerText = `CÂU HỎI ${currentRound}`;
                 
                 if (currentRound >= 5 && currentRound <= 7) {
-                    document.getElementById('wrapper-4').style.opacity = '0'; // Door 4 is unused in rounds 5-7
+                    document.getElementById('wrapper-1').style.opacity = '0'; // Door 1 is unused in rounds 5-7
                 } else if (currentRound === 8) {
                     document.getElementById('wrapper-1').style.opacity = '0'; 
                     document.getElementById('wrapper-4').style.opacity = '0';
-
-                    // Auto shift labels if previously placed in label-ans-1/2
-                    const l1 = document.getElementById('label-ans-1');
-                    const l2 = document.getElementById('label-ans-2');
-                    const l3 = document.getElementById('label-ans-3');
-                    if (l1 && l1.innerText && l1.innerText !== "---" && (!l3 || !l3.innerText || l3.innerText === "---")) {
-                        if (l3) l3.innerText = l2.innerText;
-                        if (l2) l2.innerText = l1.innerText;
-                        if (l1) l1.innerText = "---";
-                    }
                 }
             }
             if (action === 'timer_control') {

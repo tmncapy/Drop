@@ -315,10 +315,10 @@
                 let shouldShow = true;
 
                 // Round rules:
-                // Round 5,6,7 -> 3 options (hide door 4)
+                // Round 5,6,7 -> 3 options (hide door 1)
                 // Round 8 -> 2 options (hide door 1 and 4)
                 if (currentRound >= 5 && currentRound <= 7) {
-                    if (i === 4) shouldShow = false;
+                    if (i === 1) shouldShow = false;
                 } else if (currentRound === 8) {
                     if (i === 1 || i === 4) shouldShow = false;
                 }
@@ -598,11 +598,6 @@
 
                 case "update_single_answer":
                     let targetId = data.id;
-                    if (currentRound === 8) {
-                        if (data.id === 1) targetId = 2;
-                        else if (data.id === 2) targetId = 3;
-                        else targetId = null;
-                    }
                     if (targetId) {
                         const ansEl = document.getElementById(`proj-ans-${targetId}`);
                         if (ansEl) {
