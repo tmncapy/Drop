@@ -103,12 +103,12 @@
         /* LỚP BỀ MẶT CỬA DOOR.PNG */
         .door-surface {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3;
-            display: flex; transition: transform 0.25s cubic-bezier(0.77, 0, 0.175, 1);
+            display: flex; transition: transform 0.75s cubic-bezier(0.77, 0, 0.175, 1);
         }
 
         .door-wing {
             width: 50%; height: 100%; background-size: 200% 100%; background-position: left center;
-            background-image: url('door.png'); transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), background-image 0.2s ease; background-repeat: no-repeat;
+            background-image: url('door.png'); transition: transform 0.75s cubic-bezier(0.25, 1, 0.5, 1), background-image 0.2s ease; background-repeat: no-repeat;
         }
         .door-wing.right { background-position: right center; }
 
@@ -116,8 +116,8 @@
         .door-surface.wiped .door-wing.left { transform: translateX(-100%); }
         .door-surface.wiped .door-wing.right { transform: translateX(100%); }
 
-        /* Khép cửa sập 0.25s */
-        .door-surface.closing { transition: transform 0.25s ease-in-out !important; }
+        /* Khép cửa sập 0.75s */
+        .door-surface.closing { transition: transform 0.75s ease-in-out !important; }
         .door-surface.closing .door-wing { transform: translateX(0) !important; }
 
         /* Ẩn bề mặt khi sập hố */
@@ -137,7 +137,7 @@
             background-image: url('door.png');
             background-size: 200% 100%;
             background-repeat: no-repeat;
-            transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 0.75s cubic-bezier(0.25, 1, 0.5, 1);
             box-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
         .v-panel.left {
