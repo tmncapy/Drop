@@ -109,16 +109,15 @@
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin-bottom: 8px;
-            flex: 1;
-            align-items: stretch;
+            margin: 10px 0;
+            align-items: flex-start;
         }
         .door-wrapper {
-            flex: 1;
-            max-width: 280px;
+            flex: 0 1 210px;
+            max-width: 210px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.3s ease;
         }
 
@@ -126,18 +125,18 @@
         .answer-label {
             background: #161b22;
             border: 2px solid #30363d;
-            border-radius: 10px;
-            padding: 14px 10px;
+            border-radius: 8px;
+            padding: 8px 10px;
             text-align: center;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
-            min-height: 58px;
+            min-height: 46px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #e6edf3;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
         .answer-label.host-win {
             background: linear-gradient(135deg, #1f6feb, #2ea043) !important;
@@ -152,19 +151,20 @@
             box-shadow: 0 0 20px rgba(248, 81, 73, 0.4) !important;
         }
 
-        /* Trapdoor Pit Area (No PNG graphics) */
+        /* Trapdoor Pit Area (Horizontal 16:9 ratio) */
         .pit-frame {
-            flex: 1;
-            min-height: 240px;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            max-height: 120px;
             border: 2px solid #30363d;
-            border-radius: 12px;
+            border-radius: 10px;
             background: #0d1117;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 4px 10px rgba(0,0,0,0.3);
         }
 
         /* Pit Floor (When door drops open) */
@@ -182,13 +182,13 @@
         }
         .pit-bg::after {
             content: "CỬA ĐÃ SẬP";
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 900;
-            letter-spacing: 2px;
-            color: rgba(248, 81, 73, 0.25);
-            border: 2px dashed rgba(248, 81, 73, 0.25);
-            padding: 8px 16px;
-            border-radius: 6px;
+            letter-spacing: 1.5px;
+            color: rgba(248, 81, 73, 0.4);
+            border: 1px dashed rgba(248, 81, 73, 0.4);
+            padding: 3px 8px;
+            border-radius: 4px;
         }
 
         /* Door Flap (CSS Door surface) */
@@ -196,7 +196,7 @@
             width: 100%;
             height: 100%;
             background: linear-gradient(180deg, #21262d 0%, #161b22 100%);
-            border-bottom: 3px solid #30363d;
+            border-bottom: 2px solid #30363d;
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
             position: absolute;
             top: 0;
@@ -211,13 +211,13 @@
             width: 80%;
             height: 80%;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
+            border-radius: 4px;
             background: repeating-linear-gradient(
                 0deg,
                 transparent,
-                transparent 15px,
-                rgba(255,255,255,0.02) 15px,
-                rgba(255,255,255,0.02) 16px
+                transparent 10px,
+                rgba(255,255,255,0.02) 10px,
+                rgba(255,255,255,0.02) 11px
             );
         }
         .door-image.dropped {
@@ -228,41 +228,41 @@
         /* Bet Display Overlay */
         .bet-display {
             position: absolute;
-            bottom: 14px;
+            bottom: 6px;
             left: 5%;
             width: 90%;
             text-align: center;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 800;
             color: #f1e05a;
             font-family: 'UVN Thanh Pho Nang', sans-serif;
             background: rgba(13, 17, 23, 0.85);
             backdrop-filter: blur(4px);
             border: 1px solid rgba(241, 224, 90, 0.3);
-            border-radius: 8px;
-            padding: 6px 10px;
+            border-radius: 5px;
+            padding: 3px 6px;
             z-index: 3;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
         }
 
         /* Dropped Money Alert Banner */
         .dropped-money-text {
             position: absolute;
-            top: 35%;
+            top: 15%;
             left: 5%;
             width: 90%;
             text-align: center;
-            font-size: 18px;
+            font-size: 13px;
             font-weight: 900;
             color: #ffffff;
             font-family: 'UVN Thanh Pho Nang', sans-serif;
             background: rgba(218, 54, 51, 0.95);
             border: 1px solid #f85149;
-            border-radius: 8px;
-            padding: 10px 6px;
+            border-radius: 5px;
+            padding: 4px 2px;
             z-index: 4;
             display: none;
-            box-shadow: 0 0 20px rgba(248, 81, 73, 0.6);
+            box-shadow: 0 0 15px rgba(248, 81, 73, 0.6);
             letter-spacing: 1px;
             text-transform: uppercase;
         }
@@ -270,48 +270,69 @@
         /* Bottom Status Area */
         .bottom-container {
             display: flex;
-            gap: 16px;
-            align-items: center;
+            gap: 20px;
+            align-items: stretch;
+            flex: 1;
+            min-height: 180px;
+            margin-top: 10px;
         }
 
         .explain-container {
             flex: 1;
+            min-width: 240px;
             background: #161b22;
             border: 1px solid #30363d;
-            padding: 12px 20px;
-            border-radius: 10px;
+            padding: 16px 20px;
+            border-radius: 12px;
             text-align: left;
             color: #8b949e;
             font-size: 15px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
         }
         .explain-container span {
             color: #f1e05a;
             font-weight: 700;
             display: none;
-            margin-left: 6px;
+            margin-top: 8px;
+            font-size: 18px;
+            line-height: 1.4;
         }
 
         .tech-box {
-            width: 320px;
-            background: #161b22;
-            border: 1px dashed #58a6ff;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 13px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            flex: 2.5;
+            background: linear-gradient(135deg, #0d1626 0%, #080d1a 100%);
+            border: 3px solid #388bfd;
+            border-radius: 14px;
+            padding: 20px 24px;
+            box-shadow: 0 0 25px rgba(56, 139, 253, 0.3);
+            display: flex;
+            flex-direction: column;
         }
         .tech-box-title {
             color: #58a6ff;
-            font-weight: 700;
-            margin-bottom: 4px;
-            border-bottom: 1px solid #30363d;
-            padding-bottom: 4px;
+            font-weight: 900;
+            font-size: 18px;
+            margin-bottom: 12px;
+            border-bottom: 2px solid rgba(56, 139, 253, 0.3);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .tech-msg-content {
-            color: #7ee787;
-            font-style: italic;
+            color: #00ff88;
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.35;
             word-wrap: break-word;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            text-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
         }
     </style>
 </head>
