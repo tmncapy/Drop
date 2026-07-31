@@ -521,6 +521,31 @@ function openDoor(id) {
     playSfx('SFX/drop_trapdoor_1.mp3', false, false);
     sendCommand('open_door', { doorId: id }); 
 }
+
+function openSelectedDoors() {
+    const selected = [];
+    for (let i = 1; i <= 4; i++) {
+        const chk = document.getElementById(`chk-door-${i}`);
+        if (chk && chk.checked) {
+            selected.push(i);
+        }
+    }
+    if (selected.length === 0) {
+        alert("Vui lòng tích chọn ít nhất 1 cửa đáp án sai để sập!");
+        return;
+    }
+    playSfx('SFX/drop_trapdoor_1.mp3', false, false);
+    selected.forEach(doorId => {
+        sendCommand('open_door', { doorId: doorId });
+    });
+}
+
+function selectAllDoors(checkAll) {
+    for (let i = 1; i <= 4; i++) {
+        const chk = document.getElementById(`chk-door-${i}`);
+        if (chk) chk.checked = checkAll;
+    }
+}
 function collectWinningMoney() { collectMoneyBack(); }
 function penaltyFine() { sendCommand('penalty_fine'); }
 function addPlayerStacksMC(count) { sendCommand('add_player_stacks', { count: count }); }

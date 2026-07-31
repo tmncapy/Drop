@@ -14,11 +14,14 @@
         @font-face {
             font-family: 'UVN Thanh Pho Nang';
             src: url('unicode.display.UVNThanhPhoNang.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'UVN Thanh Pho Nang', sans-serif;
+            font-weight: normal;
             background: #18191a; 
             color: #e4e6eb; 
             min-height: 100vh;
@@ -44,7 +47,7 @@
         header h1 {
             font-size: 15px;
             color: #ffcc00;
-            font-weight: bold;
+            font-weight: normal;
             letter-spacing: 0.5px;
             display: flex;
             align-items: center;
@@ -57,7 +60,7 @@
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: normal;
         }
 
         .header-pin-bar {
@@ -73,14 +76,14 @@
             margin-bottom: 0;
             color: #2e89ff;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: normal;
             white-space: nowrap;
         }
         .header-pin-bar input {
             width: 60px;
             text-align: center;
             font-size: 14px;
-            font-weight: bold;
+            font-weight: normal;
             letter-spacing: 2px;
             color: #ffcc00;
             padding: 2px 4px;
@@ -156,7 +159,7 @@
         
         .panel-title {
             font-size: 13px;
-            font-weight: bold;
+            font-weight: normal;
             color: #ffcc00;
             border-bottom: 1px solid #3a3b3c;
             padding-bottom: 5px;
@@ -174,7 +177,7 @@
         
         label {
             display: block;
-            font-weight: 600;
+            font-weight: normal;
             margin-bottom: 4px;
             color: #ffcc00;
             font-size: 12px;
@@ -202,7 +205,7 @@
             color: #fff;
             border: none;
             border-radius: 4px;
-            font-weight: bold;
+            font-weight: normal;
             cursor: pointer;
             font-size: 12px;
             transition: background 0.15s ease, transform 0.05s ease;
@@ -249,8 +252,9 @@
         }
         .bet-display {
             font-size: 14px;
-            font-weight: bold;
+            font-weight: normal;
             color: #00e676;
+            font-family: 'UVN Thanh Pho Nang', sans-serif;
         }
         
         .sfx-grid {
@@ -280,7 +284,7 @@
             color: #b0b3b8;
             border: none;
             border-bottom: 3px solid transparent;
-            font-weight: bold;
+            font-weight: normal;
             font-size: 13px;
             cursor: pointer;
             border-radius: 0;
@@ -315,7 +319,7 @@
             color: #fff;
             padding: 12px 6px;
             border-radius: 6px;
-            font-weight: bold;
+            font-weight: normal;
             cursor: pointer;
             text-align: center;
             display: flex;
@@ -350,7 +354,7 @@
             <button class="btn-red" style="width: auto; padding: 4px 8px;" onclick="forceLockPlayers()">Khóa Player</button>
         </div>
 
-        <div id="sfx-status" style="font-weight: bold; color: #f39c12; font-size: 12px;">Sẵn sàng phát âm thanh</div>
+        <div id="sfx-status" style="font-weight: normal; color: #f39c12; font-size: 12px; font-family: 'UVN Thanh Pho Nang', sans-serif;">Sẵn sàng phát âm thanh</div>
     </header>
 
     <div class="tab-bar">
@@ -437,7 +441,7 @@
             <div class="panel-title">2. THỜI GIAN & HỐ SẬP</div>
             
             <div class="form-group">
-                <label id="time-display" style="font-size: 13px; text-align: center; color: #00e676; font-family: 'UVN Thanh Pho Nang', 'LHF_Mono', monospace;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
+                <label id="time-display" style="font-size: 13px; text-align: center; color: #00e676; font-family: 'UVN Thanh Pho Nang', sans-serif; font-weight: normal;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
                 <div class="inline-group">
                     <button onclick="startTimer()">Bắt Đầu (60s)</button>
                     <button class="btn-orange" onclick="add30Seconds()">+30 Giây</button>
@@ -456,10 +460,10 @@
             </div>
 
             <div class="form-group" style="background: #1c2833; border: 1px solid #34495e;">
-                <label style="color: #00e676; font-size: 13px; font-weight: bold;">💰 TĂNG GIẢM CỌC TIỀN NGUỜI CHƠI</label>
+                <label style="color: #00e676; font-size: 13px; font-weight: normal;">💰 TĂNG GIẢM CỌC TIỀN NGUỜI CHƠI</label>
                 <div style="display: flex; justify-content: space-between; align-items: center; background: #111213; padding: 5px 8px; border-radius: 4px; margin-bottom: 6px; border: 1px dashed #444;">
                     <span style="font-size: 11px; color: #aaa;">Tổng tiền còn lại:</span>
-                    <span id="mc-total-money" style="font-size: 13px; font-weight: bold; color: #00e676; font-family: 'UVN Thanh Pho Nang', sans-serif;">1.000.000 $A (40 cọc)</span>
+                    <span id="mc-total-money" style="font-size: 13px; font-weight: normal; color: #00e676; font-family: 'UVN Thanh Pho Nang', sans-serif;">1.000.000 $A (40 cọc)</span>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 6px;">
@@ -476,16 +480,47 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label>Kích Hoạt Sập Hố Vật Lý</label>
-                <button class="btn-orange" style="margin-bottom: 6px;" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Kích Hoạt (Nhạc Hồi Hộp)</button>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                    <button class="btn-red" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
-                    <button class="btn-red" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
-                    <button class="btn-red" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
-                    <button class="btn-red" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
+            <div class="form-group" style="background: #1a1c23; border: 1px solid #2e3440;">
+                <label style="color: #ff4d4d; font-family: 'UVN Thanh Pho Nang', sans-serif; font-weight: normal; font-size: 13px;">🔥 KÍCH HOẠT SẬP HỐ VẬT LÝ</label>
+                <button class="btn-orange" style="margin-bottom: 8px;" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Kích Hoạt (Nhạc Hồi Hộp)</button>
+                
+                <div style="background: #111418; border: 1px solid #2a2f3a; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                    <div style="font-size: 11px; color: #f1e05a; margin-bottom: 6px; font-family: 'UVN Thanh Pho Nang', sans-serif;">☑️ CHỌN CÁC CỬA SAI ĐỂ SẬP CÙNG LÚC (2 Hoặc 3 Cửa):</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ffffff; background: #1f2430; padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #3b4252; user-select: none;">
+                            <input type="checkbox" id="chk-door-1" class="door-chk" value="1" style="width: 18px; height: 18px; accent-color: #ff4d4d; cursor: pointer;">
+                            <span style="font-family: 'UVN Thanh Pho Nang', sans-serif;">Cửa 1</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ffffff; background: #1f2430; padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #3b4252; user-select: none;">
+                            <input type="checkbox" id="chk-door-2" class="door-chk" value="2" style="width: 18px; height: 18px; accent-color: #ff4d4d; cursor: pointer;">
+                            <span style="font-family: 'UVN Thanh Pho Nang', sans-serif;">Cửa 2</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ffffff; background: #1f2430; padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #3b4252; user-select: none;">
+                            <input type="checkbox" id="chk-door-3" class="door-chk" value="3" style="width: 18px; height: 18px; accent-color: #ff4d4d; cursor: pointer;">
+                            <span style="font-family: 'UVN Thanh Pho Nang', sans-serif;">Cửa 3</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ffffff; background: #1f2430; padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #3b4252; user-select: none;">
+                            <input type="checkbox" id="chk-door-4" class="door-chk" value="4" style="width: 18px; height: 18px; accent-color: #ff4d4d; cursor: pointer;">
+                            <span style="font-family: 'UVN Thanh Pho Nang', sans-serif;">Cửa 4</span>
+                        </label>
+                    </div>
+
+                    <div style="display: flex; gap: 4px;">
+                        <button class="btn-red" style="flex: 1; font-size: 13px; padding: 8px; font-family: 'UVN Thanh Pho Nang', sans-serif;" onclick="openSelectedDoors()">
+                            💥 SẬP CÁC CỬA ĐÃ CHỌN
+                        </button>
+                        <button class="btn-purple" style="width: auto; padding: 6px 8px; font-size: 11px;" onclick="selectAllDoors(true)" title="Chọn tất cả 4 cửa">Tất cả</button>
+                        <button style="width: auto; padding: 6px 8px; font-size: 11px; background: #3b4252; color: #fff; border: 1px solid #4c566a;" onclick="selectAllDoors(false)" title="Bỏ chọn">Bỏ chọn</button>
+                    </div>
                 </div>
-                <button class="btn-red" style="margin-top: 6px; font-weight: bold; font-size: 14px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">💥 SẬP</button>
+
+                <div style="font-size: 11px; color: #888; margin-bottom: 4px; font-family: 'UVN Thanh Pho Nang', sans-serif;">Sập từng cửa riêng lẻ:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                    <button class="btn-red" style="padding: 4px 6px; font-size: 12px;" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
+                    <button class="btn-red" style="padding: 4px 6px; font-size: 12px;" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
+                    <button class="btn-red" style="padding: 4px 6px; font-size: 12px;" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
+                    <button class="btn-red" style="padding: 4px 6px; font-size: 12px;" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
+                </div>
             </div>
 
             <div class="form-group" style="background: #23192e; border: 1px solid #5b2c6f;">

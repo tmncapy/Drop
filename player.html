@@ -18,6 +18,8 @@
         @font-face {
             font-family: 'UVN Thanh Pho Nang';
             src: url('unicode.display.UVNThanhPhoNang.TTF') format('truetype');
+            font-weight: normal;
+            font-style: normal;
         }
 
         * {
@@ -26,7 +28,7 @@
         }
 
         body {
-            font-family: Arial, sans-serif; background-color: #111; height: 100vh;
+            font-family: 'UVN Thanh Pho Nang', sans-serif; font-weight: normal; background-color: #111; height: 100vh;
             display: flex; flex-direction: column; justify-content: space-between;
             overflow: hidden; padding: 20px;
         }
@@ -41,8 +43,8 @@
         }
 
         .answer-box {
-            font-family: 'Myriad Pro', 'MyriadPro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            color: #fff; font-size: 16px; font-weight: bold; margin-bottom: 10px;
+            font-family: 'UVN Thanh Pho Nang', sans-serif;
+            color: #fff; font-size: 16px; font-weight: normal; margin-bottom: 10px;
             background: #27ae60; padding: 8px 16px; border-radius: 4px;
             border: 1px solid #2ecc71; min-height: 44px; display: flex;
             align-items: center; justify-content: center; width: 100%; text-align: center;
@@ -50,7 +52,8 @@
         }
 
         .dropped-money-font {
-            font-family: 'UVN Thanh Pho Nang', 'LHF_Mono', monospace !important;
+            font-family: 'UVN Thanh Pho Nang', sans-serif !important;
+            font-weight: normal !important;
             font-size: 18px;
             color: #ffff00;
         }
@@ -116,7 +119,8 @@
         }
 
         .bet-amount {
-            color: #ffcc00; font-size: 16px; font-weight: bold; margin-top: 10px;
+            color: #ffcc00; font-size: 16px; font-weight: normal; margin-top: 10px;
+            font-family: 'UVN Thanh Pho Nang', sans-serif;
             background: rgba(0, 0, 0, 0.85); padding: 6px 16px; border-radius: 4px;
             border: 1px solid #444; min-height: 34px; display: flex;
             align-items: center; justify-content: center; width: 100%; text-align: center;
@@ -130,7 +134,7 @@
         .question-box {
             background: linear-gradient(135deg, #2c3e50, #34495e); border: 2px solid #7f8c8d;
             border-radius: 12px; padding: 25px 40px; color: #ffffff; font-size: 24px;
-            font-weight: bold; text-align: center; max-width: 800px; width: 100%;
+            font-weight: normal; font-family: 'UVN Thanh Pho Nang', sans-serif; text-align: center; max-width: 800px; width: 100%;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6); letter-spacing: 0.5px;
         }
 
@@ -138,8 +142,8 @@
         .table-wrapper { width: 100%; display: flex; flex-direction: column; align-items: center; }
 
         .timer-box {
-            background: #222; color: #ff3d00; font-family: 'UVN Thanh Pho Nang', 'LHF_Mono', monospace;
-            font-size: 28px; font-weight: bold; padding: 6px 24px; border: 3px solid #34495e;
+            background: #222; color: #ff3d00; font-family: 'UVN Thanh Pho Nang', sans-serif;
+            font-size: 28px; font-weight: normal; padding: 6px 24px; border: 3px solid #34495e;
             border-bottom: none; border-radius: 10px 10px 0 0; box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
             text-shadow: 0 0 10px rgba(255, 61, 0, 0.5); z-index: 2; transition: color 0.3s;
         }
@@ -150,7 +154,7 @@
             padding: 15px 20px; border-radius: 12px 12px 0 0; cursor: pointer; position: relative; z-index: 1;
         }
 
-        .table-title { color: #fff; text-align: center; margin-bottom: 15px; font-size: 14px; font-weight: bold; text-transform: uppercase; }
+        .table-title { color: #fff; text-align: center; margin-bottom: 15px; font-size: 14px; font-weight: normal; font-family: 'UVN Thanh Pho Nang', sans-serif; text-transform: uppercase; }
         
         .money-grid { 
             display: grid; 
