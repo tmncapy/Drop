@@ -115,6 +115,8 @@ function forceLockPlayers() {
     alert("Đã gửi lệnh khóa tất cả màn hình Player!");
 }
 
+let lastMcBetsData = { b1: 0, b2: 0, b3: 0, b4: 0, totalMoney: null, totalStacks: null };
+
 // Listen to messages from other windows/tabs (e.g., live player bets)
 channel.onmessage = function(event) {
     const { action, data } = event.data;
@@ -123,35 +125,28 @@ channel.onmessage = function(event) {
         sendCommand('set_volume', { volume: currentGlobalVolume });
     }
     if (action === 'sync_bets_to_mc' && data) {
-        const unit = gameSettings.currencyUnit || '$A';
-        const stackVal = gameSettings.stackValue || 25000;
-        const b1 = data.b1 || 0;
-        const b2 = data.b2 || 0;
-        const b3 = data.b3 || 0;
-        const b4 = data.b4 || 0;
-        const s1 = Math.round(b1 / stackVal);
-        const s2 = Math.round(b2 / stackVal);
-        const s3 = Math.round(b3 / stackVal);
-        const s4 = Math.round(b4 / stackVal);
-        document.getElementById('mc-bet-1').innerText = `${b1.toLocaleString('vi-VN')} ${unit} (${s1} cọc)`;
-        document.getElementById('mc-bet-2').innerText = `${b2.toLocaleString('vi-VN')} ${unit} (${s2} cọc)`;
-        document.getElementById('mc-bet-3').innerText = `${b3.toLocaleString('vi-VN')} ${unit} (${s3} cọc)`;
-        document.getElementById('mc-bet-4').innerText = `${b4.toLocaleString('vi-VN')} ${unit} (${s4} cọc)`;
+        lastMcBetsData.b1 = data.b1 || 0;
+        lastMcBetsData.b2 = data.b2 || 0;
+        lastMcBetsData.b3 = data.b3 || 0;
+        lastMcBetsData.b4 = data.b4 || 0;
 
-        if (data.totalMoney !== undefined && data.totalStacks !== undefined) {
+        if (data.totalMoney !== undefined) {
             currentMoneyAmount = data.totalMoney;
-            const moneyEl = document.getElementById('mc-total-money');
-            if (moneyEl) {
-                moneyEl.innerText = `${data.totalMoney.toLocaleString('vi-VN')} ${unit} (${data.totalStacks} cọc)`;
-            }
-            const inputEl = document.getElementById('custom-stacks-input');
-            if (inputEl && document.activeElement !== inputEl) {
-                inputEl.value = data.totalStacks;
-            }
-            updateProgressDataUI();
-            if (isProgressShowingOnProjector) {
-                showProgressOnProjector();
-            }
+            lastMcBetsData.totalMoney = data.totalMoney;
+        }
+        if (data.totalStacks !== undefined) {
+            lastMcBetsData.totalStacks = data.totalStacks;
+        }
+
+        const inputEl = document.getElementById('custom-stacks-input');
+        if (inputEl && document.activeElement !== inputEl && data.totalStacks !== undefined) {
+            inputEl.value = data.totalStacks;
+        }
+
+        updateControllerMoneyLabels();
+        updateProgressDataUI();
+        if (isProgressShowingOnProjector) {
+            showProgressOnProjector();
         }
     }
 };
@@ -816,8 +811,16 @@ function saveGameSettings() {
         updateTimerDisplay();
     }
 
+    if (lastMcBetsData.totalMoney === null) {
+        currentMoneyAmount = initStacks * stackVal;
+    }
+
     updateControllerMoneyLabels();
     updateProgressDataUI();
+
+    if (isProgressShowingOnProjector) {
+        showProgressOnProjector();
+    }
 
     sendCommand('update_settings', {
         settings: gameSettings
@@ -845,10 +848,46 @@ function updateControllerMoneyLabels() {
     const stackVal = gameSettings.stackValue || 25000;
     const totalInitMoney = initStacks * stackVal;
 
+    // 1. Update total money label on Main Dashboard
+    const moneyEl = document.getElementById('mc-total-money');
+    if (moneyEl) {
+        const stacks = (lastMcBetsData.totalStacks !== null && lastMcBetsData.totalStacks !== undefined) 
+            ? lastMcBetsData.totalStacks 
+            : Math.round(currentMoneyAmount / (stackVal || 1));
+        moneyEl.innerText = `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit} (${stacks} cọc)`;
+    }
+
+    // 2. Update bets on MC Main Dashboard
+    const b1 = lastMcBetsData.b1 || 0;
+    const b2 = lastMcBetsData.b2 || 0;
+    const b3 = lastMcBetsData.b3 || 0;
+    const b4 = lastMcBetsData.b4 || 0;
+    const s1 = Math.round(b1 / (stackVal || 1));
+    const s2 = Math.round(b2 / (stackVal || 1));
+    const s3 = Math.round(b3 / (stackVal || 1));
+    const s4 = Math.round(b4 / (stackVal || 1));
+
+    const bet1El = document.getElementById('mc-bet-1');
+    const bet2El = document.getElementById('mc-bet-2');
+    const bet3El = document.getElementById('mc-bet-3');
+    const bet4El = document.getElementById('mc-bet-4');
+
+    if (bet1El) bet1El.innerText = `${b1.toLocaleString('vi-VN')} ${unit} (${s1} cọc)`;
+    if (bet2El) bet2El.innerText = `${b2.toLocaleString('vi-VN')} ${unit} (${s2} cọc)`;
+    if (bet3El) bet3El.innerText = `${b3.toLocaleString('vi-VN')} ${unit} (${s3} cọc)`;
+    if (bet4El) bet4El.innerText = `${b4.toLocaleString('vi-VN')} ${unit} (${s4} cọc)`;
+
+    // 3. Update restore stacks button
     const defaultBtn = document.querySelector('button[onclick*="setPlayerStacksMC"]');
     if (defaultBtn) {
         defaultBtn.innerText = `${initStacks} Cọc`;
         defaultBtn.setAttribute('onclick', `setPlayerStacksMC(${initStacks})`);
         defaultBtn.title = `Khôi phục ${initStacks} cọc (${totalInitMoney.toLocaleString('vi-VN')} ${unit})`;
+    }
+
+    // 4. Update money label on Progress Dashboard
+    const progressMoneyEl = document.getElementById('ctrl-money-text');
+    if (progressMoneyEl) {
+        progressMoneyEl.innerText = `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit}`;
     }
 }
