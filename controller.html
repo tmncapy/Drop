@@ -327,6 +327,19 @@
             width: 100%;
         }
 
+        .settings-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 12px;
+            overflow-y: auto;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         .q-status-btn {
             background: #111317;
             border: 1px solid #262a36;
@@ -374,6 +387,7 @@
     <div class="tab-bar">
         <button class="tab-button active" id="tab-btn-main" onclick="switchControllerTab('main')">🎮 BÀN ĐIỀU KHIỂN CHÍNH</button>
         <button class="tab-button" id="tab-btn-progress" onclick="switchControllerTab('progress')">📊 TIẾN TRÌNH CHƠI</button>
+        <button class="tab-button" id="tab-btn-settings" onclick="switchControllerTab('settings')">⚙️ CÀI ĐẶT CẤU HÌNH</button>
     </div>
 
     <div id="main-dashboard" class="dashboard-container">
@@ -692,6 +706,95 @@
                 <button class="btn-red" style="padding: 10px; font-size: 12px;" onclick="hideWinningMoneyOnProjector()">
                     🛑 ẨN TIỀN THẮNG
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: SETTINGS DASHBOARD -->
+    <div id="settings-dashboard" class="settings-container" style="display: none;">
+        <div class="panel" style="width: 100%; max-width: 800px; margin: 0 auto;">
+            <div class="panel-title">⚙️ CÀI ĐẶT CẤU HÌNH TRÒ CHƠI</div>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">Chỉnh sửa các thông số kỹ thuật của trò chơi. Bấm "Lưu Cài Đặt &amp; Đồng Bộ" để áp dụng cho tất cả màn hình.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <!-- Column 1: Game Play & Time -->
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 11px; color: #60a5fa; border-bottom: 1px solid #262a36; padding-bottom: 4px; font-weight: bold;">
+                        1. THỜI GIAN &amp; SỐ CÂU HỎI
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cfg-timer-seconds">⏱️ Thời gian đếm ngược mỗi câu (giây):</label>
+                        <input type="number" id="cfg-timer-seconds" min="10" max="300" value="60" oninput="updateSettingsPreview()">
+                        <span style="font-size: 9px; color: #64748b;">Mặc định: 60 giây.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cfg-total-questions">❓ Tổng số câu hỏi toàn chương trình:</label>
+                        <input type="number" id="cfg-total-questions" min="1" max="20" value="8" oninput="updateSettingsPreview()">
+                        <span style="font-size: 9px; color: #64748b;">Mặc định: 8 câu hỏi (Tự động cập nhật ô tiến trình).</span>
+                    </div>
+                </div>
+
+                <!-- Column 2: Money & Stacks -->
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 11px; color: #60a5fa; border-bottom: 1px solid #262a36; padding-bottom: 4px; font-weight: bold;">
+                        2. CỌC TIỀN &amp; ĐƠN VỊ TIỀN
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cfg-initial-stacks">📦 Số lượng cọc tiền ban đầu:</label>
+                        <input type="number" id="cfg-initial-stacks" min="1" max="200" value="40" oninput="updateSettingsPreview()">
+                        <span style="font-size: 9px; color: #64748b;">Mặc định: 40 cọc tiền.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cfg-stack-value">💵 Giá trị của 1 cọc tiền:</label>
+                        <input type="number" id="cfg-stack-value" min="1000" max="1000000000" step="1000" value="25000" oninput="updateSettingsPreview()">
+                        <span style="font-size: 9px; color: #64748b;">Mặc định: 25.000.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cfg-currency-unit">🔤 Đơn vị tiền tệ hiển thị:</label>
+                        <input type="text" id="cfg-currency-unit" value="$A" placeholder="Ví dụ: $A, VNĐ, ĐỒNG, $" oninput="updateSettingsPreview()">
+                        <span style="font-size: 9px; color: #64748b;">Hiển thị sau con số tiền trên tất cả màn hình.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div style="background: #111317; border: 1px solid #262a36; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
+                <div style="font-size: 10px; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">
+                    🔍 XEM TRƯỚC TỔNG QUAN CẤU HÌNH
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                    <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
+                        <div style="font-size: 9px; color: #94a3b8;">THỜI GIAN / CÂU</div>
+                        <div id="preview-cfg-time" style="font-size: 14px; color: #f59e0b; margin-top: 2px;">60 giây</div>
+                    </div>
+                    <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
+                        <div style="font-size: 9px; color: #94a3b8;">TỔNG TIỀN BAN ĐẦU</div>
+                        <div id="preview-cfg-money" style="font-size: 14px; color: #34d399; margin-top: 2px;">1.000.000 $A (40 cọc)</div>
+                    </div>
+                    <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
+                        <div style="font-size: 9px; color: #94a3b8;">TỔNG SỐ CÂU HỎI</div>
+                        <div id="preview-cfg-questions" style="font-size: 14px; color: #60a5fa; margin-top: 2px;">8 câu</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-blue" style="flex: 2; padding: 10px; font-size: 12px;" onclick="saveGameSettings()">
+                    💾 LƯU CÀI ĐẶT &amp; ĐỒNG BỘ
+                </button>
+                <button class="btn-orange" style="flex: 1; padding: 10px; font-size: 12px;" onclick="resetGameSettingsToDefault()">
+                    🔄 KHÔI PHỤC MẶC ĐỊNH
+                </button>
+            </div>
+
+            <div id="cfg-save-status" style="margin-top: 8px; font-size: 11px; text-align: center; color: #34d399; display: none;">
+                ✅ Đã lưu cài đặt và đồng bộ thành công!
             </div>
         </div>
     </div>

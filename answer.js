@@ -2,6 +2,16 @@ const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('
 let currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
 let activeRound = null;
 
+let gameSettings = loadAnswerSettings();
+function loadAnswerSettings() {
+    try {
+        const saved = localStorage.getItem('game_settings');
+        if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return { currencyUnit: '$A' };
+}
+let CURRENCY_UNIT = gameSettings.currencyUnit || '$A';
+
 function setUnusedStatus(doorId, isUnused) {
     const overlay = document.getElementById(`unused-${doorId}`);
     if (overlay) {
@@ -33,7 +43,7 @@ function updateBetDisplays() {
 
         const valEl = document.getElementById(`bet-val-${i}`);
         if (valEl) {
-            valEl.innerText = `${isUnused ? 0 : betVal.toLocaleString('vi-VN')} $A`;
+            valEl.innerText = `${isUnused ? 0 : betVal.toLocaleString('vi-VN')} ${CURRENCY_UNIT}`;
         }
     }
 }
@@ -48,6 +58,15 @@ channel.onmessage = function(event) {
     const { action, data } = event.data;
 
     switch(action) {
+        case 'update_settings':
+            if (data && data.settings) {
+                gameSettings = { ...gameSettings, ...data.settings };
+                CURRENCY_UNIT = gameSettings.currencyUnit || '$A';
+                localStorage.setItem('game_settings', JSON.stringify(gameSettings));
+                updateBetDisplays();
+            }
+            break;
+
         case 'sync_bets_to_mc':
             currentBets.b1 = data.b1 || 0;
             currentBets.b2 = data.b2 || 0;

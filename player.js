@@ -3,7 +3,20 @@ const tableDesk = document.getElementById('table-desk');
 const doors = document.querySelectorAll('.door');
 const gameTimer = document.getElementById('game-timer');
 
-const VALUE_PER_STACK = 25000; 
+let gameSettings = loadPlayerSettings();
+
+function loadPlayerSettings() {
+    try {
+        const saved = localStorage.getItem('game_settings');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch(e) {}
+    return { timerSeconds: 60, initialStacks: 40, stackValue: 25000, currencyUnit: '$A', totalQuestions: 8 };
+}
+
+let VALUE_PER_STACK = gameSettings.stackValue || 25000;
+let CURRENCY_UNIT = gameSettings.currencyUnit || '$A';
 let selectedDoor = null; 
 let isLock = true; 
 let currentRound = 1;
@@ -120,7 +133,7 @@ function updateTotalMoneyBoardGuide() {
     const totalMoney = totalCount * VALUE_PER_STACK;
     const guideEl = document.getElementById('table-guide');
     if (guideEl) {
-        guideEl.innerText = `Bàn Tiền (${totalCount} cọc = ${totalMoney.toLocaleString('vi-VN')} $A)`;
+        guideEl.innerText = `Bàn Tiền (${totalCount} cọc = ${totalMoney.toLocaleString('vi-VN')} ${CURRENCY_UNIT})`;
     }
 }
 
@@ -261,8 +274,9 @@ function syncBetsToController() {
     channel.postMessage({ action: 'sync_bets_to_mc', data: betData });
 }
 
-// Khởi tạo 40 cọc tiền ban đầu
-for (let i = 1; i <= 40; i++) {
+// Khởi tạo cọc tiền ban đầu từ cài đặt
+const initStackCount = gameSettings.initialStacks || 40;
+for (let i = 1; i <= initStackCount; i++) {
     const moneyStack = createMoneyStackElement(`money-${i}`);
     moneyBoard.appendChild(moneyStack);
 }
@@ -271,7 +285,7 @@ updateTotalMoneyBoardGuide();
 function updateDoorBetDisplay(door) {
     const currentBet = parseInt(door.getAttribute('data-bet')) || 0;
     const doorId = door.id.split('-')[1];
-    document.getElementById(`bet-${doorId}`).innerText = currentBet.toLocaleString('vi-VN') + ' $A';
+    document.getElementById(`bet-${doorId}`).innerText = currentBet.toLocaleString('vi-VN') + ' ' + CURRENCY_UNIT;
     syncBetsToController(); 
 }
 
@@ -387,6 +401,18 @@ channel.onmessage = function(event) {
             }
             break;
 
+        case 'update_settings':
+            if (data && data.settings) {
+                gameSettings = { ...gameSettings, ...data.settings };
+                VALUE_PER_STACK = gameSettings.stackValue || 25000;
+                CURRENCY_UNIT = gameSettings.currencyUnit || '$A';
+                localStorage.setItem('game_settings', JSON.stringify(gameSettings));
+                updateTotalMoneyBoardGuide();
+                doors.forEach(d => updateDoorBetDisplay(d));
+                syncBetsToController();
+            }
+            break;
+
         case 'add_player_stacks':
             addPlayerStacks(data ? (parseInt(data.count) || 1) : 1);
             break;
@@ -442,7 +468,7 @@ channel.onmessage = function(event) {
                         const betVal = data.bets[`b${i}`] || 0;
                         d.setAttribute('data-bet', betVal);
                         const betEl = document.getElementById(`bet-${i}`);
-                        if (betEl) betEl.innerText = betVal.toLocaleString('vi-VN') + ' $A';
+                        if (betEl) betEl.innerText = betVal.toLocaleString('vi-VN') + ' ' + CURRENCY_UNIT;
                     }
                 }
                 syncBetsToController();
@@ -594,7 +620,7 @@ channel.onmessage = function(event) {
                 d.setAttribute('data-bet', '0');
                 const dId = d.id.split('-')[1];
                 document.getElementById(`bet-${dId}`).style.visibility = 'visible';
-                document.getElementById(`bet-${dId}`).innerText = "0 $A";
+                document.getElementById(`bet-${dId}`).innerText = "0 " + CURRENCY_UNIT;
                 const aBox = document.getElementById(`ans-txt-${dId}`);
                 aBox.innerText = "---";
                 aBox.classList.remove('dropped-money-font');

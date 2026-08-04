@@ -1,4 +1,24 @@
 const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
+const DEFAULT_SETTINGS = {
+    timerSeconds: 60,
+    initialStacks: 40,
+    stackValue: 25000,
+    currencyUnit: '$A',
+    totalQuestions: 8
+};
+
+let gameSettings = loadGameSettings();
+
+function loadGameSettings() {
+    try {
+        const saved = localStorage.getItem('game_settings');
+        if (saved) {
+            return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+        }
+    } catch(e) {}
+    return { ...DEFAULT_SETTINGS };
+}
+
 let excelDataStore = [
     { round: 1, topicA: "cd1", topicB: "cd2", questionA: "q1", questionB: "q2", ansA: ["a1", "b1", "c1", "d1"], ansB: ["a2", "b2", "c2", "d2"] },
     { round: 2, topicA: "cd3", topicB: "cd4", questionA: "q3", questionB: "q4", ansA: ["a3", "b3", "c3", "d3"], ansB: ["a4", "b4", "c4", "d4"] },
@@ -9,15 +29,19 @@ let excelDataStore = [
     { round: 7, topicA: "cd13", topicB: "cd14", questionA: "q1", questionB: "q2", ansA: ["a13", "b13", "c13"], ansB: ["a14", "b14", "c14"] },
     { round: 8, topicA: "cd15", topicB: "cd16", questionA: "q3", questionB: "q4", ansA: ["a15", "b15"], ansB: ["a16", "b16"] }
 ];
-let timeLeft = 60;
+let timeLeft = gameSettings.timerSeconds || 60;
 let timerInterval = null;
 
 let currentPin = localStorage.getItem('game_pin') || '1234';
 
 // Progress state tracking
-let totalQuestionsCount = 8;
-let questionStates = [true, true, false, false, false, false, false, false]; // Default: Q1, Q2 played (2 played, 6 remaining)
-let currentMoneyAmount = 1000000;
+let totalQuestionsCount = gameSettings.totalQuestions || 8;
+let questionStates = Array(totalQuestionsCount).fill(false);
+if (totalQuestionsCount >= 2) {
+    questionStates[0] = true;
+    questionStates[1] = true;
+}
+let currentMoneyAmount = (gameSettings.initialStacks || 40) * (gameSettings.stackValue || 25000);
 let isProgressShowingOnProjector = false;
 
 // Global Volume Management
@@ -49,6 +73,8 @@ function onVolumeSliderChange(val) {
 window.addEventListener('DOMContentLoaded', () => {
     updateQuestionSelector();
     initPinCode();
+    populateSettingsFormUI();
+    updateControllerMoneyLabels();
     updateProgressDataUI();
     setGlobalVolume(currentGlobalVolume);
 });
@@ -97,24 +123,26 @@ channel.onmessage = function(event) {
         sendCommand('set_volume', { volume: currentGlobalVolume });
     }
     if (action === 'sync_bets_to_mc' && data) {
+        const unit = gameSettings.currencyUnit || '$A';
+        const stackVal = gameSettings.stackValue || 25000;
         const b1 = data.b1 || 0;
         const b2 = data.b2 || 0;
         const b3 = data.b3 || 0;
         const b4 = data.b4 || 0;
-        const s1 = Math.round(b1 / 25000);
-        const s2 = Math.round(b2 / 25000);
-        const s3 = Math.round(b3 / 25000);
-        const s4 = Math.round(b4 / 25000);
-        document.getElementById('mc-bet-1').innerText = `${b1.toLocaleString('vi-VN')} $A (${s1} cọc)`;
-        document.getElementById('mc-bet-2').innerText = `${b2.toLocaleString('vi-VN')} $A (${s2} cọc)`;
-        document.getElementById('mc-bet-3').innerText = `${b3.toLocaleString('vi-VN')} $A (${s3} cọc)`;
-        document.getElementById('mc-bet-4').innerText = `${b4.toLocaleString('vi-VN')} $A (${s4} cọc)`;
+        const s1 = Math.round(b1 / stackVal);
+        const s2 = Math.round(b2 / stackVal);
+        const s3 = Math.round(b3 / stackVal);
+        const s4 = Math.round(b4 / stackVal);
+        document.getElementById('mc-bet-1').innerText = `${b1.toLocaleString('vi-VN')} ${unit} (${s1} cọc)`;
+        document.getElementById('mc-bet-2').innerText = `${b2.toLocaleString('vi-VN')} ${unit} (${s2} cọc)`;
+        document.getElementById('mc-bet-3').innerText = `${b3.toLocaleString('vi-VN')} ${unit} (${s3} cọc)`;
+        document.getElementById('mc-bet-4').innerText = `${b4.toLocaleString('vi-VN')} ${unit} (${s4} cọc)`;
 
         if (data.totalMoney !== undefined && data.totalStacks !== undefined) {
             currentMoneyAmount = data.totalMoney;
             const moneyEl = document.getElementById('mc-total-money');
             if (moneyEl) {
-                moneyEl.innerText = `${data.totalMoney.toLocaleString('vi-VN')} $A (${data.totalStacks} cọc)`;
+                moneyEl.innerText = `${data.totalMoney.toLocaleString('vi-VN')} ${unit} (${data.totalStacks} cọc)`;
             }
             const inputEl = document.getElementById('custom-stacks-input');
             if (inputEl && document.activeElement !== inputEl) {
@@ -434,9 +462,10 @@ function collectMoneyBack() {
 }
 
 function showWinningMoneyOnProjector() {
+    const unit = gameSettings.currencyUnit || '$A';
     sendCommand('show_winning_money', {
         money: currentMoneyAmount,
-        moneyText: `${currentMoneyAmount.toLocaleString('vi-VN')} $A`
+        moneyText: `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit}`
     });
 }
 
@@ -456,7 +485,7 @@ function sendMsgToHost() {
 function startTimer() {
     stopSfx();
     clearInterval(timerInterval);
-    timeLeft = 60;
+    timeLeft = gameSettings.timerSeconds || 60;
     updateTimerDisplay();
 
     const r = getCurrentRoundNumber();
@@ -618,24 +647,27 @@ function resetRound() {
     sendCommand('reset_round');
 }
 
-// --- PROGRESS TAB FUNCTIONS ---
+// --- PROGRESS & SETTINGS TAB FUNCTIONS ---
 function switchControllerTab(tabName) {
     const mainDash = document.getElementById('main-dashboard');
     const progDash = document.getElementById('progress-dashboard');
+    const setDash = document.getElementById('settings-dashboard');
     const btnMain = document.getElementById('tab-btn-main');
     const btnProg = document.getElementById('tab-btn-progress');
+    const btnSet = document.getElementById('tab-btn-settings');
+
+    if (mainDash) mainDash.style.display = (tabName === 'main') ? 'grid' : 'none';
+    if (progDash) progDash.style.display = (tabName === 'progress') ? 'flex' : 'none';
+    if (setDash) setDash.style.display = (tabName === 'settings') ? 'flex' : 'none';
+
+    if (btnMain) btnMain.classList.toggle('active', tabName === 'main');
+    if (btnProg) btnProg.classList.toggle('active', tabName === 'progress');
+    if (btnSet) btnSet.classList.toggle('active', tabName === 'settings');
 
     if (tabName === 'progress') {
-        if (mainDash) mainDash.style.display = 'none';
-        if (progDash) progDash.style.display = 'flex';
-        if (btnMain) btnMain.classList.remove('active');
-        if (btnProg) btnProg.classList.add('active');
         updateProgressDataUI();
-    } else {
-        if (mainDash) mainDash.style.display = 'grid';
-        if (progDash) progDash.style.display = 'none';
-        if (btnMain) btnMain.classList.add('active');
-        if (btnProg) btnProg.classList.remove('active');
+    } else if (tabName === 'settings') {
+        populateSettingsFormUI();
     }
 }
 
@@ -645,6 +677,7 @@ function updateProgressDataUI() {
         if (questionStates[i]) playedCount++;
     }
     const remainingCount = totalQuestionsCount - playedCount;
+    const unit = gameSettings.currencyUnit || '$A';
 
     const playedTextEl = document.getElementById('ctrl-played-text');
     const remainingTextEl = document.getElementById('ctrl-remaining-text');
@@ -652,7 +685,7 @@ function updateProgressDataUI() {
 
     if (playedTextEl) playedTextEl.innerText = `${playedCount} / ${totalQuestionsCount}`;
     if (remainingTextEl) remainingTextEl.innerText = `${remainingCount} câu`;
-    if (moneyTextEl) moneyTextEl.innerText = `${currentMoneyAmount.toLocaleString('vi-VN')} $A`;
+    if (moneyTextEl) moneyTextEl.innerText = `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit}`;
 
     // Render questions status buttons
     const gridEl = document.getElementById('questions-status-grid');
@@ -699,12 +732,13 @@ function showProgressOnProjector() {
         if (questionStates[i]) playedCount++;
     }
     const remainingCount = totalQuestionsCount - playedCount;
+    const unit = gameSettings.currencyUnit || '$A';
 
     sendCommand('show_progress', {
         playedCount: playedCount,
         remainingCount: remainingCount,
         totalQuestions: totalQuestionsCount,
-        totalMoneyText: `${currentMoneyAmount.toLocaleString('vi-VN')} $A`,
+        totalMoneyText: `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit}`,
         totalMoney: currentMoneyAmount,
         questionStates: questionStates
     });
@@ -713,4 +747,108 @@ function showProgressOnProjector() {
 function hideProgressOnProjector() {
     isProgressShowingOnProjector = false;
     sendCommand('hide_progress');
+}
+
+// --- SETTINGS TAB MANAGEMENT ---
+function populateSettingsFormUI() {
+    const timeSecEl = document.getElementById('cfg-timer-seconds');
+    const initStacksEl = document.getElementById('cfg-initial-stacks');
+    const stackValEl = document.getElementById('cfg-stack-value');
+    const unitEl = document.getElementById('cfg-currency-unit');
+    const totalQEl = document.getElementById('cfg-total-questions');
+
+    if (timeSecEl) timeSecEl.value = gameSettings.timerSeconds;
+    if (initStacksEl) initStacksEl.value = gameSettings.initialStacks;
+    if (stackValEl) stackValEl.value = gameSettings.stackValue;
+    if (unitEl) unitEl.value = gameSettings.currencyUnit;
+    if (totalQEl) totalQEl.value = gameSettings.totalQuestions;
+
+    updateSettingsPreview();
+}
+
+function updateSettingsPreview() {
+    const timeSec = parseInt(document.getElementById('cfg-timer-seconds')?.value) || 60;
+    const initStacks = parseInt(document.getElementById('cfg-initial-stacks')?.value) || 40;
+    const stackVal = parseInt(document.getElementById('cfg-stack-value')?.value) || 25000;
+    const unit = (document.getElementById('cfg-currency-unit')?.value || '$A').trim();
+    const totalQ = parseInt(document.getElementById('cfg-total-questions')?.value) || 8;
+
+    const totalInitMoney = initStacks * stackVal;
+
+    const prevTime = document.getElementById('preview-cfg-time');
+    const prevMoney = document.getElementById('preview-cfg-money');
+    const prevQ = document.getElementById('preview-cfg-questions');
+
+    if (prevTime) prevTime.innerText = `${timeSec} giây`;
+    if (prevMoney) prevMoney.innerText = `${totalInitMoney.toLocaleString('vi-VN')} ${unit} (${initStacks} cọc)`;
+    if (prevQ) prevQ.innerText = `${totalQ} câu`;
+}
+
+function saveGameSettings() {
+    const timeSec = Math.max(5, parseInt(document.getElementById('cfg-timer-seconds')?.value) || 60);
+    const initStacks = Math.max(1, parseInt(document.getElementById('cfg-initial-stacks')?.value) || 40);
+    const stackVal = Math.max(0, parseInt(document.getElementById('cfg-stack-value')?.value) || 25000);
+    const unit = (document.getElementById('cfg-currency-unit')?.value || '$A').trim();
+    const totalQ = Math.max(1, parseInt(document.getElementById('cfg-total-questions')?.value) || 8);
+
+    gameSettings = {
+        timerSeconds: timeSec,
+        initialStacks: initStacks,
+        stackValue: stackVal,
+        currencyUnit: unit,
+        totalQuestions: totalQ
+    };
+
+    localStorage.setItem('game_settings', JSON.stringify(gameSettings));
+
+    // Update internal state
+    totalQuestionsCount = totalQ;
+    if (questionStates.length < totalQuestionsCount) {
+        while (questionStates.length < totalQuestionsCount) {
+            questionStates.push(false);
+        }
+    } else if (questionStates.length > totalQuestionsCount) {
+        questionStates = questionStates.slice(0, totalQuestionsCount);
+    }
+
+    if (!timerInterval) {
+        timeLeft = gameSettings.timerSeconds;
+        updateTimerDisplay();
+    }
+
+    updateControllerMoneyLabels();
+    updateProgressDataUI();
+
+    sendCommand('update_settings', {
+        settings: gameSettings
+    });
+
+    const statusEl = document.getElementById('cfg-save-status');
+    if (statusEl) {
+        statusEl.style.display = 'block';
+        setTimeout(() => {
+            statusEl.style.display = 'none';
+        }, 3000);
+    }
+}
+
+function resetGameSettingsToDefault() {
+    gameSettings = { ...DEFAULT_SETTINGS };
+    localStorage.setItem('game_settings', JSON.stringify(gameSettings));
+    populateSettingsFormUI();
+    saveGameSettings();
+}
+
+function updateControllerMoneyLabels() {
+    const unit = gameSettings.currencyUnit || '$A';
+    const initStacks = gameSettings.initialStacks || 40;
+    const stackVal = gameSettings.stackValue || 25000;
+    const totalInitMoney = initStacks * stackVal;
+
+    const defaultBtn = document.querySelector('button[onclick*="setPlayerStacksMC"]');
+    if (defaultBtn) {
+        defaultBtn.innerText = `${initStacks} Cọc`;
+        defaultBtn.setAttribute('onclick', `setPlayerStacksMC(${initStacks})`);
+        defaultBtn.title = `Khôi phục ${initStacks} cọc (${totalInitMoney.toLocaleString('vi-VN')} ${unit})`;
+    }
 }
