@@ -51,8 +51,111 @@
         #central-box.show { transform: translateX(-50%) scale(1); opacity: 1; }
         #central-box.move-up { top: var(--q-moved-top); font-size: 26px; line-height: 1.35; font-weight: bold; }
 
+        /* Media Question Modes for Central Box */
+        #central-box.media-q-mode {
+            top: 480px !important;
+            left: calc(50% + 140px) !important;
+            transform: translate(-50%, -50%) scale(1) !important;
+            width: 560px !important;
+            font-size: 32px !important;
+            line-height: 1.3 !important;
+            text-align: left !important;
+            opacity: 1 !important;
+        }
+
+        #central-box.media-qa-mode {
+            top: 415px !important;
+            left: calc(50% + 140px) !important;
+            transform: translate(-50%, -50%) scale(1) !important;
+            width: 560px !important;
+            font-size: 22px !important;
+            line-height: 1.25 !important;
+            text-align: center !important;
+            opacity: 1 !important;
+        }
+
+        /* --- MEDIA CONTAINER STYLES --- */
+        #media-container {
+            position: absolute;
+            z-index: 10;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.85), 0 0 15px rgba(56, 189, 248, 0.6);
+            background: #000;
+            border: 3px solid #38bdf8;
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0);
+            pointer-events: none;
+        }
+
+        #media-container.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Phase 1: Center Zoomed */
+        #media-container.mode-center {
+            top: 480px;
+            left: 50%;
+            width: 440px;
+            height: 240px;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Phase 2: Shifted to Left */
+        #media-container.mode-left {
+            top: 480px;
+            left: calc(50% - 320px);
+            width: 320px;
+            height: 200px;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Phase 3: Shifted to Left Compact */
+        #media-container.mode-left-compact {
+            top: 480px;
+            left: calc(50% - 340px);
+            width: 270px;
+            height: 180px;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        #media-img, #media-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
         #answers-container { position: absolute; top: var(--ans-container-top); left: 50%; transform: translateX(-50%) scale(0); width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 5; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
         #answers-container.show { transform: translateX(-50%) scale(1); opacity: 1; }
+
+        /* Media Answers Mode for Phase 3 */
+        #answers-container.media-mode {
+            top: 505px !important;
+            left: calc(50% + 140px) !important;
+            transform: translate(-50%, -50%) scale(1) !important;
+            width: 560px !important;
+            display: flex !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            opacity: 1 !important;
+        }
+
+        #answers-container.media-mode .ans-frame {
+            width: 128px !important;
+            height: 80px !important;
+        }
+
+        #answers-container.media-mode .ans-text {
+            font-size: 15px !important;
+            padding: 0 4px !important;
+            line-height: 1.15 !important;
+        }
         
         .ans-frame { width: 280px; height: 150px; position: relative; transition: all 0.5s ease; }
         .ans-frame.dropped {
@@ -259,6 +362,12 @@
 
         <div id="central-box">CHỜ MC CHỌN CHỦ ĐỀ...</div>
 
+        <!-- Media Container for Image & Video Questions -->
+        <div id="media-container" class="mode-center">
+            <img id="media-img" src="" style="display:none;" alt="Media Question">
+            <video id="media-video" style="display:none;" playsinline></video>
+        </div>
+
         <div id="answers-container">
             <div class="ans-frame" id="proj-frame-1"><img src="indoor.png" class="ans-img"><div class="ans-text" id="proj-ans-1">---</div></div>
             <div class="ans-frame" id="proj-frame-2"><img src="indoor.png" class="ans-img"><div class="ans-text" id="proj-ans-2">---</div></div>
@@ -362,9 +471,78 @@
             timerAudio.currentTime = 0;
         }
 
+        let currentMediaState = { type: 'none', url: '' };
+        let currentMediaStage = 'none';
+
+        function updateProjectorMediaStage(stage, mediaData) {
+            if (mediaData) {
+                currentMediaState = {
+                    type: mediaData.mediaType || mediaData.type || 'none',
+                    url: mediaData.mediaUrl || mediaData.url || ''
+                };
+            }
+
+            const container = document.getElementById('media-container');
+            const img = document.getElementById('media-img');
+            const video = document.getElementById('media-video');
+            const box = document.getElementById('central-box');
+            const ans = document.getElementById('answers-container');
+
+            if (!container || !img || !video) return;
+
+            if (!currentMediaState || currentMediaState.type === 'none' || !currentMediaState.url) {
+                container.classList.remove('show', 'mode-center', 'mode-left', 'mode-left-compact');
+                box.classList.remove('media-q-mode', 'media-qa-mode');
+                ans.classList.remove('media-mode');
+                video.pause();
+                currentMediaStage = 'none';
+                return;
+            }
+
+            currentMediaStage = stage;
+
+            if (currentMediaState.type === 'image') {
+                img.src = currentMediaState.url;
+                img.style.display = 'block';
+                video.style.display = 'none';
+                video.pause();
+            } else if (currentMediaState.type === 'video') {
+                if (video.src !== currentMediaState.url) {
+                    video.src = currentMediaState.url;
+                }
+                video.style.display = 'block';
+                img.style.display = 'none';
+                
+                if (stage === 'center') {
+                    video.currentTime = 0;
+                    video.volume = globalVolume;
+                    video.play().catch(e => console.log('Video play error:', e));
+                }
+            }
+
+            container.classList.remove('mode-center', 'mode-left', 'mode-left-compact');
+            box.classList.remove('media-q-mode', 'media-qa-mode');
+            ans.classList.remove('media-mode');
+
+            if (stage === 'center') {
+                container.classList.add('mode-center', 'show');
+                box.classList.remove('show');
+                ans.classList.remove('show');
+            } else if (stage === 'left') {
+                container.classList.add('mode-left', 'show');
+                box.classList.add('show', 'media-q-mode');
+                ans.classList.remove('show');
+            } else if (stage === 'left-compact') {
+                container.classList.add('mode-left-compact', 'show');
+                box.classList.add('show', 'media-qa-mode');
+                ans.classList.add('show', 'media-mode');
+            }
+        }
+
         function resetBigscreen() {
             // Stop all sounds so that no music plays during reset
             stopAllSfxOnProjector();
+            updateProjectorMediaStage('none', { type: 'none', url: '' });
 
             const bgMain = document.querySelector('.bg-main');
             if (bgMain) {
@@ -605,15 +783,33 @@
                     }
                     break;
 
+                case "show_media":
+                    const bgMainMedia = document.querySelector('.bg-main');
+                    if (bgMainMedia) bgMainMedia.classList.add("hide");
+                    document.getElementById("item-a").classList.add("zoom-out");
+                    document.getElementById("item-b").classList.add("zoom-out");
+                    updateProjectorMediaStage('center', data);
+                    break;
+
                 case "update_content":
                     if (data.type === 'question') {
                         document.getElementById("item-a").classList.add("zoom-out");
                         document.getElementById("item-b").classList.add("zoom-out");
                         
                         document.getElementById("central-box").innerText = data.data.question;
-                        setTimeout(() => {
-                            document.getElementById("central-box").classList.add("show");
-                        }, 600);
+                        
+                        const mType = data.mediaType || (data.data && data.data.mediaType) || 'none';
+                        const mUrl = data.mediaUrl || (data.data && data.data.mediaUrl) || '';
+
+                        if (mType !== 'none' && mUrl) {
+                            updateProjectorMediaStage('left', { mediaType: mType, mediaUrl: mUrl });
+                        } else if (currentMediaState && currentMediaState.type !== 'none' && currentMediaState.url) {
+                            updateProjectorMediaStage('left');
+                        } else {
+                            setTimeout(() => {
+                                document.getElementById("central-box").classList.add("show");
+                            }, 600);
+                        }
                     }
                     break;
 
@@ -638,12 +834,15 @@
                     document.getElementById("item-a").classList.add("zoom-out");
                     document.getElementById("item-b").classList.add("zoom-out");
                     
-                    const box = document.getElementById('central-box');
-                    const ans = document.getElementById('answers-container');
-                    
-                    box.classList.add('move-up');
-                    box.classList.add('show');
-                    ans.classList.add('show');
+                    if (currentMediaState && currentMediaState.type !== 'none' && currentMediaState.url) {
+                        updateProjectorMediaStage('left-compact');
+                    } else {
+                        const box = document.getElementById('central-box');
+                        const ans = document.getElementById('answers-container');
+                        box.classList.add('move-up');
+                        box.classList.add('show');
+                        ans.classList.add('show');
+                    }
                     break;
 
                 case "timer_tick":

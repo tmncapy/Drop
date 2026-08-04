@@ -19,16 +19,34 @@ function loadGameSettings() {
     return { ...DEFAULT_SETTINGS };
 }
 
-let excelDataStore = [
-    { round: 1, topicA: "cd1", topicB: "cd2", questionA: "q1", questionB: "q2", ansA: ["a1", "b1", "c1", "d1"], ansB: ["a2", "b2", "c2", "d2"] },
-    { round: 2, topicA: "cd3", topicB: "cd4", questionA: "q3", questionB: "q4", ansA: ["a3", "b3", "c3", "d3"], ansB: ["a4", "b4", "c4", "d4"] },
-    { round: 3, topicA: "cd5", topicB: "cd6", questionA: "q1", questionB: "q2", ansA: ["a5", "b5", "c5", "d5"], ansB: ["a6", "b6", "c6", "d6"] },
-    { round: 4, topicA: "cd7", topicB: "cd8", questionA: "q3", questionB: "q4", ansA: ["a7", "b7", "c7", "d7"], ansB: ["a8", "b8", "c8", "d8"] },
-    { round: 5, topicA: "cd9", topicB: "cd10", questionA: "q1", questionB: "q2", ansA: ["a9", "b9", "c9"], ansB: ["a10", "b10", "c10"] },
-    { round: 6, topicA: "cd11", topicB: "cd12", questionA: "q3", questionB: "q4", ansA: ["a11", "b11", "c11"], ansB: ["a12", "b12", "c12"] },
-    { round: 7, topicA: "cd13", topicB: "cd14", questionA: "q1", questionB: "q2", ansA: ["a13", "b13", "c13"], ansB: ["a14", "b14", "c14"] },
-    { round: 8, topicA: "cd15", topicB: "cd16", questionA: "q3", questionB: "q4", ansA: ["a15", "b15"], ansB: ["a16", "b16"] }
+const DEFAULT_QUESTIONS_STORE = [
+    { round: 1, topicA: "cd1", topicB: "cd2", questionA: "q1", questionB: "q2", ansA: ["a1", "b1", "c1", "d1"], ansB: ["a2", "b2", "c2", "d2"], mediaTypeA: 'none', mediaUrlA: '', mediaTypeB: 'none', mediaUrlB: '' },
+    { round: 2, topicA: "cd3", topicB: "cd4", questionA: "q3", questionB: "q4", ansA: ["a3", "b3", "c3", "d3"], ansB: ["a4", "b4", "c4", "d4"], mediaTypeA: 'none', mediaUrlA: '', mediaTypeB: 'none', mediaUrlB: '' },
+    { round: 3, topicA: "cd5", topicB: "cd6", questionA: "q1", questionB: "q2", ansA: ["a5", "b5", "c5", "d5"], ansB: ["a6", "b6", "c6", "d6"], mediaTypeA: 'none', mediaUrlA: '', mediaTypeB: 'none', mediaUrlB: '' },
+    { round: 4, topicA: "cd7", topicB: "cd8", questionA: "q3", questionB: "q4", ansA: ["a7", "b7", "c7", "d7"], ansB: ["a8", "b8", "c8", "d8"], mediaTypeA: 'none', mediaUrlA: '', mediaTypeB: 'none', mediaUrlB: '' },
+    { round: 5, topicA: "cd9", topicB: "cd10", questionA: "q1", questionB: "q2", ansA: ["a9", "b9", "c9"], ansB: ["a10", "b10", "c10"], mediaTypeA: 'none', mediaUrlA: '', mediaTypeB: 'none', mediaUrlB: '' },
+    { round: 6, topicA: "cd11", topicB: "cd12", questionA: "q3", questionB: "q4", ansA: ["a11", "b11", "c11"], ansB: ["a12", "b12", "c12"], mediaTypeA: 'none', mediaUrlA: '', mediaTypeB: 'none', mediaUrlB: '' },
+    { round: 7, topicA: "cd13", topicB: "cd14", questionA: "q1", questionB: "q2", ansA: ["a13", "b13", "c13"], ansB: ["a14", "b14", "c14"], mediaTypeA: 'none', mediaUrlA: '', mediaTypeB: 'none', mediaUrlB: '' },
+    { round: 8, topicA: "cd15", topicB: "cd16", questionA: "q3", questionB: "q4", ansA: ["a15", "b15"], ansB: ["a16", "b16"], mediaTypeA: 'none', mediaUrlA: '', mediaTypeB: 'none', mediaUrlB: '' }
 ];
+
+let excelDataStore = loadExcelDataStore();
+
+function loadExcelDataStore() {
+    try {
+        const saved = localStorage.getItem('excel_data_store');
+        if (saved) {
+            return JSON.parse(saved);
+        }
+    } catch(e) {}
+    return DEFAULT_QUESTIONS_STORE;
+}
+
+function saveExcelDataStore() {
+    try {
+        localStorage.setItem('excel_data_store', JSON.stringify(excelDataStore));
+    } catch(e) {}
+}
 let timeLeft = gameSettings.timerSeconds || 60;
 let timerInterval = null;
 
@@ -240,7 +258,11 @@ function parseExcelQuestions(rows) {
                 questionA: String(row[2] || "").trim(),
                 questionB: String(row[8] || "").trim(),
                 ansA: getAnswers(row, 3, 6),
-                ansB: getAnswers(row, 9, 12)
+                ansB: getAnswers(row, 9, 12),
+                mediaTypeA: row[13] ? (String(row[13]).includes('video') ? 'video' : 'image') : 'none',
+                mediaUrlA: row[13] ? String(row[13]).trim() : '',
+                mediaTypeB: row[14] ? (String(row[14]).includes('video') ? 'video' : 'image') : 'none',
+                mediaUrlB: row[14] ? String(row[14]).trim() : ''
             });
         });
     } else {
@@ -276,13 +298,18 @@ function parseExcelQuestions(rows) {
                 questionA: rowA ? String(rowA[2] || "").trim() : "",
                 questionB: rowB ? String(rowB[2] || "").trim() : "",
                 ansA: getAnswers(rowA),
-                ansB: getAnswers(rowB)
+                ansB: getAnswers(rowB),
+                mediaTypeA: (rowA && rowA[7]) ? (String(rowA[7]).includes('video') ? 'video' : 'image') : 'none',
+                mediaUrlA: (rowA && rowA[7]) ? String(rowA[7]).trim() : '',
+                mediaTypeB: (rowB && rowB[7]) ? (String(rowB[7]).includes('video') ? 'video' : 'image') : 'none',
+                mediaUrlB: (rowB && rowB[7]) ? String(rowB[7]).trim() : ''
             });
 
             currentRound++;
         }
     }
 
+    saveExcelDataStore();
     updateQuestionSelector();
 }
 
@@ -336,15 +363,80 @@ function loadSelectedQuestion() {
     handleRoundChange();
 
     let questionText = "";
+    const mTypeEl = document.getElementById('main-media-type');
+    const mUrlEl = document.getElementById('main-media-url');
+
     if (type === 'A') {
         questionText = data.questionA || "";
         document.getElementById('question-input').value = questionText;
         fillAnswers(data.ansA || []);
+        if (mTypeEl) mTypeEl.value = data.mediaTypeA || 'none';
+        if (mUrlEl) mUrlEl.value = data.mediaUrlA || '';
     } else {
         questionText = data.questionB || "";
         document.getElementById('question-input').value = questionText;
         fillAnswers(data.ansB || []);
+        if (mTypeEl) mTypeEl.value = data.mediaTypeB || 'none';
+        if (mUrlEl) mUrlEl.value = data.mediaUrlB || '';
     }
+}
+
+function syncMainMediaToStore() {
+    const val = document.getElementById('select-question-index')?.value;
+    const mType = document.getElementById('main-media-type')?.value || 'none';
+    const mUrl = document.getElementById('main-media-url')?.value || '';
+
+    if (!val) return;
+    const [idx, type] = val.split('-');
+    const data = excelDataStore[idx];
+    if (!data) return;
+
+    if (type === 'A') {
+        data.mediaTypeA = mType;
+        data.mediaUrlA = mUrl;
+    } else {
+        data.mediaTypeB = mType;
+        data.mediaUrlB = mUrl;
+    }
+    saveExcelDataStore();
+}
+
+function handleMainMediaFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const fileUrl = e.target.result;
+        const typeSelect = document.getElementById('main-media-type');
+        const urlInput = document.getElementById('main-media-url');
+
+        if (file.type.startsWith('video/')) {
+            if (typeSelect) typeSelect.value = 'video';
+        } else if (file.type.startsWith('image/')) {
+            if (typeSelect) typeSelect.value = 'image';
+        }
+
+        if (urlInput) urlInput.value = fileUrl;
+        syncMainMediaToStore();
+    };
+    reader.readAsDataURL(file);
+}
+
+function sendMedia() {
+    playSfx('SFX/drop_Reveal the Question_2.mp3', false, false);
+    const mType = document.getElementById('main-media-type')?.value || 'none';
+    const mUrl = document.getElementById('main-media-url')?.value || '';
+
+    if (mType === 'none' || !mUrl) {
+        alert("Vui lòng chọn loại Media (Hình ảnh / Video) và chọn file/nhập URL trước!");
+        return;
+    }
+
+    sendCommand('show_media', {
+        mediaType: mType,
+        mediaUrl: mUrl
+    });
 }
 
 function fillAnswers(ansList) {
@@ -395,9 +487,14 @@ function lockTopic(type) {
 function sendQuestion() { 
     playSfx('SFX/drop_Reveal the Question_2.mp3', false, false);
     const qText = document.getElementById('question-input').value;
+    const mType = document.getElementById('main-media-type')?.value || 'none';
+    const mUrl = document.getElementById('main-media-url')?.value || '';
+
     sendCommand('update_content', { 
         type: 'question', 
-        data: { question: qText } 
+        data: { question: qText, mediaType: mType, mediaUrl: mUrl },
+        mediaType: mType,
+        mediaUrl: mUrl
     }); 
     sendCommand('send_question_text_to_screens', { text: qText });
 }
@@ -645,21 +742,28 @@ function resetRound() {
 // --- PROGRESS & SETTINGS TAB FUNCTIONS ---
 function switchControllerTab(tabName) {
     const mainDash = document.getElementById('main-dashboard');
+    const qDash = document.getElementById('questions-dashboard');
     const progDash = document.getElementById('progress-dashboard');
     const setDash = document.getElementById('settings-dashboard');
+
     const btnMain = document.getElementById('tab-btn-main');
+    const btnQ = document.getElementById('tab-btn-questions');
     const btnProg = document.getElementById('tab-btn-progress');
     const btnSet = document.getElementById('tab-btn-settings');
 
     if (mainDash) mainDash.style.display = (tabName === 'main') ? 'grid' : 'none';
+    if (qDash) qDash.style.display = (tabName === 'questions') ? 'flex' : 'none';
     if (progDash) progDash.style.display = (tabName === 'progress') ? 'flex' : 'none';
     if (setDash) setDash.style.display = (tabName === 'settings') ? 'flex' : 'none';
 
     if (btnMain) btnMain.classList.toggle('active', tabName === 'main');
+    if (btnQ) btnQ.classList.toggle('active', tabName === 'questions');
     if (btnProg) btnProg.classList.toggle('active', tabName === 'progress');
     if (btnSet) btnSet.classList.toggle('active', tabName === 'settings');
 
-    if (tabName === 'progress') {
+    if (tabName === 'questions') {
+        renderQuestionsTabUI();
+    } else if (tabName === 'progress') {
         updateProgressDataUI();
     } else if (tabName === 'settings') {
         populateSettingsFormUI();
@@ -890,4 +994,200 @@ function updateControllerMoneyLabels() {
     if (progressMoneyEl) {
         progressMoneyEl.innerText = `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit}`;
     }
+}
+
+// --- QUESTION DATA TAB FUNCTIONS ---
+function renderQuestionsTabUI() {
+    const container = document.getElementById('questions-data-list');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!excelDataStore || excelDataStore.length === 0) {
+        container.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 20px;">Chưa có câu hỏi nào. Hãy tải file Excel hoặc bấm "Thêm Vòng Mới"!</div>';
+        return;
+    }
+
+    excelDataStore.forEach((q, idx) => {
+        const roundCard = document.createElement('div');
+        roundCard.style.cssText = "background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;";
+
+        const roundHeader = document.createElement('div');
+        roundHeader.style.cssText = "display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #262a36; padding-bottom: 4px;";
+        roundHeader.innerHTML = `
+            <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">🎯 VÒNG ${q.round || (idx + 1)}</span>
+            <button class="btn-red" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="deleteRoundFromStore(${idx})">🗑️ Xóa Vòng</button>
+        `;
+        roundCard.appendChild(roundHeader);
+
+        const abGrid = document.createElement('div');
+        abGrid.style.cssText = "display: grid; grid-template-columns: 1fr 1fr; gap: 10px;";
+
+        // Section A
+        const secA = document.createElement('div');
+        secA.style.cssText = "background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px;";
+        secA.innerHTML = `
+            <div style="font-size: 11px; font-weight: bold; color: #fbbf24;">📌 CHỦ ĐỀ & CÂU HỎI A</div>
+            <div>
+                <label style="color: #94a3b8; font-size: 10px;">Chủ đề A:</label>
+                <input type="text" id="qtab-topicA-${idx}" value="${q.topicA || ''}" placeholder="Tên chủ đề A">
+            </div>
+            <div>
+                <label style="color: #94a3b8; font-size: 10px;">Câu hỏi A:</label>
+                <textarea id="qtab-questionA-${idx}" rows="2" placeholder="Nội dung câu hỏi A...">${q.questionA || ''}</textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <input type="text" id="qtab-ansA1-${idx}" value="${(q.ansA && q.ansA[0]) || ''}" placeholder="Cửa 1">
+                <input type="text" id="qtab-ansA2-${idx}" value="${(q.ansA && q.ansA[1]) || ''}" placeholder="Cửa 2">
+                <input type="text" id="qtab-ansA3-${idx}" value="${(q.ansA && q.ansA[2]) || ''}" placeholder="Cửa 3">
+                <input type="text" id="qtab-ansA4-${idx}" value="${(q.ansA && q.ansA[3]) || ''}" placeholder="Cửa 4">
+            </div>
+            <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
+                <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">🎥 Media A (Hình / Video):</label>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <select id="qtab-mediaTypeA-${idx}" style="width: 90px;">
+                        <option value="none" ${(!q.mediaTypeA || q.mediaTypeA==='none') ? 'selected' : ''}>Không</option>
+                        <option value="image" ${q.mediaTypeA==='image' ? 'selected' : ''}>Hình ảnh</option>
+                        <option value="video" ${q.mediaTypeA==='video' ? 'selected' : ''}>Video</option>
+                    </select>
+                    <input type="text" id="qtab-mediaUrlA-${idx}" value="${q.mediaUrlA || ''}" placeholder="URL hoặc chọn file..." style="flex: 1;">
+                    <input type="file" id="qtab-fileA-${idx}" accept="image/*,video/*" style="display:none;" onchange="handleQuestionTabFileUpload(event, ${idx}, 'A')">
+                    <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('qtab-fileA-${idx}').click()">📁 File</button>
+                </div>
+            </div>
+        `;
+
+        // Section B
+        const secB = document.createElement('div');
+        secB.style.cssText = "background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px;";
+        secB.innerHTML = `
+            <div style="font-size: 11px; font-weight: bold; color: #fbbf24;">📌 CHỦ ĐỀ & CÂU HỎI B</div>
+            <div>
+                <label style="color: #94a3b8; font-size: 10px;">Chủ đề B:</label>
+                <input type="text" id="qtab-topicB-${idx}" value="${q.topicB || ''}" placeholder="Tên chủ đề B">
+            </div>
+            <div>
+                <label style="color: #94a3b8; font-size: 10px;">Câu hỏi B:</label>
+                <textarea id="qtab-questionB-${idx}" rows="2" placeholder="Nội dung câu hỏi B...">${q.questionB || ''}</textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <input type="text" id="qtab-ansB1-${idx}" value="${(q.ansB && q.ansB[0]) || ''}" placeholder="Cửa 1">
+                <input type="text" id="qtab-ansB2-${idx}" value="${(q.ansB && q.ansB[1]) || ''}" placeholder="Cửa 2">
+                <input type="text" id="qtab-ansB3-${idx}" value="${(q.ansB && q.ansB[2]) || ''}" placeholder="Cửa 3">
+                <input type="text" id="qtab-ansB4-${idx}" value="${(q.ansB && q.ansB[3]) || ''}" placeholder="Cửa 4">
+            </div>
+            <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
+                <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">🎥 Media B (Hình / Video):</label>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <select id="qtab-mediaTypeB-${idx}" style="width: 90px;">
+                        <option value="none" ${(!q.mediaTypeB || q.mediaTypeB==='none') ? 'selected' : ''}>Không</option>
+                        <option value="image" ${q.mediaTypeB==='image' ? 'selected' : ''}>Hình ảnh</option>
+                        <option value="video" ${q.mediaTypeB==='video' ? 'selected' : ''}>Video</option>
+                    </select>
+                    <input type="text" id="qtab-mediaUrlB-${idx}" value="${q.mediaUrlB || ''}" placeholder="URL hoặc chọn file..." style="flex: 1;">
+                    <input type="file" id="qtab-fileB-${idx}" accept="image/*,video/*" style="display:none;" onchange="handleQuestionTabFileUpload(event, ${idx}, 'B')">
+                    <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('qtab-fileB-${idx}').click()">📁 File</button>
+                </div>
+            </div>
+        `;
+
+        abGrid.appendChild(secA);
+        abGrid.appendChild(secB);
+        roundCard.appendChild(abGrid);
+        container.appendChild(roundCard);
+    });
+}
+
+function saveQuestionsTabUI() {
+    excelDataStore.forEach((q, idx) => {
+        q.topicA = document.getElementById(`qtab-topicA-${idx}`)?.value || '';
+        q.questionA = document.getElementById(`qtab-questionA-${idx}`)?.value || '';
+        q.ansA = [
+            document.getElementById(`qtab-ansA1-${idx}`)?.value || '',
+            document.getElementById(`qtab-ansA2-${idx}`)?.value || '',
+            document.getElementById(`qtab-ansA3-${idx}`)?.value || '',
+            document.getElementById(`qtab-ansA4-${idx}`)?.value || ''
+        ].filter(a => a !== '');
+        q.mediaTypeA = document.getElementById(`qtab-mediaTypeA-${idx}`)?.value || 'none';
+        q.mediaUrlA = document.getElementById(`qtab-mediaUrlA-${idx}`)?.value || '';
+
+        q.topicB = document.getElementById(`qtab-topicB-${idx}`)?.value || '';
+        q.questionB = document.getElementById(`qtab-questionB-${idx}`)?.value || '';
+        q.ansB = [
+            document.getElementById(`qtab-ansB1-${idx}`)?.value || '',
+            document.getElementById(`qtab-ansB2-${idx}`)?.value || '',
+            document.getElementById(`qtab-ansB3-${idx}`)?.value || '',
+            document.getElementById(`qtab-ansB4-${idx}`)?.value || ''
+        ].filter(a => a !== '');
+        q.mediaTypeB = document.getElementById(`qtab-mediaTypeB-${idx}`)?.value || 'none';
+        q.mediaUrlB = document.getElementById(`qtab-mediaUrlB-${idx}`)?.value || '';
+    });
+
+    saveExcelDataStore();
+    updateQuestionSelector();
+
+    const statusEl = document.getElementById('qtab-save-status');
+    if (statusEl) {
+        statusEl.style.display = 'block';
+        setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+    }
+}
+
+function addNewRoundToStore() {
+    const nextRound = excelDataStore.length + 1;
+    excelDataStore.push({
+        round: nextRound,
+        topicA: `Chủ đề A (Vòng ${nextRound})`,
+        topicB: `Chủ đề B (Vòng ${nextRound})`,
+        questionA: '',
+        questionB: '',
+        ansA: ['', '', '', ''],
+        ansB: ['', '', '', ''],
+        mediaTypeA: 'none',
+        mediaUrlA: '',
+        mediaTypeB: 'none',
+        mediaUrlB: ''
+    });
+    saveExcelDataStore();
+    renderQuestionsTabUI();
+    updateQuestionSelector();
+}
+
+function deleteRoundFromStore(idx) {
+    if (confirm(`Bạn có chắc chắn muốn xóa Vòng ${excelDataStore[idx]?.round || (idx + 1)}?`)) {
+        excelDataStore.splice(idx, 1);
+        saveExcelDataStore();
+        renderQuestionsTabUI();
+        updateQuestionSelector();
+    }
+}
+
+function handleQuestionTabFileUpload(event, idx, option) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const fileUrl = e.target.result;
+        const typeSelect = document.getElementById(`qtab-mediaType${option}-${idx}`);
+        const urlInput = document.getElementById(`qtab-mediaUrl${option}-${idx}`);
+
+        if (file.type.startsWith('video/')) {
+            if (typeSelect) typeSelect.value = 'video';
+        } else if (file.type.startsWith('image/')) {
+            if (typeSelect) typeSelect.value = 'image';
+        }
+
+        if (urlInput) urlInput.value = fileUrl;
+        if (excelDataStore[idx]) {
+            if (option === 'A') {
+                excelDataStore[idx].mediaTypeA = typeSelect ? typeSelect.value : 'image';
+                excelDataStore[idx].mediaUrlA = fileUrl;
+            } else {
+                excelDataStore[idx].mediaTypeB = typeSelect ? typeSelect.value : 'image';
+                excelDataStore[idx].mediaUrlB = fileUrl;
+            }
+            saveExcelDataStore();
+        }
+    };
+    reader.readAsDataURL(file);
 }
