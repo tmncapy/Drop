@@ -37,10 +37,38 @@
                 return false;
             };
 
+            this.handleRemoteReload = (payload) => {
+                if (!payload) return;
+                const action = payload.action || payload.type;
+                if (action === 'reload_role') {
+                    const targetRole = (payload.data && payload.data.targetRole) || payload.targetRole || 'all';
+                    let currentRole = window.CURRENT_ROLE;
+                    if (!currentRole) {
+                        const path = (window.location.pathname || '').toLowerCase();
+                        const file = path.split('/').pop() || '';
+                        if (file.includes('projector')) currentRole = 'projector';
+                        else if (file.includes('answer')) currentRole = 'answer';
+                        else if (file.includes('player')) currentRole = 'player';
+                        else if (file.includes('host')) currentRole = 'host';
+                        else if (file.includes('server')) currentRole = 'server';
+                        else if (file.includes('controller')) currentRole = 'controller';
+                        else currentRole = 'unknown';
+                    }
+
+                    if (targetRole === 'all' || targetRole === currentRole) {
+                        console.warn(`🔄 Receiving remote reload signal for targetRole=${targetRole} (Current: ${currentRole}). Reloading...`);
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 100);
+                    }
+                }
+            };
+
             // 1. Listen to BroadcastChannel for local tabs on same device
             this.localChannel.onmessage = (event) => {
                 if (event.data && event.data._senderId !== this.instanceId) {
                     if (!this.isDuplicateAndRecord(event.data)) {
+                        this.handleRemoteReload(event.data);
                         if (typeof this.onmessageHandler === 'function') {
                             this.onmessageHandler(event);
                         }
@@ -136,6 +164,7 @@
                             const payload = JSON.parse(message.toString());
                             if (payload && payload._senderId !== this.instanceId) {
                                 if (!this.isDuplicateAndRecord(payload)) {
+                                    this.handleRemoteReload(payload);
                                     if (typeof this.onmessageHandler === 'function') {
                                         this.onmessageHandler({ data: payload });
                                     }

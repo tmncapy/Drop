@@ -767,26 +767,62 @@ function resetRound() {
     sendCommand('reset_round');
 }
 
+function reloadRole(targetRole) {
+    if (targetRole === 'controller') {
+        if (confirm("Bạn có chắc chắn muốn tải lại Bàn Điều Khiển hiện tại không?")) {
+            window.location.reload();
+        }
+        return;
+    }
+
+    sendCommand('reload_role', { targetRole: targetRole });
+
+    const roleNames = {
+        'projector': 'Máy Chiếu (Projector)',
+        'answer': 'MC / Sound (Answer)',
+        'player': 'Người Chơi (Player)',
+        'host': 'MC Host',
+        'server': 'Màn Hình Server',
+        'all': 'TẤT CẢ các màn hình (ALL ROLES)'
+    };
+    const name = roleNames[targetRole] || targetRole;
+
+    const toast = document.getElementById('role-reload-status');
+    if (toast) {
+        toast.innerText = `⚡ Đã gửi tín hiệu TẢI LẠI đến: ${name}!`;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    }
+}
+
+function openRoleTab(url) {
+    window.open(url, '_blank');
+}
+
 // --- PROGRESS & SETTINGS TAB FUNCTIONS ---
 function switchControllerTab(tabName) {
     const mainDash = document.getElementById('main-dashboard');
     const qDash = document.getElementById('questions-dashboard');
     const progDash = document.getElementById('progress-dashboard');
+    const rolesDash = document.getElementById('roles-dashboard');
     const setDash = document.getElementById('settings-dashboard');
 
     const btnMain = document.getElementById('tab-btn-main');
     const btnQ = document.getElementById('tab-btn-questions');
     const btnProg = document.getElementById('tab-btn-progress');
+    const btnRoles = document.getElementById('tab-btn-roles');
     const btnSet = document.getElementById('tab-btn-settings');
 
     if (mainDash) mainDash.style.display = (tabName === 'main') ? 'grid' : 'none';
     if (qDash) qDash.style.display = (tabName === 'questions') ? 'flex' : 'none';
     if (progDash) progDash.style.display = (tabName === 'progress') ? 'flex' : 'none';
+    if (rolesDash) rolesDash.style.display = (tabName === 'roles') ? 'flex' : 'none';
     if (setDash) setDash.style.display = (tabName === 'settings') ? 'flex' : 'none';
 
     if (btnMain) btnMain.classList.toggle('active', tabName === 'main');
     if (btnQ) btnQ.classList.toggle('active', tabName === 'questions');
     if (btnProg) btnProg.classList.toggle('active', tabName === 'progress');
+    if (btnRoles) btnRoles.classList.toggle('active', tabName === 'roles');
     if (btnSet) btnSet.classList.toggle('active', tabName === 'settings');
 
     if (tabName === 'questions') {
