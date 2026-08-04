@@ -23,6 +23,7 @@
             pointer-events: none !important;
             user-select: none;
         }
+        .bg-base { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; z-index: 0; pointer-events: none; }
         .bg-main { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; transition: opacity 0.5s ease; }
         .bg-main.hide { opacity: 0; }
         .bg-outline { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 90; pointer-events: none; }
@@ -74,7 +75,7 @@
         }
         #clock-container.show { transform: translateX(-50%) scale(0.75); opacity: 1; }
         #clock-bg { width: 100%; height: 100%; }
-        #clock-time { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 40px; font-weight: normal; font-family: 'LHF_Mono', 'UVN Thanh Pho Nang', sans-serif; }
+        #clock-time { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 40px; font-weight: normal; font-family: 'UVN Thanh Pho Nang', sans-serif; }
 
         /* --- PROGRESS HUD OVERLAY --- */
         #progress-hud-overlay {
@@ -134,7 +135,7 @@
             letter-spacing: 4px;
             text-shadow: 0 5px 20px rgba(0,0,0,0.9), 0 0 30px rgba(255,255,255,0.25);
             margin-top: 20px;
-            font-family: 'Myriad Pro', Arial, sans-serif;
+            font-family: 'UVN Thanh Pho Nang', sans-serif;
             line-height: 1;
         }
 
@@ -222,7 +223,7 @@
             pointer-events: auto;
         }
         #winning-money-text {
-            font-family: 'Myriad Pro', Arial, sans-serif;
+            font-family: 'UVN Thanh Pho Nang', sans-serif;
             font-size: 110px;
             font-weight: bold;
             color: #ffffff;
@@ -236,6 +237,7 @@
 <body>
 
     <div class="projector-container" onclick="unlockAudio()">
+        <img src="main1.png" class="bg-base">
         <img src="mainscreen.png" class="bg-main">
         <img src="outlinescreen.png" class="bg-outline">
 
