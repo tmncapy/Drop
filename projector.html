@@ -91,7 +91,9 @@
             align-items: center;
             border-radius: 12px;
             overflow: hidden;
-            border: 8px solid transparent;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 6px solid transparent;
             background: 
                 linear-gradient(#000, #000) padding-box,
                 linear-gradient(135deg, #ffffff 0%, #d1d5db 20%, #4b5563 45%, #e5e7eb 55%, #374151 80%, #ffffff 100%) border-box;
@@ -112,28 +114,28 @@
 
         /* Phase 1: Center Zoomed */
         #media-container.mode-center {
-            top: 515px;
+            top: 505px;
             left: 50%;
-            width: 340px;
-            height: 340px;
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        /* Phase 2: Shifted to Left */
-        #media-container.mode-left {
-            top: 515px;
-            left: calc(50% - 320px);
             width: 260px;
             height: 260px;
             transform: translate(-50%, -50%) scale(1);
         }
 
+        /* Phase 2: Shifted to Left */
+        #media-container.mode-left {
+            top: 505px;
+            left: calc(50% - 320px);
+            width: 210px;
+            height: 210px;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
         /* Phase 3: Shifted to Left Compact */
         #media-container.mode-left-compact {
-            top: 515px;
+            top: 505px;
             left: calc(50% - 340px);
-            width: 220px;
-            height: 220px;
+            width: 180px;
+            height: 180px;
             transform: translate(-50%, -50%) scale(1);
         }
 
@@ -141,7 +143,9 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 6px;
+            max-width: 100%;
+            max-height: 100%;
         }
 
         #answers-container { position: absolute; top: var(--ans-container-top); left: 50%; transform: translateX(-50%) scale(0); width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 5; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
