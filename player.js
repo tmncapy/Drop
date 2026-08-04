@@ -26,9 +26,9 @@ const playerTabId = 'player_' + Math.random().toString(36).substring(2, 9);
 
 const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
 
-// --- ANTI-SPAM BETTING/WITHDRAWAL DELAY (0.2s = 200ms) ---
+// --- ANTI-SPAM BETTING/WITHDRAWAL DELAY (0.125s = 125ms) ---
 let lastBetActionTime = 0;
-const BET_COOLDOWN_MS = 200;
+const BET_COOLDOWN_MS = 125;
 
 function isBetActionAllowed() {
     const now = Date.now();
@@ -202,28 +202,35 @@ function setPlayerStacks(targetCount) {
     }
 }
 
+let broadcastScheduled = false;
 function broadcastPlayerStackState() {
-    const stackLocationMap = {};
-    const allStacks = document.querySelectorAll('.money-stack');
-    allStacks.forEach(stack => {
-        if (stack && stack.parentNode) {
-            stackLocationMap[stack.id] = stack.parentNode.id;
+    if (broadcastScheduled) return;
+    broadcastScheduled = true;
+    requestAnimationFrame(() => {
+        broadcastScheduled = false;
+        const stackLocationMap = {};
+        const allStacks = document.querySelectorAll('.money-stack');
+        for (let i = 0; i < allStacks.length; i++) {
+            const stack = allStacks[i];
+            if (stack && stack.parentNode) {
+                stackLocationMap[stack.id] = stack.parentNode.id;
+            }
         }
-    });
-    const bets = {
-        b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
-        b2: parseInt(document.getElementById('door-2').getAttribute('data-bet')) || 0,
-        b3: parseInt(document.getElementById('door-3').getAttribute('data-bet')) || 0,
-        b4: parseInt(document.getElementById('door-4').getAttribute('data-bet')) || 0
-    };
-    channel.postMessage({
-        action: 'sync_player_state',
-        data: {
-            senderId: playerTabId,
-            stackLocationMap: stackLocationMap,
-            bets: bets,
-            totalStacks: allStacks.length
-        }
+        const bets = {
+            b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
+            b2: parseInt(document.getElementById('door-2').getAttribute('data-bet')) || 0,
+            b3: parseInt(document.getElementById('door-3').getAttribute('data-bet')) || 0,
+            b4: parseInt(document.getElementById('door-4').getAttribute('data-bet')) || 0
+        };
+        channel.postMessage({
+            action: 'sync_player_state',
+            data: {
+                senderId: playerTabId,
+                stackLocationMap: stackLocationMap,
+                bets: bets,
+                totalStacks: allStacks.length
+            }
+        });
     });
 }
 
@@ -261,17 +268,23 @@ function removeMoneyFromDoor(doorId) {
     }
 }
 
+let syncBetsScheduled = false;
 function syncBetsToController() {
-    const allStacks = document.querySelectorAll('.money-stack');
-    const betData = {
-        b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
-        b2: parseInt(document.getElementById('door-2').getAttribute('data-bet')) || 0,
-        b3: parseInt(document.getElementById('door-3').getAttribute('data-bet')) || 0,
-        b4: parseInt(document.getElementById('door-4').getAttribute('data-bet')) || 0,
-        totalStacks: allStacks.length,
-        totalMoney: allStacks.length * VALUE_PER_STACK
-    };
-    channel.postMessage({ action: 'sync_bets_to_mc', data: betData });
+    if (syncBetsScheduled) return;
+    syncBetsScheduled = true;
+    requestAnimationFrame(() => {
+        syncBetsScheduled = false;
+        const allStacks = document.querySelectorAll('.money-stack');
+        const betData = {
+            b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
+            b2: parseInt(document.getElementById('door-2').getAttribute('data-bet')) || 0,
+            b3: parseInt(document.getElementById('door-3').getAttribute('data-bet')) || 0,
+            b4: parseInt(document.getElementById('door-4').getAttribute('data-bet')) || 0,
+            totalStacks: allStacks.length,
+            totalMoney: allStacks.length * VALUE_PER_STACK
+        };
+        channel.postMessage({ action: 'sync_bets_to_mc', data: betData });
+    });
 }
 
 // Khởi tạo cọc tiền ban đầu từ cài đặt

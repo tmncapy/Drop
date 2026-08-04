@@ -164,9 +164,10 @@
             min-height: 74px;
         }
 
-        .money-stack { width: 60px; height: 32px; cursor: grab; transition: transform 0.1s; }
+        .money-stack { width: 60px; height: 32px; cursor: grab; transition: transform 0.1s; will-change: transform; transform: translateZ(0); }
         .money-stack img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; box-shadow: 0 4px 6px rgba(0,0,0,0.4); display: block; pointer-events: none; }
         
+        .door { will-change: transform; transform: translateZ(0); }
         .door .money-stack { width: 100%; height: 100%; cursor: pointer; pointer-events: none; }
 
         /* PIN Lock Overlay Styles */
