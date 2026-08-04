@@ -60,7 +60,7 @@
 
         /* Media Question Modes for Central Box */
         #central-box.media-q-mode {
-            top: 480px !important;
+            top: 515px !important;
             left: calc(50% + 140px) !important;
             transform: translate(-50%, -50%) scale(1) !important;
             width: 560px !important;
@@ -71,7 +71,7 @@
         }
 
         #central-box.media-qa-mode {
-            top: 415px !important;
+            top: 425px !important;
             left: calc(50% + 140px) !important;
             transform: translate(-50%, -50%) scale(1) !important;
             width: 560px !important;
@@ -91,9 +91,15 @@
             align-items: center;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.85), 0 0 15px rgba(56, 189, 248, 0.6);
-            background: #000;
-            border: 3px solid #38bdf8;
+            border: 8px solid transparent;
+            background: 
+                linear-gradient(#000, #000) padding-box,
+                linear-gradient(135deg, #ffffff 0%, #d1d5db 20%, #4b5563 45%, #e5e7eb 55%, #374151 80%, #ffffff 100%) border-box;
+            box-shadow: 
+                0 0 0 2px #1f2937,
+                0 10px 30px rgba(0, 0, 0, 0.9),
+                0 0 20px rgba(255, 255, 255, 0.3),
+                inset 0 0 10px rgba(255, 255, 255, 0.2);
             opacity: 0;
             transform: translate(-50%, -50%) scale(0);
             pointer-events: none;
@@ -106,28 +112,28 @@
 
         /* Phase 1: Center Zoomed */
         #media-container.mode-center {
-            top: 480px;
+            top: 515px;
             left: 50%;
-            width: 440px;
-            height: 240px;
+            width: 340px;
+            height: 340px;
             transform: translate(-50%, -50%) scale(1);
         }
 
         /* Phase 2: Shifted to Left */
         #media-container.mode-left {
-            top: 480px;
+            top: 515px;
             left: calc(50% - 320px);
-            width: 320px;
-            height: 200px;
+            width: 260px;
+            height: 260px;
             transform: translate(-50%, -50%) scale(1);
         }
 
         /* Phase 3: Shifted to Left Compact */
         #media-container.mode-left-compact {
-            top: 480px;
+            top: 515px;
             left: calc(50% - 340px);
-            width: 270px;
-            height: 180px;
+            width: 220px;
+            height: 220px;
             transform: translate(-50%, -50%) scale(1);
         }
 
