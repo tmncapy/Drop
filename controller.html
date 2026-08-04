@@ -19,294 +19,308 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { 
-            font-family: 'UVN Thanh Pho Nang', sans-serif;
-            font-weight: normal;
-            background: #18191a; 
-            color: #e4e6eb; 
-            min-height: 100vh;
+            font-family: 'Myriad Pro', Arial, sans-serif;
+            font-weight: bold;
+            background: #111317; 
+            color: #e2e8f0; 
+            height: 100vh;
+            max-height: 100vh;
             display: flex;
             flex-direction: column;
-            font-size: 13px;
-            overflow-x: hidden;
+            font-size: 11px;
+            overflow: hidden;
         }
         
         /* Top Header Bar */
         header {
-            min-height: 46px;
-            background: #242526;
-            border-bottom: 1px solid #3a3b3c;
+            height: 38px;
+            min-height: 38px;
+            background: #181b22;
+            border-bottom: 1px solid #262a36;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px 16px;
+            padding: 0 10px;
             flex-shrink: 0;
-            flex-wrap: wrap;
             gap: 8px;
         }
         header h1 {
-            font-size: 15px;
-            color: #ffcc00;
-            font-weight: normal;
+            font-size: 12px;
+            color: #60a5fa;
+            font-weight: bold;
             letter-spacing: 0.5px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
+            gap: 6px;
+            white-space: nowrap;
         }
         .header-badge {
-            background: #2d88ff;
+            background: #2563eb;
             color: #fff;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: normal;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
         }
 
         .header-pin-bar {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: #1c1e21;
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid #3a3b3c;
+            gap: 4px;
+            background: #111317;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #262a36;
         }
         .header-pin-bar label {
             margin-bottom: 0;
-            color: #2e89ff;
-            font-size: 12px;
-            font-weight: normal;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: bold;
             white-space: nowrap;
         }
         .header-pin-bar input {
-            width: 60px;
+            width: 48px;
             text-align: center;
-            font-size: 14px;
-            font-weight: normal;
-            letter-spacing: 2px;
-            color: #ffcc00;
-            padding: 2px 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #38bdf8;
+            padding: 1px 4px;
+            height: 22px;
         }
         
+        /* Navigation Tab Bar */
+        .tab-bar {
+            display: flex;
+            background: #181b22;
+            border-bottom: 1px solid #262a36;
+            padding: 0 8px;
+            gap: 4px;
+            height: 28px;
+            min-height: 28px;
+            flex-shrink: 0;
+        }
+        .tab-button {
+            padding: 0 14px;
+            height: 100%;
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 0;
+            width: auto;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+        }
+        .tab-button:hover {
+            color: #ffffff;
+            background: #20242e;
+        }
+        .tab-button.active {
+            color: #60a5fa;
+            border-bottom-color: #3b82f6;
+            background: #20242e;
+        }
+
         /* Main Dashboard Grid */
         .dashboard-container {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr 1fr 1.1fr;
-            gap: 12px;
-            padding: 10px 12px;
-            height: calc(100vh - 46px);
+            grid-template-columns: 1fr 1fr 1.05fr;
+            gap: 6px;
+            padding: 6px;
+            height: calc(100vh - 66px);
             overflow: hidden;
+            box-sizing: border-box;
         }
 
-        /* Responsive Breakpoints */
-        @media (max-width: 1024px) {
-            body { height: auto; overflow-y: auto; }
-            .dashboard-container {
-                display: flex;
-                flex-direction: column;
-                height: auto;
-                overflow: visible;
-                gap: 12px;
-            }
-            .panel {
-                overflow: visible;
-                max-height: none;
-            }
-        }
-
-        @media (max-width: 640px) {
-            header {
-                flex-direction: column;
-                align-items: stretch;
-                text-align: center;
-            }
-            header h1 {
-                justify-content: center;
-            }
-            .header-pin-bar {
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            .inline-group {
-                flex-wrap: wrap;
-            }
-            .inline-group button {
-                flex: 1 1 calc(50% - 6px);
-                min-height: 38px;
-            }
-            button {
-                min-height: 36px;
-                font-size: 13px;
-            }
-            input[type="text"], select, textarea {
-                font-size: 14px;
-                padding: 8px;
-            }
-        }
-        
+        /* Panels */
         .panel {
-            background: #242526;
-            border: 1px solid #3a3b3c;
-            border-radius: 8px;
-            padding: 10px;
+            background: #181b22;
+            border: 1px solid #262a36;
+            border-radius: 6px;
+            padding: 6px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px;
             overflow-y: auto;
+            height: 100%;
+            box-sizing: border-box;
         }
         
         .panel-title {
-            font-size: 13px;
-            font-weight: normal;
-            color: #ffcc00;
-            border-bottom: 1px solid #3a3b3c;
-            padding-bottom: 5px;
-            margin-bottom: 2px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #60a5fa;
+            border-bottom: 1px solid #262a36;
+            padding-bottom: 3px;
+            margin-bottom: 1px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            flex-shrink: 0;
         }
         
         .form-group {
-            background: #1c1e21;
-            border: 1px solid #3a3b3c;
-            border-radius: 6px;
-            padding: 8px;
+            background: #111317;
+            border: 1px solid #222632;
+            border-radius: 4px;
+            padding: 4px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
         }
         
         label {
             display: block;
-            font-weight: normal;
-            margin-bottom: 4px;
-            color: #ffcc00;
-            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 1px;
+            color: #94a3b8;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
         
-        input[type="text"], input[type="file"], select, textarea {
+        input[type="text"], input[type="file"], input[type="number"], select, textarea {
             width: 100%;
-            padding: 5px 8px;
-            background: #242526;
-            border: 1px solid #4e4f50;
-            color: #fff;
-            border-radius: 4px;
+            padding: 3px 6px;
+            background: #181b22;
+            border: 1px solid #2d3342;
+            color: #f1f5f9;
+            border-radius: 3px;
             box-sizing: border-box;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            font-family: 'Myriad Pro', Arial, sans-serif;
         }
         input:focus, select:focus, textarea:focus {
-            border-color: #2e89ff;
+            border-color: #3b82f6;
             outline: none;
         }
-        
+
+        /* Buttons - Minimal Color Palette */
         button {
             width: 100%;
-            padding: 6px 8px;
-            background: #27ae60;
-            color: #fff;
-            border: none;
+            padding: 4px 6px;
+            background: #222630;
+            color: #e2e8f0;
+            border: 1px solid #323848;
             border-radius: 4px;
-            font-weight: normal;
+            font-weight: bold;
+            font-family: 'Myriad Pro', Arial, sans-serif;
             cursor: pointer;
-            font-size: 12px;
-            transition: background 0.15s ease, transform 0.05s ease;
+            font-size: 11px;
+            line-height: 1.2;
+            transition: all 0.12s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
         }
-        button:hover { background: #2ecc71; }
+        button:hover { background: #2c3240; border-color: #434c62; color: #ffffff; }
         button:active { transform: translateY(1px); }
+
+        /* Primary Action (Blue) */
+        .btn-blue {
+            background: #1d4ed8;
+            border-color: #2563eb;
+            color: #ffffff;
+        }
+        .btn-blue:hover {
+            background: #2563eb;
+            border-color: #3b82f6;
+            color: #ffffff;
+        }
+
+        /* Neutral Secondary Action */
+        .btn-orange, .btn-purple {
+            background: #262c3a;
+            border-color: #3b4458;
+            color: #cbd5e1;
+        }
+        .btn-orange:hover, .btn-purple:hover {
+            background: #31394b;
+            border-color: #4e5a74;
+            color: #ffffff;
+        }
+
+        /* Danger / Trapdoor Action (Red) */
+        .btn-red {
+            background: #7f1d1d;
+            border-color: #991b1b;
+            color: #fecaca;
+        }
+        .btn-red:hover {
+            background: #991b1b;
+            border-color: #dc2626;
+            color: #ffffff;
+        }
         
-        .btn-orange { background: #d35400; }
-        .btn-orange:hover { background: #e67e22; }
-        .btn-red { background: #c0392b; }
-        .btn-red:hover { background: #e74c3c; }
-        .btn-blue { background: #2980b9; }
-        .btn-blue:hover { background: #3498db; }
-        .btn-purple { background: #8e44ad; }
-        .btn-purple:hover { background: #9b59b6; }
-        
-        .inline-group { display: flex; gap: 6px; margin-top: 4px; }
+        .inline-group { display: flex; gap: 4px; margin-top: 2px; }
         .inline-group button { margin-top: 0; }
         
         .ans-row {
             display: flex;
-            gap: 6px;
+            gap: 4px;
             align-items: center;
-            margin-top: 4px;
+            margin-top: 2px;
         }
         .ans-row input { flex: 1; }
-        .ans-row button { width: 100px; flex-shrink: 0; }
+        .ans-row button { width: 75px; flex-shrink: 0; }
         
         .bet-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px;
+            gap: 4px;
         }
         .bet-box {
-            background: #111213;
-            border: 1px dashed #444;
+            background: #111317;
+            border: 1px solid #222632;
             border-radius: 4px;
-            padding: 4px 6px;
+            padding: 2px 4px;
             text-align: center;
         }
         .bet-box .title {
-            font-size: 11px;
-            color: #aaa;
+            font-size: 10px;
+            color: #64748b;
         }
         .bet-display {
-            font-size: 14px;
-            font-weight: normal;
-            color: #00e676;
-            font-family: 'UVN Thanh Pho Nang', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            color: #38bdf8;
+            font-family: 'Myriad Pro', Arial, sans-serif;
         }
         
         .sfx-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 5px;
+            gap: 3px;
+        }
+        .sfx-grid button {
+            padding: 3px 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         
-        /* Custom Scrollbar */
-        .panel::-webkit-scrollbar { width: 5px; }
-        .panel::-webkit-scrollbar-track { background: #1c1e21; }
-        .panel::-webkit-scrollbar-thumb { background: #4e4f50; border-radius: 3px; }
-        .panel::-webkit-scrollbar-thumb:hover { background: #666; }
-
-        /* Navigation Tab Bar */
-        .tab-bar {
-            display: flex;
-            background: #1c1e21;
-            border-bottom: 1px solid #3a3b3c;
-            padding: 0 12px;
-            gap: 4px;
-            flex-shrink: 0;
-        }
-        .tab-button {
-            padding: 10px 20px;
-            background: transparent;
-            color: #b0b3b8;
-            border: none;
-            border-bottom: 3px solid transparent;
-            font-weight: normal;
-            font-size: 13px;
-            cursor: pointer;
-            border-radius: 0;
-            width: auto;
-            transition: all 0.2s ease;
-        }
-        .tab-button:hover {
-            color: #ffffff;
-            background: #242526;
-        }
-        .tab-button.active {
-            color: #ffcc00;
-            border-bottom-color: #ffcc00;
-            background: #242526;
-        }
+        /* Custom Scrollbars */
+        .panel::-webkit-scrollbar { width: 4px; }
+        .panel::-webkit-scrollbar-track { background: #111317; }
+        .panel::-webkit-scrollbar-thumb { background: #2d3342; border-radius: 2px; }
+        .panel::-webkit-scrollbar-thumb:hover { background: #475569; }
 
         .progress-container {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            padding: 16px;
+            gap: 12px;
+            padding: 12px;
             overflow-y: auto;
             max-width: 1000px;
             margin: 0 auto;
@@ -314,30 +328,30 @@
         }
 
         .q-status-btn {
-            background: #1c1e21;
-            border: 2px solid #3a3b3c;
+            background: #111317;
+            border: 1px solid #262a36;
             color: #fff;
-            padding: 12px 6px;
-            border-radius: 6px;
-            font-weight: normal;
+            padding: 8px 4px;
+            border-radius: 4px;
+            font-weight: bold;
             cursor: pointer;
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            transition: all 0.2s ease;
+            gap: 2px;
+            transition: all 0.15s ease;
             width: 100%;
         }
         .q-status-btn.played {
-            background: #1b4332;
-            border-color: #2ecc71;
-            color: #2ecc71;
+            background: #064e3b;
+            border-color: #059669;
+            color: #34d399;
         }
         .q-status-btn.unplay {
-            background: #4a1212;
-            border-color: #e74c3c;
-            color: #e74c3c;
+            background: #7f1d1d;
+            border-color: #991b1b;
+            color: #fca5a5;
         }
     </style>
 </head>
@@ -347,14 +361,14 @@
         <h1>🎮 HỆ THỐNG ĐIỀU KHIỂN TRÒ CHƠI <span class="header-badge">LIVE</span></h1>
         
         <div class="header-pin-bar">
-            <label>🔑 MÃ PIN PLAYER:</label>
+            <label>🔑 PIN PLAYER:</label>
             <input type="text" id="pin-code-input" maxlength="4" value="1234">
-            <button class="btn-blue" style="width: auto; padding: 4px 8px;" onclick="updatePinCode()">Cập nhật</button>
-            <button class="btn-orange" style="width: auto; padding: 4px 8px;" onclick="generateRandomPin()">Ngẫu nhiên</button>
-            <button class="btn-red" style="width: auto; padding: 4px 8px;" onclick="forceLockPlayers()">Khóa Player</button>
+            <button class="btn-blue" style="width: auto; padding: 2px 6px;" onclick="updatePinCode()">Cập nhật</button>
+            <button class="btn-orange" style="width: auto; padding: 2px 6px;" onclick="generateRandomPin()">Ngẫu nhiên</button>
+            <button class="btn-red" style="width: auto; padding: 2px 6px;" onclick="forceLockPlayers()">Khóa Player</button>
         </div>
 
-        <div id="sfx-status" style="font-weight: normal; color: #f39c12; font-size: 12px; font-family: 'UVN Thanh Pho Nang', sans-serif;">Sẵn sàng phát âm thanh</div>
+        <div id="sfx-status" style="font-weight: bold; color: #f59e0b; font-size: 11px;">Sẵn sàng phát âm thanh</div>
     </header>
 
     <div class="tab-bar">
@@ -373,7 +387,7 @@
             </div>
 
             <div class="form-group">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
                     <div>
                         <label>Vòng Chơi (Luật Cửa)</label>
                         <select id="select-round" onchange="handleRoundChange()">
@@ -393,7 +407,7 @@
 
             <div class="form-group">
                 <label>2. Chủ Đề Để Lựa Chọn</label>
-                <input type="text" id="topic-a" placeholder="Tên chủ đề A" style="margin-bottom: 4px;">
+                <input type="text" id="topic-a" placeholder="Tên chủ đề A" style="margin-bottom: 2px;">
                 <input type="text" id="topic-b" placeholder="Tên chủ đề B">
                 <div class="inline-group">
                     <button class="btn-blue" onclick="sendTopics()">Hiện 2 Chủ Đề</button>
@@ -404,14 +418,14 @@
 
             <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
                 <label>3. Câu Hỏi & Đáp Án</label>
-                <textarea id="question-input" rows="2" placeholder="Nội dung câu hỏi chữ lớn..." style="margin-bottom: 6px; resize: vertical;"></textarea>
-                <div class="inline-group" style="margin-bottom: 8px;">
+                <textarea id="question-input" rows="2" placeholder="Nội dung câu hỏi chữ lớn..." style="margin-bottom: 4px; resize: vertical;"></textarea>
+                <div class="inline-group" style="margin-bottom: 6px;">
                     <button class="btn-blue" onclick="sendQuestion()">Hiện Câu Hỏi</button>
                     <button class="btn-orange" onclick="showAllQuestionAndAnswers()">Hiện Q &amp; A</button>
                 </div>
                 
-                <div style="border-top: 1px solid #444; padding-top: 6px; display: flex; flex-direction: column; gap: 4px;">
-                    <button class="btn-blue" style="margin-bottom: 4px;" onclick="playSfx('SFX/drop_question_bed.mp3')">🎵 Bắt Đầu Hiện Đáp Án</button>
+                <div style="border-top: 1px solid #222632; padding-top: 4px; display: flex; flex-direction: column; gap: 3px;">
+                    <button class="btn-blue" style="margin-bottom: 2px;" onclick="playSfx('SFX/drop_question_bed.mp3')">🎵 Bắt Đầu Hiện Đáp Án</button>
                     
                     <div class="ans-row">
                         <input type="text" id="ans-1" placeholder="Đáp án cửa 1">
@@ -441,7 +455,7 @@
             <div class="panel-title">2. THỜI GIAN & HỐ SẬP</div>
             
             <div class="form-group">
-                <label id="time-display" style="font-size: 13px; text-align: center; color: #00e676; font-family: 'UVN Thanh Pho Nang', sans-serif; font-weight: normal;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
+                <label id="time-display" style="font-size: 11px; text-align: center; color: #38bdf8;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
                 <div class="inline-group">
                     <button onclick="startTimer()">Bắt Đầu (60s)</button>
                     <button class="btn-orange" onclick="add30Seconds()">+30 Giây</button>
@@ -459,14 +473,14 @@
                 </div>
             </div>
 
-            <div class="form-group" style="background: #1c2833; border: 1px solid #34495e;">
-                <label style="color: #00e676; font-size: 13px; font-weight: normal;">💰 TĂNG GIẢM CỌC TIỀN NGUỜI CHƠI</label>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #111213; padding: 5px 8px; border-radius: 4px; margin-bottom: 6px; border: 1px dashed #444;">
-                    <span style="font-size: 11px; color: #aaa;">Tổng tiền còn lại:</span>
-                    <span id="mc-total-money" style="font-size: 13px; font-weight: normal; color: #00e676; font-family: 'UVN Thanh Pho Nang', sans-serif;">1.000.000 $A (40 cọc)</span>
+            <div class="form-group">
+                <label style="color: #38bdf8;">💰 TĂNG GIẢM CỌC TIỀN NGUỜI CHƠI</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #181b22; padding: 3px 6px; border-radius: 3px; margin-bottom: 4px; border: 1px solid #222632;">
+                    <span style="font-size: 10px; color: #94a3b8;">Tổng tiền còn lại:</span>
+                    <span id="mc-total-money" style="font-size: 11px; color: #38bdf8;">1.000.000 $A (40 cọc)</span>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 6px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-bottom: 4px;">
                     <button class="btn-blue" onclick="addPlayerStacksMC(1)">➕ Thêm 1 Cọc (+25k)</button>
                     <button class="btn-blue" onclick="addPlayerStacksMC(4)">➕ Thêm 4 Cọc (+100k)</button>
                     <button class="btn-orange" onclick="removePlayerStacksMC(1)">➖ Bớt 1 Cọc (-25k)</button>
@@ -474,71 +488,71 @@
                 </div>
 
                 <div style="display: flex; gap: 4px; align-items: center;">
-                    <input type="number" id="custom-stacks-input" placeholder="Số cọc" value="40" min="0" max="100" style="width: 70px; text-align: center; font-weight: bold; padding: 4px;">
+                    <input type="number" id="custom-stacks-input" placeholder="Số cọc" value="40" min="0" max="100" style="width: 60px; text-align: center; padding: 2px;">
                     <button class="btn-purple" style="flex: 1;" onclick="setCustomStacksMC()">Đổi Số Cọc</button>
-                    <button class="btn-red" style="width: auto; padding: 4px 8px;" onclick="setPlayerStacksMC(40)" title="Khôi phục 40 cọc (1 triệu)">40 Cọc</button>
+                    <button class="btn-red" style="width: auto; padding: 2px 6px;" onclick="setPlayerStacksMC(40)" title="Khôi phục 40 cọc (1 triệu)">40 Cọc</button>
                 </div>
             </div>
 
-            <div class="form-group" style="background: #1a1c23; border: 1px solid #2e3440;">
-                <label style="color: #ff4d4d; font-family: 'UVN Thanh Pho Nang', sans-serif; font-weight: normal; font-size: 13px;">🔥 KÍCH HOẠT SẬP HỐ VẬT LÝ</label>
-                <button class="btn-orange" style="margin-bottom: 8px;" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Kích Hoạt (Nhạc Hồi Hộp)</button>
+            <div class="form-group">
+                <label style="color: #f87171;">🔥 KÍCH HOẠT SẬP HỐ VẬT LÝ</label>
+                <button class="btn-orange" style="margin-bottom: 4px;" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Kích Hoạt (Nhạc Hồi Hộp)</button>
                 
-                <div style="background: #111418; border: 1px solid #2a2f3a; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
-                    <div style="font-size: 11px; color: #f1e05a; margin-bottom: 6px; font-family: 'UVN Thanh Pho Nang', sans-serif;">☑️ CHỌN CÁC CỬA SAI ĐỂ SẬP CÙNG LÚC (2 Hoặc 3 Cửa):</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ffffff; background: #1f2430; padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #3b4252; user-select: none;">
-                            <input type="checkbox" id="chk-door-1" class="door-chk" value="1" style="width: 18px; height: 18px; accent-color: #ff4d4d; cursor: pointer;">
-                            <span style="font-family: 'UVN Thanh Pho Nang', sans-serif;">Cửa 1</span>
+                <div style="background: #181b22; border: 1px solid #222632; padding: 4px; border-radius: 4px; margin-bottom: 4px;">
+                    <div style="font-size: 10px; color: #fbbf24; margin-bottom: 3px;">☑️ CHỌN CÁC CỬA SAI ĐỂ SẬP CÙNG LÚC:</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 4px;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
+                            <input type="checkbox" id="chk-door-1" class="door-chk" value="1" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
+                            <span>Cửa 1</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ffffff; background: #1f2430; padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #3b4252; user-select: none;">
-                            <input type="checkbox" id="chk-door-2" class="door-chk" value="2" style="width: 18px; height: 18px; accent-color: #ff4d4d; cursor: pointer;">
-                            <span style="font-family: 'UVN Thanh Pho Nang', sans-serif;">Cửa 2</span>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
+                            <input type="checkbox" id="chk-door-2" class="door-chk" value="2" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
+                            <span>Cửa 2</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ffffff; background: #1f2430; padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #3b4252; user-select: none;">
-                            <input type="checkbox" id="chk-door-3" class="door-chk" value="3" style="width: 18px; height: 18px; accent-color: #ff4d4d; cursor: pointer;">
-                            <span style="font-family: 'UVN Thanh Pho Nang', sans-serif;">Cửa 3</span>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
+                            <input type="checkbox" id="chk-door-3" class="door-chk" value="3" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
+                            <span>Cửa 3</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ffffff; background: #1f2430; padding: 6px 10px; border-radius: 4px; font-size: 13px; border: 1px solid #3b4252; user-select: none;">
-                            <input type="checkbox" id="chk-door-4" class="door-chk" value="4" style="width: 18px; height: 18px; accent-color: #ff4d4d; cursor: pointer;">
-                            <span style="font-family: 'UVN Thanh Pho Nang', sans-serif;">Cửa 4</span>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
+                            <input type="checkbox" id="chk-door-4" class="door-chk" value="4" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
+                            <span>Cửa 4</span>
                         </label>
                     </div>
 
-                    <div style="display: flex; gap: 4px;">
-                        <button class="btn-red" style="flex: 1; font-size: 13px; padding: 8px; font-family: 'UVN Thanh Pho Nang', sans-serif;" onclick="openSelectedDoors()">
+                    <div style="display: flex; gap: 3px;">
+                        <button class="btn-red" style="flex: 1; padding: 4px;" onclick="openSelectedDoors()">
                             💥 SẬP CÁC CỬA ĐÃ CHỌN
                         </button>
-                        <button class="btn-purple" style="width: auto; padding: 6px 8px; font-size: 11px;" onclick="selectAllDoors(true)" title="Chọn tất cả 4 cửa">Tất cả</button>
-                        <button style="width: auto; padding: 6px 8px; font-size: 11px; background: #3b4252; color: #fff; border: 1px solid #4c566a;" onclick="selectAllDoors(false)" title="Bỏ chọn">Bỏ chọn</button>
+                        <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="selectAllDoors(true)" title="Chọn tất cả 4 cửa">Tất cả</button>
+                        <button style="width: auto; padding: 2px 6px; font-size: 10px; background: #222630; color: #fff; border: 1px solid #323848;" onclick="selectAllDoors(false)" title="Bỏ chọn">Bỏ chọn</button>
                     </div>
                 </div>
 
-                <div style="font-size: 11px; color: #888; margin-bottom: 4px; font-family: 'UVN Thanh Pho Nang', sans-serif;">Sập từng cửa riêng lẻ:</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 6px;">
-                    <button class="btn-red" style="padding: 4px 6px; font-size: 12px;" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
-                    <button class="btn-red" style="padding: 4px 6px; font-size: 12px;" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
-                    <button class="btn-red" style="padding: 4px 6px; font-size: 12px;" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
-                    <button class="btn-red" style="padding: 4px 6px; font-size: 12px;" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
+                <div style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">Sập từng cửa riêng lẻ:</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-bottom: 4px;">
+                    <button class="btn-red" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
+                    <button class="btn-red" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
+                    <button class="btn-red" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
+                    <button class="btn-red" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
                 </div>
 
-                <button class="btn-red" style="font-weight: bold; font-size: 13px; font-family: 'UVN Thanh Pho Nang', sans-serif;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">💥 SẬP (Tiếng Sập Hố 2)</button>
+                <button class="btn-red" style="font-size: 11px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">💥 SẬP (Tiếng Sập Hố 2)</button>
             </div>
 
-            <div class="form-group" style="background: #23192e; border: 1px solid #5b2c6f;">
-                <label style="color: #bb86fc;">💬 GỬI TIN NHẮN ĐẾN HOST (MC)</label>
+            <div class="form-group">
+                <label style="color: #c084fc;">💬 GỬI TIN NHẮN ĐẾN HOST (MC)</label>
                 <div class="inline-group">
                     <input type="text" id="host-msg-input" placeholder="Nhập tin nhắn nhắn Host..." onkeypress="if(event.key==='Enter') sendMsgToHost()">
-                    <button class="btn-purple" style="width: 70px; flex-shrink: 0;" onclick="sendMsgToHost()">Gửi</button>
+                    <button class="btn-purple" style="width: 60px; flex-shrink: 0;" onclick="sendMsgToHost()">Gửi</button>
                 </div>
             </div>
 
-            <div class="form-group" style="background: #2c3e50; margin-top: auto;">
-                <label style="color: #fff;">Quản Lý Vòng Đấu</label>
-                <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div class="form-group" style="margin-top: auto;">
+                <label>Quản Lý Vòng Đấu</label>
+                <div style="display: flex; flex-direction: column; gap: 3px;">
                     <button class="btn-blue" onclick="collectMoneyBack()">💵 THU TIỀN VỀ (BÀN)</button>
                     <button class="btn-orange" onclick="penaltyFine()">PHẠT GIẢM 1 CỌC TIỀN</button>
-                    <button class="btn-red" onclick="resetRound()" style="margin-top: 4px;">RESET TOÀN BỘ VÒNG CHƠI</button>
+                    <button class="btn-red" onclick="resetRound()" style="margin-top: 2px;">RESET TOÀN BỘ VÒNG CHƠI</button>
                 </div>
             </div>
         </div>
@@ -547,14 +561,14 @@
         <div class="panel">
             <div class="panel-title">3. BẢNG ÂM THANH (SOUNDBOARD SFX)</div>
             
-            <div style="background: #1c1e21; padding: 8px 12px; border-radius: 6px; border: 1px solid #3a3b3c; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; font-weight: bold; color: #ffcc00; font-size: 12px;">
-                    🔊 ÂM LƯỢNG: <span id="vol-display-val" style="color: #00e676; min-width: 38px; display: inline-block; text-align: right;">100%</span>
+            <div style="background: #111317; padding: 4px 8px; border-radius: 4px; border: 1px solid #222632; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0; color: #60a5fa; font-size: 10px;">
+                    🔊 ÂM LƯỢNG: <span id="vol-display-val" style="color: #38bdf8; min-width: 32px; display: inline-block; text-align: right;">100%</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
-                    <button class="btn-blue" style="width: 28px; height: 26px; padding: 0; font-size: 14px; font-weight: bold; flex-shrink: 0;" onclick="adjustVolume(-0.1)">-</button>
-                    <input type="range" id="volume-slider" min="0" max="100" value="100" style="flex: 1; cursor: pointer; accent-color: #ffcc00; height: 6px;" oninput="onVolumeSliderChange(this.value)">
-                    <button class="btn-blue" style="width: 28px; height: 26px; padding: 0; font-size: 14px; font-weight: bold; flex-shrink: 0;" onclick="adjustVolume(0.1)">+</button>
+                <div style="display: flex; align-items: center; gap: 4px; flex: 1;">
+                    <button class="btn-blue" style="width: 22px; height: 20px; padding: 0; font-size: 12px; flex-shrink: 0;" onclick="adjustVolume(-0.1)">-</button>
+                    <input type="range" id="volume-slider" min="0" max="100" value="100" style="flex: 1; cursor: pointer; accent-color: #3b82f6; height: 4px;" oninput="onVolumeSliderChange(this.value)">
+                    <button class="btn-blue" style="width: 22px; height: 20px; padding: 0; font-size: 12px; flex-shrink: 0;" onclick="adjustVolume(0.1)">+</button>
                 </div>
             </div>
 
@@ -576,19 +590,19 @@
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer_stop.mp3')">🛑 Dừng Thời Gian</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_1.mp3')">💥 Sập Hố 1</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3')">💥 Sập Hố 2</button>
-                <button style="background: #27ae60;" onclick="playSfx('SFX/drop_win.mp3')">🏆 Chiến Thắng</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_win.mp3')">🏆 Chiến Thắng</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_lose.mp3')">❌ Thua Cuộc</button>
                 <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_in.mp3')">📺 Quảng Cáo Vào</button>
                 <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_out.mp3')">📺 Quảng Cáo Ra</button>
-                <button style="background: #2c3e50;" onclick="playSfx('SFX/drop_closing.mp3')">🎬 Kết Thúc Show</button>
-                <button style="background: #2c3e50;" onclick="playSfx('SFX/drop_main.mp3')">🌟 Nhạc Main</button>
+                <button class="btn-purple" onclick="playSfx('SFX/drop_closing.mp3')">🎬 Kết Thúc Show</button>
+                <button class="btn-purple" onclick="playSfx('SFX/drop_main.mp3')">🌟 Nhạc Main</button>
             </div>
 
-            <button class="btn-red" style="font-weight: bold; background: #d32f2f; margin-top: 4px;" onclick="stopSfx()">🔇 DỪNG TOÀN BỘ ÂM THANH</button>
+            <button class="btn-red" style="margin-top: 3px;" onclick="stopSfx()">🔇 DỪNG TOÀN BỘ ÂM THANH</button>
 
             <div class="form-group" style="margin-top: auto;">
                 <label>Phát File Âm Thanh Tùy Chọn:</label>
-                <select id="sfx-select-list" onchange="document.getElementById('custom-sfx-input').value = this.value" style="margin-bottom: 4px;">
+                <select id="sfx-select-list" onchange="document.getElementById('custom-sfx-input').value = this.value" style="margin-bottom: 3px;">
                     <option value="SFX/drop_30s.wav">drop_30s.wav</option>
                     <option value="SFX/drop_category.mp3">drop_category.mp3</option>
                     <option value="SFX/drop_chosen_category.mp3">drop_chosen_category.mp3</option>
@@ -618,8 +632,8 @@
                 </select>
                 <div class="inline-group">
                     <input type="text" id="custom-sfx-input" placeholder="Tên file SFX..." value="SFX/drop_30s.wav">
-                    <button class="btn-blue" style="width: 80px; flex-shrink: 0;" onclick="playCustomSfx()">Phát</button>
-                    <button class="btn-red" style="width: 70px; flex-shrink: 0;" onclick="stopSfx()">Tắt</button>
+                    <button class="btn-blue" style="width: 70px; flex-shrink: 0;" onclick="playCustomSfx()">Phát</button>
+                    <button class="btn-red" style="width: 60px; flex-shrink: 0;" onclick="stopSfx()">Tắt</button>
                 </div>
             </div>
         </div>
@@ -627,55 +641,55 @@
 
     <!-- TAB 2: PROGRESS DASHBOARD -->
     <div id="progress-dashboard" class="progress-container" style="display: none;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%;">
-            <div style="background: #242526; border: 1px solid #3a3b3c; border-radius: 8px; padding: 14px; text-align: center;">
-                <div style="font-size: 12px; color: #aaa; text-transform: uppercase; font-weight: 600;">Số câu hỏi đã trải qua</div>
-                <div id="ctrl-played-text" style="font-size: 28px; font-weight: bold; color: #2ecc71; margin-top: 6px;">2 / 8</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; width: 100%;">
+            <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; text-align: center;">
+                <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Số câu hỏi đã trải qua</div>
+                <div id="ctrl-played-text" style="font-size: 24px; color: #34d399; margin-top: 4px;">2 / 8</div>
             </div>
-            <div style="background: #242526; border: 1px solid #3a3b3c; border-radius: 8px; padding: 14px; text-align: center;">
-                <div style="font-size: 12px; color: #aaa; text-transform: uppercase; font-weight: 600;">Số câu hỏi còn lại</div>
-                <div id="ctrl-remaining-text" style="font-size: 28px; font-weight: bold; color: #e74c3c; margin-top: 6px;">6 câu</div>
+            <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; text-align: center;">
+                <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Số câu hỏi còn lại</div>
+                <div id="ctrl-remaining-text" style="font-size: 24px; color: #f87171; margin-top: 4px;">6 câu</div>
             </div>
-            <div style="background: #242526; border: 1px solid #3a3b3c; border-radius: 8px; padding: 14px; text-align: center;">
-                <div style="font-size: 12px; color: #aaa; text-transform: uppercase; font-weight: 600;">Số tiền hiện có</div>
-                <div id="ctrl-money-text" style="font-size: 28px; font-weight: bold; color: #ffcc00; margin-top: 6px; font-family: 'UVN Thanh Pho Nang', sans-serif;">1.000.000 $A</div>
+            <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; text-align: center;">
+                <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Số tiền hiện có</div>
+                <div id="ctrl-money-text" style="font-size: 24px; color: #38bdf8; margin-top: 4px;">1.000.000 $A</div>
             </div>
         </div>
 
         <div class="panel" style="width: 100%;">
             <div class="panel-title">1. TRẠNG THÁI CÁC CÂU HỎI (CÂU 1 - 8)</div>
-            <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Bấm vào ô tương ứng để bật/tắt trạng thái Đã Chơi / Chưa Chơi cho từng câu hỏi:</p>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Bấm vào ô tương ứng để bật/tắt trạng thái Đã Chơi / Chưa Chơi cho từng câu hỏi:</p>
             
-            <div id="questions-status-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; margin-bottom: 14px;">
+            <div id="questions-status-grid" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 12px;">
                 <!-- Generated dynamically by controller.js -->
             </div>
 
-            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px;">
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(0)">Reset (0 câu)</button>
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(1)">Đã chơi 1</button>
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(2)">Đã chơi 2</button>
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(3)">Đã chơi 3</button>
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(4)">Đã chơi 4</button>
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(5)">Đã chơi 5</button>
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(6)">Đã chơi 6</button>
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(7)">Đã chơi 7</button>
-                <button class="btn-blue" style="flex: 1; min-width: 90px;" onclick="setPlayedCount(8)">Đã chơi 8</button>
+            <div style="display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px;">
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(0)">Reset (0 câu)</button>
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(1)">Đã chơi 1</button>
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(2)">Đã chơi 2</button>
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(3)">Đã chơi 3</button>
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(4)">Đã chơi 4</button>
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(5)">Đã chơi 5</button>
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(6)">Đã chơi 6</button>
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(7)">Đã chơi 7</button>
+                <button class="btn-blue" style="flex: 1; min-width: 80px;" onclick="setPlayedCount(8)">Đã chơi 8</button>
             </div>
 
             <div class="panel-title">2. ĐIỀU KHIỂN HIỂN THỊ MÀN HÌNH PROJECTOR</div>
-            <p style="font-size: 12px; color: #aaa; margin-bottom: 10px;">Phát giao diện tiến trình chơi lên màn hình Projector:</p>
+            <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Phát giao diện tiến trình chơi lên màn hình Projector:</p>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn-blue" style="padding: 12px; font-size: 14px; background: #27ae60;" onclick="showProgressOnProjector()">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn-blue" style="padding: 10px; font-size: 12px;" onclick="showProgressOnProjector()">
                     🚀 HIỂN THỊ TIẾN TRÌNH TRÊN PROJECTOR
                 </button>
-                <button class="btn-red" style="padding: 12px; font-size: 14px;" onclick="hideProgressOnProjector()">
+                <button class="btn-red" style="padding: 10px; font-size: 12px;" onclick="hideProgressOnProjector()">
                     🛑 ẨN MÀN HÌNH TIẾN TRÌNH
                 </button>
-                <button class="btn-blue" style="padding: 12px; font-size: 14px; background: #f39c12; color: #fff;" onclick="showWinningMoneyOnProjector()">
+                <button class="btn-blue" style="padding: 10px; font-size: 12px;" onclick="showWinningMoneyOnProjector()">
                     🏆 HIỂN THỊ TIỀN THẮNG (PROJECTOR)
                 </button>
-                <button class="btn-red" style="padding: 12px; font-size: 14px;" onclick="hideWinningMoneyOnProjector()">
+                <button class="btn-red" style="padding: 10px; font-size: 12px;" onclick="hideWinningMoneyOnProjector()">
                     🛑 ẨN TIỀN THẮNG
                 </button>
             </div>
@@ -692,4 +706,3 @@
     </script>
 </body>
 </html>
-
