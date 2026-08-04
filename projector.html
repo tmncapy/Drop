@@ -515,12 +515,16 @@
             currentMediaStage = stage;
 
             if (currentMediaState.type === 'image') {
-                img.src = currentMediaState.url;
+                if (img.getAttribute('data-loaded-src') !== currentMediaState.url) {
+                    img.setAttribute('data-loaded-src', currentMediaState.url);
+                    img.src = currentMediaState.url;
+                }
                 img.style.display = 'block';
                 video.style.display = 'none';
-                video.pause();
+                if (!video.paused) video.pause();
             } else if (currentMediaState.type === 'video') {
-                if (video.src !== currentMediaState.url) {
+                if (video.getAttribute('data-loaded-src') !== currentMediaState.url) {
+                    video.setAttribute('data-loaded-src', currentMediaState.url);
                     video.src = currentMediaState.url;
                 }
                 video.style.display = 'block';

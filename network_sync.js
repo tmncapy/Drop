@@ -193,7 +193,7 @@
             const msgId = msg._msgId || (this.instanceId + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
             const payload = Object.assign({}, msg, { _senderId: this.instanceId, _timestamp: Date.now(), _msgId: msgId });
 
-            // 1. Send via local BroadcastChannel (same browser tab/window)
+            // 1. Send via local BroadcastChannel (same browser tab/window) - instant local sync
             try {
                 this.localChannel.postMessage(payload);
             } catch (e) {}
@@ -201,13 +201,28 @@
             // 2. Send via MQTT WebSocket (cross-device)
             if (this.mqttClient && this.mqttClient.connected) {
                 try {
-                    this.mqttClient.publish(this.topicName, JSON.stringify(payload), { qos: 0 });
+                    const str = JSON.stringify(payload);
+                    // Public MQTT brokers drop/choke on messages > 200KB
+                    if (str.length < 204800) {
+                        this.mqttClient.publish(this.topicName, str, { qos: 0 });
+                    } else {
+                        // Lighten payload for MQTT cross-device transfer if mediaUrl is a large Base64 string
+                        const copy = JSON.parse(str);
+                        if (copy.data && copy.data.mediaUrl && copy.data.mediaUrl.length > 50000) {
+                            copy.data.mediaUrlOmitted = true;
+                            // Keep relative URLs intact, only trim base64 data URIs over network
+                            if (copy.data.mediaUrl.startsWith('data:')) {
+                                copy.data.mediaUrl = '[Local File Base64]';
+                            }
+                        }
+                        this.mqttClient.publish(this.topicName, JSON.stringify(copy), { qos: 0 });
+                    }
                 } catch (e) {
-                    this.pendingQueue.push(payload);
+                    if (this.pendingQueue.length < 20) this.pendingQueue.push(payload);
                 }
             } else {
-                this.pendingQueue.push(payload);
-                if (this.pendingQueue.length > 50) this.pendingQueue.shift();
+                if (this.pendingQueue.length < 20) this.pendingQueue.push(payload);
+                else this.pendingQueue.shift();
             }
         }
     }

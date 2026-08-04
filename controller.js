@@ -405,22 +405,50 @@ function handleMainMediaFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const fileUrl = e.target.result;
-        const typeSelect = document.getElementById('main-media-type');
-        const urlInput = document.getElementById('main-media-url');
+    const typeSelect = document.getElementById('main-media-type');
+    const urlInput = document.getElementById('main-media-url');
 
-        if (file.type.startsWith('video/')) {
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 1280;
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+                if (typeSelect) typeSelect.value = 'image';
+                if (urlInput) urlInput.value = compressedUrl;
+                syncMainMediaToStore();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    } else if (file.type.startsWith('video/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const fileUrl = e.target.result;
             if (typeSelect) typeSelect.value = 'video';
-        } else if (file.type.startsWith('image/')) {
-            if (typeSelect) typeSelect.value = 'image';
-        }
-
-        if (urlInput) urlInput.value = fileUrl;
-        syncMainMediaToStore();
-    };
-    reader.readAsDataURL(file);
+            if (urlInput) urlInput.value = fileUrl;
+            syncMainMediaToStore();
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
 function sendMedia() {
