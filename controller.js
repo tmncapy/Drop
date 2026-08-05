@@ -433,6 +433,209 @@ function syncMainMediaToStore() {
     saveExcelDataStore();
 }
 
+// --- VIDEO COMPRESSION HELPERS (480P OPTIMIZATION) ---
+function showVideoCompressingModal(fileName) {
+    const modal = document.getElementById('video-compress-modal');
+    const nameEl = document.getElementById('compress-file-name');
+    const statusEl = document.getElementById('compress-status-text');
+    const barEl = document.getElementById('compress-bar-fill');
+    if (modal) modal.style.display = 'flex';
+    if (nameEl) nameEl.innerText = fileName || 'video.mp4';
+    if (statusEl) statusEl.innerText = 'Đang khởi tạo bộ nén... 0%';
+    if (barEl) barEl.style.width = '0%';
+}
+
+function updateVideoCompressingProgress(percent) {
+    const p = Math.min(100, Math.max(0, Math.round(percent)));
+    const statusEl = document.getElementById('compress-status-text');
+    const barEl = document.getElementById('compress-bar-fill');
+    if (statusEl) statusEl.innerText = `Đang xử lý nén 480p... ${p}%`;
+    if (barEl) barEl.style.width = `${p}%`;
+}
+
+function hideVideoCompressingModal() {
+    const modal = document.getElementById('video-compress-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function compressVideoTo480p(videoFile, onProgress = () => {}) {
+    return new Promise((resolve) => {
+        const video = document.createElement('video');
+        video.muted = false;
+        video.playsInline = true;
+        video.crossOrigin = 'anonymous';
+
+        const fileUrl = URL.createObjectURL(videoFile);
+        video.src = fileUrl;
+
+        let resolved = false;
+        const fallbackToRaw = () => {
+            if (resolved) return;
+            resolved = true;
+            URL.revokeObjectURL(fileUrl);
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = () => resolve('');
+            reader.readAsDataURL(videoFile);
+        };
+
+        const timeoutId = setTimeout(() => {
+            console.warn("Video compression timed out, falling back to original file.");
+            fallbackToRaw();
+        }, 45000);
+
+        video.onloadedmetadata = async () => {
+            try {
+                const origW = video.videoWidth || 854;
+                const origH = video.videoHeight || 480;
+
+                let targetH = 480;
+                let targetW = Math.round((origW * targetH) / origH);
+
+                if (origH <= 480 && origW <= 854) {
+                    targetW = origW;
+                    targetH = origH;
+                } else if (origW < origH) {
+                    targetW = 480;
+                    targetH = Math.round((origH * targetW) / origW);
+                    if (targetH > 854) {
+                        targetH = 854;
+                        targetW = Math.round((origW * targetH) / origH);
+                    }
+                } else {
+                    targetH = 480;
+                    targetW = Math.round((origW * targetH) / origH);
+                    if (targetW > 854) {
+                        targetW = 854;
+                        targetH = Math.round((origH * targetW) / origH);
+                    }
+                }
+
+                targetW = (targetW % 2 === 0) ? targetW : targetW - 1;
+                targetH = (targetH % 2 === 0) ? targetH : targetH - 1;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = targetW;
+                canvas.height = targetH;
+                const ctx = canvas.getContext('2d');
+
+                let stream = canvas.captureStream ? canvas.captureStream(30) : null;
+                if (!stream) {
+                    fallbackToRaw();
+                    clearTimeout(timeoutId);
+                    return;
+                }
+
+                let audioCtx = null;
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) {
+                        audioCtx = new AudioContextClass();
+                        const source = audioCtx.createMediaElementSource(video);
+                        const dest = audioCtx.createMediaStreamDestination();
+                        source.connect(dest);
+                        source.connect(audioCtx.destination);
+                        const audioTrack = dest.stream.getAudioTracks()[0];
+                        if (audioTrack) {
+                            stream.addTrack(audioTrack);
+                        }
+                    }
+                } catch(e) {
+                    console.warn("AudioContext capture info:", e);
+                }
+
+                let options = { videoBitsPerSecond: 1000000 };
+                if (typeof MediaRecorder !== 'undefined') {
+                    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+                        options.mimeType = 'video/webm;codecs=vp8,opus';
+                    } else if (MediaRecorder.isTypeSupported('video/webm')) {
+                        options.mimeType = 'video/webm';
+                    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                        options.mimeType = 'video/mp4';
+                    }
+                } else {
+                    fallbackToRaw();
+                    clearTimeout(timeoutId);
+                    return;
+                }
+
+                const mediaRecorder = new MediaRecorder(stream, options);
+                const chunks = [];
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) chunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    clearTimeout(timeoutId);
+                    URL.revokeObjectURL(fileUrl);
+                    if (audioCtx) {
+                        try { audioCtx.close(); } catch(err) {}
+                    }
+                    if (resolved) return;
+
+                    const blob = new Blob(chunks, { type: options.mimeType || 'video/webm' });
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        resolved = true;
+                        resolve(reader.result);
+                    };
+                    reader.onerror = () => fallbackToRaw();
+                    reader.readAsDataURL(blob);
+                };
+
+                mediaRecorder.start(100);
+
+                const duration = video.duration || 1;
+                video.currentTime = 0;
+                
+                video.play().catch(() => {
+                    video.muted = true;
+                    video.play().catch(() => {});
+                });
+
+                let animationFrameId = null;
+
+                function renderLoop() {
+                    if (video.paused || video.ended || video.currentTime >= duration) {
+                        if (mediaRecorder.state !== 'inactive') {
+                            mediaRecorder.stop();
+                        }
+                        return;
+                    }
+
+                    ctx.drawImage(video, 0, 0, targetW, targetH);
+                    const progressPercent = Math.min(99, Math.round((video.currentTime / duration) * 100));
+                    onProgress(progressPercent);
+
+                    animationFrameId = requestAnimationFrame(renderLoop);
+                }
+
+                video.onended = () => {
+                    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                    if (mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                    onProgress(100);
+                };
+
+                renderLoop();
+
+            } catch (err) {
+                console.error("Compression exception, using raw file:", err);
+                clearTimeout(timeoutId);
+                fallbackToRaw();
+            }
+        };
+
+        video.onerror = (e) => {
+            console.error("Video load error during compression:", e);
+            clearTimeout(timeoutId);
+            fallbackToRaw();
+        };
+    });
+}
+
 function handleMainMediaFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -472,14 +675,25 @@ function handleMainMediaFileUpload(event) {
         };
         reader.readAsDataURL(file);
     } else if (file.type.startsWith('video/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const fileUrl = e.target.result;
+        showVideoCompressingModal(file.name);
+        compressVideoTo480p(file, (percent) => {
+            updateVideoCompressingProgress(percent);
+        }).then(compressedVideoDataUrl => {
+            hideVideoCompressingModal();
             if (typeSelect) typeSelect.value = 'video';
-            setMediaUrlInput(fileUrl, fileName);
+            setMediaUrlInput(compressedVideoDataUrl, `${fileName} (480p)`);
             syncMainMediaToStore();
-        };
-        reader.readAsDataURL(file);
+        }).catch(err => {
+            console.error("Video compression failed, using original file:", err);
+            hideVideoCompressingModal();
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (typeSelect) typeSelect.value = 'video';
+                setMediaUrlInput(e.target.result, fileName);
+                syncMainMediaToStore();
+            };
+            reader.readAsDataURL(file);
+        });
     }
 }
 
@@ -1261,29 +1475,50 @@ function handleQuestionTabFileUpload(event, idx, option) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const fileUrl = e.target.result;
-        const typeSelect = document.getElementById(`qtab-mediaType${option}-${idx}`);
-        const urlInput = document.getElementById(`qtab-mediaUrl${option}-${idx}`);
+    const typeSelect = document.getElementById(`qtab-mediaType${option}-${idx}`);
+    const urlInput = document.getElementById(`qtab-mediaUrl${option}-${idx}`);
 
-        if (file.type.startsWith('video/')) {
+    const updateStoreWithUrl = (fileUrl, isVideo) => {
+        if (isVideo) {
             if (typeSelect) typeSelect.value = 'video';
-        } else if (file.type.startsWith('image/')) {
+        } else {
             if (typeSelect) typeSelect.value = 'image';
         }
 
         if (urlInput) urlInput.value = fileUrl;
         if (excelDataStore[idx]) {
             if (option === 'A') {
-                excelDataStore[idx].mediaTypeA = typeSelect ? typeSelect.value : 'image';
+                excelDataStore[idx].mediaTypeA = isVideo ? 'video' : 'image';
                 excelDataStore[idx].mediaUrlA = fileUrl;
             } else {
-                excelDataStore[idx].mediaTypeB = typeSelect ? typeSelect.value : 'image';
+                excelDataStore[idx].mediaTypeB = isVideo ? 'video' : 'image';
                 excelDataStore[idx].mediaUrlB = fileUrl;
             }
             saveExcelDataStore();
         }
     };
-    reader.readAsDataURL(file);
+
+    if (file.type.startsWith('video/')) {
+        showVideoCompressingModal(file.name);
+        compressVideoTo480p(file, (percent) => {
+            updateVideoCompressingProgress(percent);
+        }).then(compressedVideoDataUrl => {
+            hideVideoCompressingModal();
+            updateStoreWithUrl(compressedVideoDataUrl, true);
+        }).catch(err => {
+            console.error("Question tab video compression error:", err);
+            hideVideoCompressingModal();
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                updateStoreWithUrl(e.target.result, true);
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            updateStoreWithUrl(e.target.result, false);
+        };
+        reader.readAsDataURL(file);
+    }
 }

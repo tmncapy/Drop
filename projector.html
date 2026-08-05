@@ -417,6 +417,12 @@
             if (!isAudioUnlocked) {
                 isAudioUnlocked = true;
             }
+            const video = document.getElementById('media-video');
+            if (video && currentMediaState && currentMediaState.type === 'video') {
+                video.muted = false;
+                video.volume = globalVolume;
+                video.play().catch(e => console.log('Video unlock play:', e));
+            }
         }
 
         let lastSfxPlay = { file: '', time: 0 };
@@ -524,14 +530,32 @@
                 if (video.getAttribute('data-loaded-src') !== currentMediaState.url) {
                     video.setAttribute('data-loaded-src', currentMediaState.url);
                     video.src = currentMediaState.url;
+                    video.load();
                 }
                 video.style.display = 'block';
                 img.style.display = 'none';
                 
+                video.loop = true;
+                video.playsInline = true;
+                video.volume = globalVolume;
+
                 if (stage === 'center') {
                     video.currentTime = 0;
-                    video.volume = globalVolume;
-                    video.play().catch(e => console.log('Video play error:', e));
+                }
+
+                const attemptPlay = () => {
+                    const playPromise = video.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(err => {
+                            console.warn("Projector video autoplay warning, retrying muted:", err);
+                            video.muted = true;
+                            video.play().catch(e => console.error("Projector video play error:", e));
+                        });
+                    }
+                };
+
+                if (video.paused || stage === 'center') {
+                    attemptPlay();
                 }
             }
 

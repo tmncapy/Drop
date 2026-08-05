@@ -370,6 +370,21 @@
 </head>
 <body>
 
+    <!-- Video Compression Modal Overlay -->
+    <div id="video-compress-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center; flex-direction:column; gap:16px; color:#fff; font-family:'Myriad Pro', Arial, sans-serif;">
+        <div style="background:#1e293b; border:2px solid #3b82f6; border-radius:12px; padding:24px 32px; text-align:center; max-width:420px; width:90%; box-shadow:0 20px 40px rgba(0,0,0,0.8);">
+            <div style="font-size:32px; margin-bottom:8px;">⚡</div>
+            <h3 style="color:#60a5fa; font-size:18px; margin-bottom:6px;">ĐANG NÉN VIDEO XUỐNG 480P</h3>
+            <p id="compress-file-name" style="color:#94a3b8; font-size:12px; margin-bottom:16px; word-break:break-all;">file_video.mp4</p>
+            
+            <div style="background:#0f172a; border-radius:10px; height:16px; overflow:hidden; border:1px solid #334155; margin-bottom:12px; position:relative;">
+                <div id="compress-bar-fill" style="background:linear-gradient(90deg, #2563eb, #38bdf8); height:100%; width:0%; transition:width 0.2s ease;"></div>
+            </div>
+            <div id="compress-status-text" style="color:#38bdf8; font-size:14px; font-weight:bold;">Đang xử lý... 0%</div>
+            <div style="color:#64748b; font-size:11px; margin-top:8px;">Tự động tối ưu 480p để truyền mượt mà, không bị giật lag khi chiếu trên Projector.</div>
+        </div>
+    </div>
+
     <header>
         <h1>🎮 HỆ THỐNG ĐIỀU KHIỂN TRÒ CHƠI <span class="header-badge">LIVE</span></h1>
         
