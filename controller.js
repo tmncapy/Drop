@@ -461,7 +461,8 @@ function hideVideoCompressingModal() {
 async function compressVideoTo480p(videoFile, onProgress = () => {}) {
     return new Promise((resolve) => {
         const video = document.createElement('video');
-        video.muted = false;
+        video.muted = true;
+        video.volume = 0;
         video.playsInline = true;
         video.crossOrigin = 'anonymous';
 
@@ -589,10 +590,7 @@ async function compressVideoTo480p(videoFile, onProgress = () => {}) {
                 const duration = video.duration || 1;
                 video.currentTime = 0;
                 
-                video.play().catch(() => {
-                    video.muted = true;
-                    video.play().catch(() => {});
-                });
+                video.play().catch(() => {});
 
                 let animationFrameId = null;
 
@@ -669,6 +667,9 @@ function handleMainMediaFileUpload(event) {
 
                 if (typeSelect) typeSelect.value = 'image';
                 setMediaUrlInput(compressedUrl, fileName);
+                if (window.GameMediaCache) {
+                    window.GameMediaCache.set('active_main_media', compressedUrl);
+                }
                 syncMainMediaToStore();
             };
             img.src = e.target.result;
@@ -682,6 +683,9 @@ function handleMainMediaFileUpload(event) {
             hideVideoCompressingModal();
             if (typeSelect) typeSelect.value = 'video';
             setMediaUrlInput(compressedVideoDataUrl, `${fileName} (480p)`);
+            if (window.GameMediaCache) {
+                window.GameMediaCache.set('active_main_media', compressedVideoDataUrl);
+            }
             syncMainMediaToStore();
         }).catch(err => {
             console.error("Video compression failed, using original file:", err);
@@ -690,6 +694,9 @@ function handleMainMediaFileUpload(event) {
             reader.onload = function(e) {
                 if (typeSelect) typeSelect.value = 'video';
                 setMediaUrlInput(e.target.result, fileName);
+                if (window.GameMediaCache) {
+                    window.GameMediaCache.set('active_main_media', e.target.result);
+                }
                 syncMainMediaToStore();
             };
             reader.readAsDataURL(file);
@@ -707,9 +714,14 @@ function sendMedia() {
         return;
     }
 
+    if (window.GameMediaCache && mUrl) {
+        window.GameMediaCache.set('active_main_media', mUrl);
+    }
+
     sendCommand('show_media', {
         mediaType: mType,
-        mediaUrl: mUrl
+        mediaUrl: mUrl,
+        mediaKey: 'active_main_media'
     });
 }
 
@@ -764,11 +776,16 @@ function sendQuestion() {
     const mType = document.getElementById('main-media-type')?.value || 'none';
     const mUrl = getMediaUrl();
 
+    if (window.GameMediaCache && mUrl) {
+        window.GameMediaCache.set('active_main_media', mUrl);
+    }
+
     sendCommand('update_content', { 
         type: 'question', 
-        data: { question: qText, mediaType: mType, mediaUrl: mUrl },
+        data: { question: qText, mediaType: mType, mediaUrl: mUrl, mediaKey: 'active_main_media' },
         mediaType: mType,
-        mediaUrl: mUrl
+        mediaUrl: mUrl,
+        mediaKey: 'active_main_media'
     }); 
     sendCommand('send_question_text_to_screens', { text: qText });
 }

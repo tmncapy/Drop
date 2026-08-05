@@ -421,9 +421,16 @@
             if (video && currentMediaState && currentMediaState.type === 'video') {
                 video.muted = false;
                 video.volume = globalVolume;
-                video.play().catch(e => console.log('Video unlock play:', e));
+                if (video.paused) {
+                    video.play().catch(e => console.log('Video unlock play error:', e));
+                }
             }
         }
+
+        document.addEventListener('click', unlockAudio, { passive: true });
+        document.addEventListener('touchstart', unlockAudio, { passive: true });
+        document.addEventListener('pointerdown', unlockAudio, { passive: true });
+        document.addEventListener('keydown', unlockAudio, { passive: true });
 
         let lastSfxPlay = { file: '', time: 0 };
 
@@ -491,11 +498,12 @@
         let currentMediaState = { type: 'none', url: '' };
         let currentMediaStage = 'none';
 
-        function updateProjectorMediaStage(stage, mediaData) {
+        async function updateProjectorMediaStage(stage, mediaData) {
             if (mediaData) {
                 currentMediaState = {
                     type: mediaData.mediaType || mediaData.type || 'none',
-                    url: mediaData.mediaUrl || mediaData.url || ''
+                    url: mediaData.mediaUrl || mediaData.url || '',
+                    mediaKey: mediaData.mediaKey || ''
                 };
             }
 
@@ -507,7 +515,18 @@
 
             if (!container || !img || !video) return;
 
-            if (!currentMediaState || currentMediaState.type === 'none' || !currentMediaState.url) {
+            // If URL was trimmed over network to '[Local File Base64]' or starts with idb://, resolve real content from IndexedDB / Cache
+            let targetUrl = currentMediaState ? currentMediaState.url : '';
+            if ((!targetUrl || targetUrl === '[Local File Base64]' || targetUrl.startsWith('idb://')) && window.GameMediaCache) {
+                const searchKey = (currentMediaState && currentMediaState.mediaKey) ? currentMediaState.mediaKey : 'active_main_media';
+                const cachedUrl = await window.GameMediaCache.get(searchKey);
+                if (cachedUrl) {
+                    targetUrl = cachedUrl;
+                    currentMediaState.url = cachedUrl;
+                }
+            }
+
+            if (!currentMediaState || currentMediaState.type === 'none' || !targetUrl || targetUrl === '[Local File Base64]') {
                 container.classList.remove('show', 'mode-center', 'mode-left', 'mode-left-compact');
                 box.classList.remove('media-q-mode', 'media-qa-mode');
                 ans.classList.remove('media-mode');
@@ -519,19 +538,14 @@
             currentMediaStage = stage;
 
             if (currentMediaState.type === 'image') {
-                if (img.getAttribute('data-loaded-src') !== currentMediaState.url) {
-                    img.setAttribute('data-loaded-src', currentMediaState.url);
-                    img.src = currentMediaState.url;
+                if (img.getAttribute('data-loaded-src') !== targetUrl) {
+                    img.setAttribute('data-loaded-src', targetUrl);
+                    img.src = targetUrl;
                 }
                 img.style.display = 'block';
                 video.style.display = 'none';
                 if (!video.paused) video.pause();
             } else if (currentMediaState.type === 'video') {
-                if (video.getAttribute('data-loaded-src') !== currentMediaState.url) {
-                    video.setAttribute('data-loaded-src', currentMediaState.url);
-                    video.src = currentMediaState.url;
-                    video.load();
-                }
                 video.style.display = 'block';
                 img.style.display = 'none';
                 
@@ -539,17 +553,27 @@
                 video.playsInline = true;
                 video.volume = globalVolume;
 
+                if (video.getAttribute('data-loaded-src') !== targetUrl) {
+                    video.setAttribute('data-loaded-src', targetUrl);
+                    video.src = targetUrl;
+                    video.load();
+                }
+
                 if (stage === 'center') {
-                    video.currentTime = 0;
+                    try { video.currentTime = 0; } catch(e){}
                 }
 
                 const attemptPlay = () => {
+                    // Try playing with sound first, fallback to muted if autoplay policy blocks sound
+                    video.muted = !isAudioUnlocked;
                     const playPromise = video.play();
                     if (playPromise !== undefined) {
-                        playPromise.catch(err => {
-                            console.warn("Projector video autoplay warning, retrying muted:", err);
+                        playPromise.then(() => {
+                            console.log("Projector video playing successfully.");
+                        }).catch(err => {
+                            console.warn("Projector video play restricted, forcing muted autoplay:", err);
                             video.muted = true;
-                            video.play().catch(e => console.error("Projector video play error:", e));
+                            video.play().catch(e => console.error("Projector muted video play error:", e));
                         });
                     }
                 };
@@ -839,9 +863,10 @@
                         
                         const mType = data.mediaType || (data.data && data.data.mediaType) || 'none';
                         const mUrl = data.mediaUrl || (data.data && data.data.mediaUrl) || '';
+                        const mKey = data.mediaKey || (data.data && data.data.mediaKey) || 'active_main_media';
 
-                        if (mType !== 'none' && mUrl) {
-                            updateProjectorMediaStage('left', { mediaType: mType, mediaUrl: mUrl });
+                        if (mType !== 'none' && (mUrl || mKey)) {
+                            updateProjectorMediaStage('left', { mediaType: mType, mediaUrl: mUrl, mediaKey: mKey });
                         } else if (currentMediaState && currentMediaState.type !== 'none' && currentMediaState.url) {
                             updateProjectorMediaStage('left');
                         } else {

@@ -1,6 +1,68 @@
 /* network_sync.js - Cross-Device Realtime Network Synchronization for GitHub Pages & Web Hosting */
 
 (function () {
+    // Global IndexedDB Media Cache Helper for large media files (Videos / Images)
+    const GameMediaCache = {
+        dbName: 'GameshowMediaDB',
+        storeName: 'media',
+        dbPromise: null,
+
+        open() {
+            if (this.dbPromise) return this.dbPromise;
+            this.dbPromise = new Promise((resolve, reject) => {
+                if (!window.indexedDB) {
+                    reject(new Error("IndexedDB not supported"));
+                    return;
+                }
+                const req = indexedDB.open(this.dbName, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(this.storeName)) {
+                        db.createObjectStore(this.storeName);
+                    }
+                };
+                req.onsuccess = (e) => resolve(e.target.result);
+                req.onerror = (e) => reject(e.target.error);
+            });
+            return this.dbPromise;
+        },
+
+        async set(key, val) {
+            if (!key || !val) return;
+            try {
+                const db = await this.open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(this.storeName, 'readwrite');
+                    tx.objectStore(this.storeName).put(val, key);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = (e) => reject(e.target.error);
+                });
+            } catch(e) {
+                console.warn("IndexedDB set error:", e);
+                try {
+                    sessionStorage.setItem('idb_fallback_' + key, val);
+                } catch(err) {}
+            }
+        },
+
+        async get(key) {
+            if (!key) return null;
+            try {
+                const db = await this.open();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(this.storeName, 'readonly');
+                    const req = tx.objectStore(this.storeName).get(key);
+                    req.onsuccess = () => resolve(req.result || sessionStorage.getItem('idb_fallback_' + key) || null);
+                    req.onerror = () => resolve(sessionStorage.getItem('idb_fallback_' + key) || null);
+                });
+            } catch(e) {
+                console.warn("IndexedDB get error:", e);
+                return sessionStorage.getItem('idb_fallback_' + key) || null;
+            }
+        }
+    };
+    window.GameMediaCache = GameMediaCache;
+
     class GameSyncChannel {
         constructor(channelName) {
             // Read optional custom channel/room from URL query string, e.g. ?room=mygame
