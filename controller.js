@@ -340,6 +340,39 @@ function updateQuestionSelector() {
     });
 }
 
+function getMediaUrl() {
+    const urlInput = document.getElementById('main-media-url');
+    if (!urlInput) return '';
+    return urlInput.dataset.fullUrl || urlInput.value || '';
+}
+
+function setMediaUrlInput(fullUrl, customDisplayName) {
+    const urlInput = document.getElementById('main-media-url');
+    if (!urlInput) return;
+    urlInput.dataset.fullUrl = fullUrl || '';
+    if (!fullUrl) {
+        urlInput.value = '';
+    } else if (customDisplayName) {
+        urlInput.value = customDisplayName;
+    } else if (fullUrl.startsWith('data:')) {
+        const mime = fullUrl.split(';')[0].split(':')[1] || 'media';
+        urlInput.value = `📁 [File ${mime} đã đính kèm]`;
+    } else {
+        const parts = fullUrl.split('/');
+        const fileName = parts[parts.length - 1] || fullUrl;
+        urlInput.value = fileName.length > 50 ? (fileName.substring(0, 45) + '...') : fileName;
+    }
+}
+
+function handleManualMediaUrlInput(el) {
+    if (!el) return;
+    const val = el.value || '';
+    if (!val.startsWith('📁') && !val.startsWith('[File')) {
+        el.dataset.fullUrl = val;
+    }
+    syncMainMediaToStore();
+}
+
 function loadSelectedQuestion() {
     const val = document.getElementById('select-question-index').value;
     if (!val) return;
@@ -364,27 +397,26 @@ function loadSelectedQuestion() {
 
     let questionText = "";
     const mTypeEl = document.getElementById('main-media-type');
-    const mUrlEl = document.getElementById('main-media-url');
 
     if (type === 'A') {
         questionText = data.questionA || "";
         document.getElementById('question-input').value = questionText;
         fillAnswers(data.ansA || []);
         if (mTypeEl) mTypeEl.value = data.mediaTypeA || 'none';
-        if (mUrlEl) mUrlEl.value = data.mediaUrlA || '';
+        setMediaUrlInput(data.mediaUrlA || '');
     } else {
         questionText = data.questionB || "";
         document.getElementById('question-input').value = questionText;
         fillAnswers(data.ansB || []);
         if (mTypeEl) mTypeEl.value = data.mediaTypeB || 'none';
-        if (mUrlEl) mUrlEl.value = data.mediaUrlB || '';
+        setMediaUrlInput(data.mediaUrlB || '');
     }
 }
 
 function syncMainMediaToStore() {
     const val = document.getElementById('select-question-index')?.value;
     const mType = document.getElementById('main-media-type')?.value || 'none';
-    const mUrl = document.getElementById('main-media-url')?.value || '';
+    const mUrl = getMediaUrl();
 
     if (!val) return;
     const [idx, type] = val.split('-');
@@ -406,7 +438,7 @@ function handleMainMediaFileUpload(event) {
     if (!file) return;
 
     const typeSelect = document.getElementById('main-media-type');
-    const urlInput = document.getElementById('main-media-url');
+    const fileName = file.name ? `📁 ${file.name}` : `📁 [File đính kèm]`;
 
     if (file.type.startsWith('image/')) {
         const reader = new FileReader();
@@ -433,7 +465,7 @@ function handleMainMediaFileUpload(event) {
                 const compressedUrl = canvas.toDataURL('image/jpeg', 0.82);
 
                 if (typeSelect) typeSelect.value = 'image';
-                if (urlInput) urlInput.value = compressedUrl;
+                setMediaUrlInput(compressedUrl, fileName);
                 syncMainMediaToStore();
             };
             img.src = e.target.result;
@@ -444,7 +476,7 @@ function handleMainMediaFileUpload(event) {
         reader.onload = function(e) {
             const fileUrl = e.target.result;
             if (typeSelect) typeSelect.value = 'video';
-            if (urlInput) urlInput.value = fileUrl;
+            setMediaUrlInput(fileUrl, fileName);
             syncMainMediaToStore();
         };
         reader.readAsDataURL(file);
@@ -454,7 +486,7 @@ function handleMainMediaFileUpload(event) {
 function sendMedia() {
     playSfx('SFX/drop_Reveal the Question_2.mp3', false, false);
     const mType = document.getElementById('main-media-type')?.value || 'none';
-    const mUrl = document.getElementById('main-media-url')?.value || '';
+    const mUrl = getMediaUrl();
 
     if (mType === 'none' || !mUrl) {
         alert("Vui lòng chọn loại Media (Hình ảnh / Video) và chọn file/nhập URL trước!");
@@ -516,7 +548,7 @@ function sendQuestion() {
     playSfx('SFX/drop_Reveal the Question_2.mp3', false, false);
     const qText = document.getElementById('question-input').value;
     const mType = document.getElementById('main-media-type')?.value || 'none';
-    const mUrl = document.getElementById('main-media-url')?.value || '';
+    const mUrl = getMediaUrl();
 
     sendCommand('update_content', { 
         type: 'question', 

@@ -453,7 +453,7 @@
                             <option value="image">🖼️ Hình ảnh</option>
                             <option value="video">🎬 Video</option>
                         </select>
-                        <input type="text" id="main-media-url" placeholder="URL hoặc chọn file..." style="flex: 1;" oninput="syncMainMediaToStore()">
+                        <input type="text" id="main-media-url" placeholder="URL hoặc chọn file..." style="flex: 1;" onchange="handleManualMediaUrlInput(this)" oninput="handleManualMediaUrlInput(this)">
                         <input type="file" id="main-media-file-input" accept="image/*,video/*" style="display: none;" onchange="handleMainMediaFileUpload(event)">
                         <button class="btn-purple" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="document.getElementById('main-media-file-input').click()">📁 Chọn File</button>
                     </div>
