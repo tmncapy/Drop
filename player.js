@@ -12,7 +12,7 @@ function loadPlayerSettings() {
             return JSON.parse(saved);
         }
     } catch(e) {}
-    return { timerSeconds: 60, initialStacks: 40, stackValue: 25000, currencyUnit: '$A', totalQuestions: 8 };
+    return { timerSeconds: 60, initialStacks: 40, stackValue: 25000, currencyUnit: '$A', totalQuestions: 8, betDelaySeconds: 0.125 };
 }
 
 let VALUE_PER_STACK = gameSettings.stackValue || 25000;
@@ -26,9 +26,9 @@ const playerTabId = 'player_' + Math.random().toString(36).substring(2, 9);
 
 const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
 
-// --- ANTI-SPAM BETTING/WITHDRAWAL DELAY (0.125s = 125ms) ---
+// --- ANTI-SPAM BETTING/WITHDRAWAL DELAY (Default 0.125s = 125ms) ---
 let lastBetActionTime = 0;
-const BET_COOLDOWN_MS = 125;
+let BET_COOLDOWN_MS = (gameSettings.betDelaySeconds !== undefined ? parseFloat(gameSettings.betDelaySeconds) : 0.125) * 1000;
 
 function isBetActionAllowed() {
     const now = Date.now();
@@ -508,6 +508,21 @@ channel.onmessage = function(event) {
         case 'update_content':
             if(data.type === 'question') {
                 document.getElementById('question-text').innerText = data.data.question;
+            }
+            break;
+
+        case 'update_settings':
+            if (data && data.settings) {
+                gameSettings = { ...gameSettings, ...data.settings };
+                try {
+                    localStorage.setItem('game_settings', JSON.stringify(gameSettings));
+                } catch(e) {}
+                VALUE_PER_STACK = gameSettings.stackValue || 25000;
+                CURRENCY_UNIT = gameSettings.currencyUnit || '$A';
+                if (gameSettings.betDelaySeconds !== undefined) {
+                    BET_COOLDOWN_MS = Math.max(0, parseFloat(gameSettings.betDelaySeconds) || 0) * 1000;
+                }
+                updateTotalMoneyBoardGuide();
             }
             break;
 

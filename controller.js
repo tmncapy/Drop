@@ -4,7 +4,8 @@ const DEFAULT_SETTINGS = {
     initialStacks: 40,
     stackValue: 25000,
     currencyUnit: '$A',
-    totalQuestions: 8
+    totalQuestions: 8,
+    betDelaySeconds: 0.125
 };
 
 let gameSettings = loadGameSettings();
@@ -1182,12 +1183,14 @@ function populateSettingsFormUI() {
     const stackValEl = document.getElementById('cfg-stack-value');
     const unitEl = document.getElementById('cfg-currency-unit');
     const totalQEl = document.getElementById('cfg-total-questions');
+    const betDelayEl = document.getElementById('cfg-bet-delay-seconds');
 
     if (timeSecEl) timeSecEl.value = gameSettings.timerSeconds;
     if (initStacksEl) initStacksEl.value = gameSettings.initialStacks;
     if (stackValEl) stackValEl.value = gameSettings.stackValue;
     if (unitEl) unitEl.value = gameSettings.currencyUnit;
     if (totalQEl) totalQEl.value = gameSettings.totalQuestions;
+    if (betDelayEl) betDelayEl.value = (gameSettings.betDelaySeconds !== undefined) ? gameSettings.betDelaySeconds : 0.125;
 
     updateSettingsPreview();
 }
@@ -1198,16 +1201,20 @@ function updateSettingsPreview() {
     const stackVal = parseInt(document.getElementById('cfg-stack-value')?.value) || 25000;
     const unit = (document.getElementById('cfg-currency-unit')?.value || '$A').trim();
     const totalQ = parseInt(document.getElementById('cfg-total-questions')?.value) || 8;
+    const rawDelay = parseFloat(document.getElementById('cfg-bet-delay-seconds')?.value);
+    const betDelay = isNaN(rawDelay) ? 0.125 : rawDelay;
 
     const totalInitMoney = initStacks * stackVal;
 
     const prevTime = document.getElementById('preview-cfg-time');
     const prevMoney = document.getElementById('preview-cfg-money');
     const prevQ = document.getElementById('preview-cfg-questions');
+    const prevDelay = document.getElementById('preview-cfg-delay');
 
     if (prevTime) prevTime.innerText = `${timeSec} giây`;
     if (prevMoney) prevMoney.innerText = `${totalInitMoney.toLocaleString('vi-VN')} ${unit} (${initStacks} cọc)`;
     if (prevQ) prevQ.innerText = `${totalQ} câu`;
+    if (prevDelay) prevDelay.innerText = `${betDelay}s (${Math.round(betDelay * 1000)}ms)`;
 }
 
 function saveGameSettings() {
@@ -1216,13 +1223,16 @@ function saveGameSettings() {
     const stackVal = Math.max(0, parseInt(document.getElementById('cfg-stack-value')?.value) || 25000);
     const unit = (document.getElementById('cfg-currency-unit')?.value || '$A').trim();
     const totalQ = Math.max(1, parseInt(document.getElementById('cfg-total-questions')?.value) || 8);
+    const rawDelay = parseFloat(document.getElementById('cfg-bet-delay-seconds')?.value);
+    const betDelay = Math.max(0, isNaN(rawDelay) ? 0.125 : rawDelay);
 
     gameSettings = {
         timerSeconds: timeSec,
         initialStacks: initStacks,
         stackValue: stackVal,
         currencyUnit: unit,
-        totalQuestions: totalQ
+        totalQuestions: totalQ,
+        betDelaySeconds: betDelay
     };
 
     localStorage.setItem('game_settings', JSON.stringify(gameSettings));

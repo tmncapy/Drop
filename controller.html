@@ -802,6 +802,19 @@
                         <span style="font-size: 9px; color: #64748b;">Hiển thị phía sau con số tiền trên Bàn Điều Khiển, Tiến Trình, Player, Answer &amp; Projector.</span>
                     </div>
                 </div>
+
+                <!-- Group 3: Speed & Delay Settings -->
+                <div style="background: #181b22; border: 1px solid #222632; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 11px; color: #60a5fa; border-bottom: 1px solid #262a36; padding-bottom: 4px; font-weight: bold;">
+                        3. TỐC ĐỘ &amp; DELAY ĐẶT TIỀN (PLAYER)
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="cfg-bet-delay-seconds" style="font-weight: 600;">⚡ Khoảng thời gian delay tốc độ đặt tiền (giây):</label>
+                        <input type="number" id="cfg-bet-delay-seconds" min="0" max="5" step="0.025" value="0.125" oninput="updateSettingsPreview()">
+                        <span style="font-size: 9px; color: #64748b;">Mặc định: 0.125 giây (125ms). Giúp kiểm soát tốc độ giãn cách giữa mỗi lần người chơi bấm nút Đặt tiền/Rút tiền.</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Preview Panel -->
@@ -809,7 +822,7 @@
                 <div style="font-size: 10px; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">
                     🔍 XEM TRƯỚC TỔNG QUAN CẤU HÌNH
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center;">
                     <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
                         <div style="font-size: 9px; color: #94a3b8;">THỜI GIAN / CÂU</div>
                         <div id="preview-cfg-time" style="font-size: 14px; color: #f59e0b; margin-top: 2px;">60 giây</div>
@@ -821,6 +834,10 @@
                     <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
                         <div style="font-size: 9px; color: #94a3b8;">TỔNG SỐ CÂU HỎI</div>
                         <div id="preview-cfg-questions" style="font-size: 14px; color: #60a5fa; margin-top: 2px;">8 câu</div>
+                    </div>
+                    <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
+                        <div style="font-size: 9px; color: #94a3b8;">DELAY ĐẶT TIỀN</div>
+                        <div id="preview-cfg-delay" style="font-size: 14px; color: #38bdf8; margin-top: 2px;">0.125 giây (125ms)</div>
                     </div>
                 </div>
             </div>
