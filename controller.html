@@ -427,17 +427,23 @@
             </div>
 
             <div class="form-group">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 6px;">
                     <div>
-                        <label>Vòng Chơi (Luật Cửa)</label>
-                        <select id="select-round" onchange="handleRoundChange()">
-                            <option value="1">Vòng 1 (4 Cửa)</option>
-                            <option value="5">Vòng 5 (3 Cửa)</option>
-                            <option value="8">Vòng 8 (2 Cửa)</option>
+                        <label style="font-weight: 600;">🚪 Số Cửa Sử Dụng</label>
+                        <select id="select-round" onchange="handleDoorRuleChange()">
+                            <option value="1">4 Cửa (Vòng 1 - 4)</option>
+                            <option value="5">3 Cửa (Vòng 5 - 7)</option>
+                            <option value="8">2 Cửa (Vòng 8)</option>
                         </select>
                     </div>
                     <div>
-                        <label>Chọn Câu Hỏi</label>
+                        <label style="font-weight: 600;">🎯 Chọn Số Vòng</label>
+                        <select id="select-round-num" onchange="handleRoundNumSelectChange()">
+                            <!-- Generated dynamically in controller.js -->
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600;">❓ Chọn Câu Hỏi / Chủ Đề</label>
                         <select id="select-question-index" onchange="loadSelectedQuestion()">
                             <option value="">-- Chưa có --</option>
                         </select>

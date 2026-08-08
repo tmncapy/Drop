@@ -385,7 +385,27 @@ function parseExcelQuestions(rows) {
     updateQuestionSelector();
 }
 
+function populateRoundNumSelect() {
+    const roundNumSelect = document.getElementById("select-round-num");
+    if (!roundNumSelect) return;
+
+    const currentVal = parseInt(roundNumSelect.value) || 1;
+    roundNumSelect.innerHTML = "";
+
+    const maxRounds = Math.max(gameSettings.totalQuestions || 8, excelDataStore.length, 8);
+    for (let r = 1; r <= maxRounds; r++) {
+        const op = document.createElement("option");
+        op.value = r;
+        op.textContent = `Vòng ${r}`;
+        roundNumSelect.appendChild(op);
+    }
+
+    roundNumSelect.value = (currentVal <= maxRounds && currentVal >= 1) ? currentVal : 1;
+}
+
 function updateQuestionSelector() {
+    populateRoundNumSelect();
+
     const qSelect = document.getElementById("select-question-index");
     if (!qSelect) return;
     qSelect.innerHTML = "";
@@ -410,6 +430,56 @@ function updateQuestionSelector() {
             qSelect.appendChild(opB);
         }
     });
+}
+
+function handleRoundNumSelectChange() {
+    const roundNumSelect = document.getElementById("select-round-num");
+    const roundNum = parseInt(roundNumSelect?.value) || 1;
+
+    // Determine default door rule for this round number
+    const roundSelect = document.getElementById("select-round");
+    let doorRuleVal = "1";
+    if (roundNum >= 5 && roundNum <= 7) {
+        doorRuleVal = "5";
+    } else if (roundNum >= 8) {
+        doorRuleVal = "8";
+    }
+    if (roundSelect) {
+        roundSelect.value = doorRuleVal;
+    }
+
+    // Load topics for this round from excelDataStore if available
+    const idx = excelDataStore.findIndex(q => Number(q.round) === Number(roundNum));
+    if (idx !== -1) {
+        const data = excelDataStore[idx];
+        const topicAEl = document.getElementById('topic-a');
+        const topicBEl = document.getElementById('topic-b');
+        if (topicAEl) topicAEl.value = data.topicA || "";
+        if (topicBEl) topicBEl.value = data.topicB || "";
+
+        // Select the question in select-question-index dropdown if present
+        const qSelect = document.getElementById('select-question-index');
+        if (qSelect) {
+            const opVal = `${idx}-A`;
+            if ([...qSelect.options].some(o => o.value === opVal)) {
+                qSelect.value = opVal;
+            } else {
+                qSelect.value = "";
+            }
+        }
+    }
+
+    sendCommand("change_round", { round: parseInt(doorRuleVal), roundNum: roundNum });
+    updateTimerForCurrentQuestion();
+    updateDynamicControllerButtonLabels();
+}
+
+function handleDoorRuleChange() {
+    const roundSelect = document.getElementById("select-round");
+    const doorRuleVal = parseInt(roundSelect?.value) || 1;
+    const roundNum = getCurrentRoundNumber();
+    sendCommand("change_round", { round: doorRuleVal, roundNum: roundNum });
+    updateTimerForCurrentQuestion();
 }
 
 function getMediaUrl() {
@@ -455,17 +525,23 @@ function loadSelectedQuestion() {
     document.getElementById('topic-a').value = data.topicA || "";
     document.getElementById('topic-b').value = data.topicB || "";
     
-    // Auto-update the round dropdown based on Excel question data BEFORE filling answers
-    const roundSelect = document.getElementById("select-round");
+    // Auto-update round num and door rule dropdowns
     const roundNum = Number(data.round) || 1;
-    let roundVal = "1";
-    if (roundNum >= 5 && roundNum <= 7) {
-        roundVal = "5";
-    } else if (roundNum === 8) {
-        roundVal = "8";
+    const roundNumSel = document.getElementById("select-round-num");
+    if (roundNumSel) {
+        roundNumSel.value = roundNum;
     }
-    roundSelect.value = roundVal;
-    handleRoundChange();
+
+    const roundSelect = document.getElementById("select-round");
+    let doorRuleVal = "1";
+    if (roundNum >= 5 && roundNum <= 7) {
+        doorRuleVal = "5";
+    } else if (roundNum >= 8) {
+        doorRuleVal = "8";
+    }
+    if (roundSelect) roundSelect.value = doorRuleVal;
+
+    sendCommand("change_round", { round: parseInt(doorRuleVal), roundNum: roundNum });
 
     let questionText = "";
     const mTypeEl = document.getElementById('main-media-type');
@@ -838,12 +914,62 @@ function sendTopics() {
 
 function lockTopic(type) {   
     playSfx('SFX/drop_chosen_category.mp3');
+    const topicName = type === "A"
+        ? document.getElementById("topic-a").value
+        : document.getElementById("topic-b").value;
+
     sendCommand("lock_topic", {
         type: type,
-        topicName: type === "A"
-            ? document.getElementById("topic-a").value
-            : document.getElementById("topic-b").value
+        topicName: topicName
     });
+
+    loadQuestionForLockedTopic(type);
+}
+
+function loadQuestionForLockedTopic(type) {
+    const roundNum = getCurrentRoundNumber();
+    let idx = -1;
+    let data = null;
+
+    // Check if select-question-index has a selection matching this round
+    const selVal = document.getElementById('select-question-index')?.value;
+    if (selVal) {
+        const [sIdx] = selVal.split('-');
+        if (excelDataStore[sIdx] && Number(excelDataStore[sIdx].round) === Number(roundNum)) {
+            idx = sIdx;
+            data = excelDataStore[sIdx];
+        }
+    }
+
+    if (!data) {
+        idx = excelDataStore.findIndex(q => Number(q.round) === Number(roundNum));
+        if (idx !== -1) {
+            data = excelDataStore[idx];
+        }
+    }
+
+    if (!data) return;
+
+    const mTypeEl = document.getElementById('main-media-type');
+
+    if (type === 'A') {
+        document.getElementById('question-input').value = data.questionA || "";
+        fillAnswers(data.ansA || []);
+        if (mTypeEl) mTypeEl.value = data.mediaTypeA || 'none';
+        setMediaUrlInput(data.mediaUrlA || '');
+        const qSel = document.getElementById('select-question-index');
+        if (qSel) qSel.value = `${idx}-A`;
+    } else {
+        document.getElementById('question-input').value = data.questionB || "";
+        fillAnswers(data.ansB || []);
+        if (mTypeEl) mTypeEl.value = data.mediaTypeB || 'none';
+        setMediaUrlInput(data.mediaUrlB || '');
+        const qSel = document.getElementById('select-question-index');
+        if (qSel) qSel.value = `${idx}-B`;
+    }
+
+    updateTimerForCurrentQuestion();
+    updateDynamicControllerButtonLabels();
 }
 
 function sendQuestion() { 
@@ -899,6 +1025,10 @@ function handleRoundChange() {
 }
 
 function getCurrentRoundNumber() {
+    const roundNumSel = document.getElementById('select-round-num')?.value;
+    if (roundNumSel) {
+        return parseInt(roundNumSel) || 1;
+    }
     const selectedQIndexVal = document.getElementById('select-question-index')?.value;
     if (selectedQIndexVal) {
         const [idx] = selectedQIndexVal.split('-');
