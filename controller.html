@@ -447,12 +447,12 @@
 
             <div class="form-group">
                 <label>2. Chủ Đề Để Lựa Chọn</label>
-                <input type="text" id="topic-a" placeholder="Tên chủ đề A" style="margin-bottom: 2px;">
-                <input type="text" id="topic-b" placeholder="Tên chủ đề B">
+                <input type="text" id="topic-a" placeholder="Tên chủ đề A" style="margin-bottom: 2px;" oninput="updateDynamicControllerButtonLabels()">
+                <input type="text" id="topic-b" placeholder="Tên chủ đề B" oninput="updateDynamicControllerButtonLabels()">
                 <div class="inline-group">
                     <button class="btn-blue" onclick="sendTopics()">Hiện 2 Chủ Đề</button>
-                    <button class="btn-orange" onclick="lockTopic('A')">Chốt Chủ Đề A</button>
-                    <button class="btn-orange" onclick="lockTopic('B')">Chốt Chủ Đề B</button>
+                    <button class="btn-orange" id="btn-lock-topic-a" onclick="lockTopic('A')">Chốt Chủ Đề A</button>
+                    <button class="btn-orange" id="btn-lock-topic-b" onclick="lockTopic('B')">Chốt Chủ Đề B</button>
                 </div>
             </div>
 
@@ -484,23 +484,23 @@
                     <button class="btn-blue" style="margin-bottom: 2px;" onclick="playSfx('SFX/drop_question_bed.mp3')">🎵 Bắt Đầu Hiện Đáp Án</button>
                     
                     <div class="ans-row">
-                        <input type="text" id="ans-1" placeholder="Đáp án cửa 1">
-                        <button onclick="sendSingleAnswer(1)">Hiện Cửa 1</button>
+                        <input type="text" id="ans-1" placeholder="Đáp án cửa 1" oninput="updateDynamicControllerButtonLabels()">
+                        <button id="btn-reveal-ans-1" onclick="sendSingleAnswer(1)">Hiện Cửa 1</button>
                     </div>
                     
                     <div class="ans-row">
-                        <input type="text" id="ans-2" placeholder="Đáp án cửa 2">
-                        <button onclick="sendSingleAnswer(2)">Hiện Cửa 2</button>
+                        <input type="text" id="ans-2" placeholder="Đáp án cửa 2" oninput="updateDynamicControllerButtonLabels()">
+                        <button id="btn-reveal-ans-2" onclick="sendSingleAnswer(2)">Hiện Cửa 2</button>
                     </div>
                     
                     <div class="ans-row">
-                        <input type="text" id="ans-3" placeholder="Đáp án cửa 3">
-                        <button onclick="sendSingleAnswer(3)">Hiện Cửa 3</button>
+                        <input type="text" id="ans-3" placeholder="Đáp án cửa 3" oninput="updateDynamicControllerButtonLabels()">
+                        <button id="btn-reveal-ans-3" onclick="sendSingleAnswer(3)">Hiện Cửa 3</button>
                     </div>
                     
                     <div class="ans-row">
-                        <input type="text" id="ans-4" placeholder="Đáp án cửa 4">
-                        <button onclick="sendSingleAnswer(4)">Hiện Cửa 4</button>
+                        <input type="text" id="ans-4" placeholder="Đáp án cửa 4" oninput="updateDynamicControllerButtonLabels()">
+                        <button id="btn-reveal-ans-4" onclick="sendSingleAnswer(4)">Hiện Cửa 4</button>
                     </div>
                 </div>
             </div>
@@ -513,7 +513,7 @@
             <div class="form-group">
                 <label id="time-display" style="font-size: 11px; text-align: center; color: #38bdf8;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
                 <div class="inline-group">
-                    <button onclick="startTimer()">Bắt Đầu (60s)</button>
+                    <button id="btn-start-timer" onclick="startTimer()">Bắt Đầu (60s)</button>
                     <button class="btn-orange" onclick="add30Seconds()">+30 Giây</button>
                     <button class="btn-red" onclick="stopTimer()">Dừng Đếm</button>
                 </div>
@@ -522,10 +522,10 @@
             <div class="form-group">
                 <label>Theo Dõi Tiền Đặt Cược Trực Tuyến</label>
                 <div class="bet-grid">
-                    <div class="bet-box"><div class="title">Cửa 1</div><div class="bet-display" id="mc-bet-1">0 $A (0 cọc)</div></div>
-                    <div class="bet-box"><div class="title">Cửa 2</div><div class="bet-display" id="mc-bet-2">0 $A (0 cọc)</div></div>
-                    <div class="bet-box"><div class="title">Cửa 3</div><div class="bet-display" id="mc-bet-3">0 $A (0 cọc)</div></div>
-                    <div class="bet-box"><div class="title">Cửa 4</div><div class="bet-display" id="mc-bet-4">0 $A (0 cọc)</div></div>
+                    <div class="bet-box"><div class="title" id="mc-bet-title-1">Cửa 1</div><div class="bet-display" id="mc-bet-1">0 $A (0 cọc)</div></div>
+                    <div class="bet-box"><div class="title" id="mc-bet-title-2">Cửa 2</div><div class="bet-display" id="mc-bet-2">0 $A (0 cọc)</div></div>
+                    <div class="bet-box"><div class="title" id="mc-bet-title-3">Cửa 3</div><div class="bet-display" id="mc-bet-3">0 $A (0 cọc)</div></div>
+                    <div class="bet-box"><div class="title" id="mc-bet-title-4">Cửa 4</div><div class="bet-display" id="mc-bet-4">0 $A (0 cọc)</div></div>
                 </div>
             </div>
 
@@ -559,19 +559,19 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 4px;">
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
                             <input type="checkbox" id="chk-door-1" class="door-chk" value="1" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
-                            <span>Cửa 1</span>
+                            <span id="chk-label-1">Cửa 1</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
                             <input type="checkbox" id="chk-door-2" class="door-chk" value="2" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
-                            <span>Cửa 2</span>
+                            <span id="chk-label-2">Cửa 2</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
                             <input type="checkbox" id="chk-door-3" class="door-chk" value="3" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
-                            <span>Cửa 3</span>
+                            <span id="chk-label-3">Cửa 3</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
                             <input type="checkbox" id="chk-door-4" class="door-chk" value="4" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
-                            <span>Cửa 4</span>
+                            <span id="chk-label-4">Cửa 4</span>
                         </label>
                     </div>
 
@@ -586,10 +586,10 @@
 
                 <div style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">Sập từng cửa riêng lẻ:</div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-bottom: 4px;">
-                    <button class="btn-red" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
-                    <button class="btn-red" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
-                    <button class="btn-red" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
-                    <button class="btn-red" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
+                    <button class="btn-red" id="btn-trap-door-1" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
+                    <button class="btn-red" id="btn-trap-door-2" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
+                    <button class="btn-red" id="btn-trap-door-3" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
+                    <button class="btn-red" id="btn-trap-door-4" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
                 </div>
 
                 <button class="btn-red" style="font-size: 11px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">💥 SẬP (Tiếng Sập Hố 2)</button>
@@ -766,14 +766,22 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="cfg-timer-seconds" style="font-weight: 600;">⏱️ Thời gian đếm ngược mỗi câu (giây):</label>
-                        <input type="number" id="cfg-timer-seconds" min="10" max="300" value="60" oninput="updateSettingsPreview()">
-                        <span style="font-size: 9px; color: #64748b;">Mặc định: 60 giây. Áp dụng cho bộ đếm thời gian.</span>
+                        <label for="cfg-timer-seconds" style="font-weight: 600;">⏱️ Thời gian đếm ngược mặc định (giây):</label>
+                        <input type="number" id="cfg-timer-seconds" min="5" max="300" value="60" oninput="updateSettingsPreview()">
+                        <span style="font-size: 9px; color: #64748b;">Mặc định: 60 giây. Áp dụng khi câu hỏi không cài thời gian riêng.</span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-weight: 600; color: #38bdf8;">⏱️ THỜI GIAN CỦA TỪNG CÂU HỎI 1 (GIÂY):</label>
+                        <div id="cfg-question-timers-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
+                            <!-- Generated dynamically by controller.js -->
+                        </div>
+                        <span style="font-size: 9px; color: #64748b;">Giúp cài thời gian đếm ngược riêng biệt cho từng câu hỏi 1 (ví dụ Câu 8 = 30s, các câu còn lại 60s).</span>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
                         <label for="cfg-total-questions" style="font-weight: 600;">❓ Tổng số câu hỏi toàn chương trình:</label>
-                        <input type="number" id="cfg-total-questions" min="1" max="20" value="8" oninput="updateSettingsPreview()">
+                        <input type="number" id="cfg-total-questions" min="1" max="20" value="8" oninput="renderSettingsQuestionTimersGrid(); updateSettingsPreview();">
                         <span style="font-size: 9px; color: #64748b;">Mặc định: 8 câu hỏi. Tự động cập nhật số ô câu hỏi trong Tiến Trình.</span>
                     </div>
                 </div>

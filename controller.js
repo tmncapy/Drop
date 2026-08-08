@@ -5,7 +5,8 @@ const DEFAULT_SETTINGS = {
     stackValue: 25000,
     currencyUnit: '$A',
     totalQuestions: 8,
-    betDelaySeconds: 0.125
+    betDelaySeconds: 0.125,
+    questionTimers: [60, 60, 60, 60, 60, 60, 60, 60]
 };
 
 let gameSettings = loadGameSettings();
@@ -18,6 +19,74 @@ function loadGameSettings() {
         }
     } catch(e) {}
     return { ...DEFAULT_SETTINGS };
+}
+
+// --- DYNAMIC CONTROLLER BUTTON LABELS & TIMERS ---
+function updateDynamicControllerButtonLabels() {
+    const topicA = (document.getElementById('topic-a')?.value || '').trim();
+    const topicB = (document.getElementById('topic-b')?.value || '').trim();
+
+    const btnLockA = document.getElementById('btn-lock-topic-a');
+    const btnLockB = document.getElementById('btn-lock-topic-b');
+    if (btnLockA) btnLockA.innerText = topicA ? `Chốt A: ${topicA}` : 'Chốt Chủ Đề A';
+    if (btnLockB) btnLockB.innerText = topicB ? `Chốt B: ${topicB}` : 'Chốt Chủ Đề B';
+
+    for (let i = 1; i <= 4; i++) {
+        const ansVal = (document.getElementById(`ans-${i}`)?.value || '').trim();
+
+        // 1. Single Answer Reveal Button
+        const btnReveal = document.getElementById(`btn-reveal-ans-${i}`);
+        if (btnReveal) btnReveal.innerText = ansVal ? `Hiện ${i}: ${ansVal}` : `Hiện Cửa ${i}`;
+
+        // 2. Trapdoor Checkbox Label
+        const chkLabel = document.getElementById(`chk-label-${i}`);
+        if (chkLabel) chkLabel.innerText = ansVal ? `Cửa ${i}: ${ansVal}` : `Cửa ${i}`;
+
+        // 3. Single Trapdoor Button
+        const btnTrap = document.getElementById(`btn-trap-door-${i}`);
+        if (btnTrap) btnTrap.innerText = ansVal ? `💥 SẬP ${i}: ${ansVal}` : `SẬP HỐ LỖI ${i}`;
+
+        // 4. Bet Box Title
+        const betTitle = document.getElementById(`mc-bet-title-${i}`);
+        if (betTitle) betTitle.innerText = ansVal ? `Cửa ${i} (${ansVal})` : `Cửa ${i}`;
+    }
+}
+
+function getQuestionTimeLimit(rNum) {
+    const roundNum = rNum || getCurrentRoundNumber();
+
+    // 1. First priority: Selected question in Excel dropdown if it has custom timerSeconds
+    const selectedQIndexVal = document.getElementById('select-question-index')?.value;
+    if (selectedQIndexVal) {
+        const [idx] = selectedQIndexVal.split('-');
+        if (excelDataStore[idx] && excelDataStore[idx].timerSeconds !== undefined && excelDataStore[idx].timerSeconds !== null && excelDataStore[idx].timerSeconds !== '') {
+            const val = parseInt(excelDataStore[idx].timerSeconds);
+            if (!isNaN(val) && val > 0) return val;
+        }
+    }
+
+    // 2. Second priority: Excel store data for this round number
+    const roundData = excelDataStore.find(q => Number(q.round) === Number(roundNum));
+    if (roundData && roundData.timerSeconds !== undefined && roundData.timerSeconds !== null && roundData.timerSeconds !== '') {
+        const val = parseInt(roundData.timerSeconds);
+        if (!isNaN(val) && val > 0) return val;
+    }
+
+    // 3. Third priority: Custom question timer in gameSettings.questionTimers array
+    if (gameSettings.questionTimers && gameSettings.questionTimers[roundNum - 1] !== undefined) {
+        const val = parseInt(gameSettings.questionTimers[roundNum - 1]);
+        if (!isNaN(val) && val > 0) return val;
+    }
+
+    // 4. Default global fallback
+    return gameSettings.timerSeconds || 60;
+}
+
+function updateTimerForCurrentQuestion() {
+    if (!timerInterval) {
+        timeLeft = getQuestionTimeLimit();
+        updateTimerDisplay();
+    }
 }
 
 const DEFAULT_QUESTIONS_STORE = [
@@ -96,6 +165,8 @@ window.addEventListener('DOMContentLoaded', () => {
     updateControllerMoneyLabels();
     updateProgressDataUI();
     setGlobalVolume(currentGlobalVolume);
+    updateDynamicControllerButtonLabels();
+    updateTimerForCurrentQuestion();
 });
 
 function initPinCode() {
@@ -412,6 +483,9 @@ function loadSelectedQuestion() {
         if (mTypeEl) mTypeEl.value = data.mediaTypeB || 'none';
         setMediaUrlInput(data.mediaUrlB || '');
     }
+
+    updateTimerForCurrentQuestion();
+    updateDynamicControllerButtonLabels();
 }
 
 function syncMainMediaToStore() {
@@ -751,6 +825,7 @@ function fillAnswers(ansList) {
             else input.style.display = "none";
         }
     }
+    updateDynamicControllerButtonLabels();
 }
 
 function sendTopics() { 
@@ -820,6 +895,7 @@ function handleRoundChange() {
         }
     }
     sendCommand("change_round", { round: parseInt(roundVal), roundNum: exactRound });
+    updateTimerForCurrentQuestion();
 }
 
 function getCurrentRoundNumber() {
@@ -869,7 +945,7 @@ function sendMsgToHost() {
 function startTimer() {
     stopSfx();
     clearInterval(timerInterval);
-    timeLeft = gameSettings.timerSeconds || 60;
+    timeLeft = getQuestionTimeLimit();
     updateTimerDisplay();
 
     const r = getCurrentRoundNumber();
@@ -927,7 +1003,17 @@ function stopTimer() {
 function updateTimerDisplay() {
     let m = Math.floor(timeLeft / 60); 
     let s = timeLeft % 60;
-    document.getElementById('time-display').innerText = `THỜI GIAN ĐẶT CƯỢC: ${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    const timeStr = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    const timeDisplayEl = document.getElementById('time-display');
+    if (timeDisplayEl) {
+        timeDisplayEl.innerText = `THỜI GIAN ĐẶT CƯỢC: ${timeStr}`;
+    }
+
+    const startBtn = document.getElementById('btn-start-timer');
+    if (startBtn && !timerInterval) {
+        const limit = getQuestionTimeLimit();
+        startBtn.innerText = `Bắt Đầu (${limit}s)`;
+    }
 }
 
 function openDoor(id) { 
@@ -1177,6 +1263,31 @@ function hideProgressOnProjector() {
 }
 
 // --- SETTINGS TAB MANAGEMENT ---
+function renderSettingsQuestionTimersGrid() {
+    const grid = document.getElementById('cfg-question-timers-grid');
+    if (!grid) return;
+
+    const totalQ = Math.max(1, parseInt(document.getElementById('cfg-total-questions')?.value) || gameSettings.totalQuestions || 8);
+    const defaultTimer = parseInt(document.getElementById('cfg-timer-seconds')?.value) || gameSettings.timerSeconds || 60;
+
+    grid.innerHTML = '';
+    const qTimers = gameSettings.questionTimers || [];
+
+    for (let i = 0; i < totalQ; i++) {
+        const currentVal = (qTimers[i] !== undefined && qTimers[i] !== null) ? qTimers[i] : defaultTimer;
+        const box = document.createElement('div');
+        box.style.cssText = "background: #111317; border: 1px solid #222632; padding: 4px 6px; border-radius: 4px; display: flex; flex-direction: column; gap: 2px;";
+        box.innerHTML = `
+            <label style="font-size: 9px; color: #38bdf8; margin: 0; font-weight: bold;">CÂU ${i + 1}:</label>
+            <div style="display: flex; align-items: center; gap: 2px;">
+                <input type="number" id="cfg-q-timer-${i}" min="5" max="300" value="${currentVal}" style="padding: 2px 4px; font-size: 11px; text-align: center; width: 100%; border-radius: 3px; background: #181b22; color: #fff; border: 1px solid #323848;" oninput="updateSettingsPreview()">
+                <span style="font-size: 9px; color: #94a3b8;">s</span>
+            </div>
+        `;
+        grid.appendChild(box);
+    }
+}
+
 function populateSettingsFormUI() {
     const timeSecEl = document.getElementById('cfg-timer-seconds');
     const initStacksEl = document.getElementById('cfg-initial-stacks');
@@ -1192,6 +1303,7 @@ function populateSettingsFormUI() {
     if (totalQEl) totalQEl.value = gameSettings.totalQuestions;
     if (betDelayEl) betDelayEl.value = (gameSettings.betDelaySeconds !== undefined) ? gameSettings.betDelaySeconds : 0.125;
 
+    renderSettingsQuestionTimersGrid();
     updateSettingsPreview();
 }
 
@@ -1211,7 +1323,23 @@ function updateSettingsPreview() {
     const prevQ = document.getElementById('preview-cfg-questions');
     const prevDelay = document.getElementById('preview-cfg-delay');
 
-    if (prevTime) prevTime.innerText = `${timeSec} giây`;
+    // Check if custom per-question timers are set
+    let customTimeText = `${timeSec} giây`;
+    const qTimers = [];
+    for (let i = 0; i < totalQ; i++) {
+        const val = parseInt(document.getElementById(`cfg-q-timer-${i}`)?.value);
+        if (!isNaN(val) && val > 0) qTimers.push(val);
+    }
+    if (qTimers.length > 0) {
+        const hasDiff = qTimers.some(t => t !== qTimers[0]);
+        if (hasDiff) {
+            customTimeText = `Tùy chỉnh (${qTimers.join('s, ')}s)`;
+        } else {
+            customTimeText = `${qTimers[0]} giây`;
+        }
+    }
+
+    if (prevTime) prevTime.innerText = customTimeText;
     if (prevMoney) prevMoney.innerText = `${totalInitMoney.toLocaleString('vi-VN')} ${unit} (${initStacks} cọc)`;
     if (prevQ) prevQ.innerText = `${totalQ} câu`;
     if (prevDelay) prevDelay.innerText = `${betDelay}s (${Math.round(betDelay * 1000)}ms)`;
@@ -1226,13 +1354,20 @@ function saveGameSettings() {
     const rawDelay = parseFloat(document.getElementById('cfg-bet-delay-seconds')?.value);
     const betDelay = Math.max(0, isNaN(rawDelay) ? 0.125 : rawDelay);
 
+    const qTimers = [];
+    for (let i = 0; i < totalQ; i++) {
+        const val = parseInt(document.getElementById(`cfg-q-timer-${i}`)?.value);
+        qTimers.push((isNaN(val) || val <= 0) ? timeSec : val);
+    }
+
     gameSettings = {
         timerSeconds: timeSec,
         initialStacks: initStacks,
         stackValue: stackVal,
         currencyUnit: unit,
         totalQuestions: totalQ,
-        betDelaySeconds: betDelay
+        betDelaySeconds: betDelay,
+        questionTimers: qTimers
     };
 
     localStorage.setItem('game_settings', JSON.stringify(gameSettings));
@@ -1247,10 +1382,7 @@ function saveGameSettings() {
         questionStates = questionStates.slice(0, totalQuestionsCount);
     }
 
-    if (!timerInterval) {
-        timeLeft = gameSettings.timerSeconds;
-        updateTimerDisplay();
-    }
+    updateTimerForCurrentQuestion();
 
     if (lastMcBetsData.totalMoney === null) {
         currentMoneyAmount = initStacks * stackVal;
@@ -1350,8 +1482,16 @@ function renderQuestionsTabUI() {
 
         const roundHeader = document.createElement('div');
         roundHeader.style.cssText = "display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #262a36; padding-bottom: 4px;";
+        const defaultQTimer = (gameSettings.questionTimers && gameSettings.questionTimers[idx] !== undefined) ? gameSettings.questionTimers[idx] : (gameSettings.timerSeconds || 60);
         roundHeader.innerHTML = `
-            <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">🎯 VÒNG ${q.round || (idx + 1)}</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">🎯 VÒNG ${q.round || (idx + 1)}</span>
+                <div style="display: flex; align-items: center; gap: 4px; background: #111317; padding: 2px 6px; border-radius: 4px; border: 1px solid #222632;">
+                    <label style="font-size: 10px; color: #fbbf24; margin: 0;">⏱️ Thời gian đếm ngược:</label>
+                    <input type="number" id="qtab-timerSeconds-${idx}" value="${q.timerSeconds || ''}" placeholder="${defaultQTimer}" min="5" max="300" style="width: 55px; padding: 1px 4px; font-size: 11px; text-align: center; border-radius: 3px; background: #181b22; color: #fff; border: 1px solid #323848;">
+                    <span style="font-size: 10px; color: #94a3b8;">giây</span>
+                </div>
+            </div>
             <button class="btn-red" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="deleteRoundFromStore(${idx})">🗑️ Xóa Vòng</button>
         `;
         roundCard.appendChild(roundHeader);
@@ -1436,6 +1576,7 @@ function renderQuestionsTabUI() {
 
 function saveQuestionsTabUI() {
     excelDataStore.forEach((q, idx) => {
+        q.timerSeconds = document.getElementById(`qtab-timerSeconds-${idx}`)?.value || '';
         q.topicA = document.getElementById(`qtab-topicA-${idx}`)?.value || '';
         q.questionA = document.getElementById(`qtab-questionA-${idx}`)?.value || '';
         q.ansA = [
