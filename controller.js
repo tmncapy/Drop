@@ -36,7 +36,7 @@ function updateDynamicControllerButtonLabels() {
 
         // 1. Single Answer Reveal Button
         const btnReveal = document.getElementById(`btn-reveal-ans-${i}`);
-        if (btnReveal) btnReveal.innerText = ansVal ? `Hiện ${i}: ${ansVal}` : `Hiện Cửa ${i}`;
+        if (btnReveal) btnReveal.innerText = `Hiện Cửa ${i}`;
 
         // 2. Trapdoor Checkbox Label
         const chkLabel = document.getElementById(`chk-label-${i}`);
