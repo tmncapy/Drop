@@ -373,7 +373,6 @@
     <!-- Video Compression Modal Overlay -->
     <div id="video-compress-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); z-index:99999; align-items:center; justify-content:center; flex-direction:column; gap:16px; color:#fff; font-family:'Myriad Pro', Arial, sans-serif;">
         <div style="background:#1e293b; border:2px solid #3b82f6; border-radius:12px; padding:24px 32px; text-align:center; max-width:420px; width:90%; box-shadow:0 20px 40px rgba(0,0,0,0.8);">
-            <div style="font-size:32px; margin-bottom:8px;">⚡</div>
             <h3 style="color:#60a5fa; font-size:18px; margin-bottom:6px;">ĐANG NÉN VIDEO XUỐNG 480P</h3>
             <p id="compress-file-name" style="color:#94a3b8; font-size:12px; margin-bottom:16px; word-break:break-all;">file_video.mp4</p>
             
@@ -386,19 +385,19 @@
     </div>
 
     <header>
-        <h1>🎮 HỆ THỐNG ĐIỀU KHIỂN TRÒ CHƠI <span class="header-badge">LIVE</span></h1>
+        <h1>HỆ THỐNG ĐIỀU KHIỂN TRÒ CHƠI <span class="header-badge">LIVE</span></h1>
         
         <div style="display: flex; align-items: center; gap: 4px; background: #111317; padding: 2px 6px; border-radius: 4px; border: 1px solid #262a36;">
-            <span style="color: #f59e0b; font-size: 10px; font-weight: bold; white-space: nowrap;">🔄 RELOAD TỪ XA:</span>
-            <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('projector')" title="Tải lại Màn Hình Máy Chiếu">🖥️ Projector</button>
-            <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('answer')" title="Tải lại Màn Hình MC Sound">🔊 Sound/MC</button>
-            <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('player')" title="Tải lại Màn Hình Người Chơi">📱 Player</button>
-            <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('host')" title="Tải lại Màn Hình Host">🎙️ Host</button>
-            <button class="btn-red" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('all')" title="Tải lại Tất Cả Màn Hình">🔥 Tất cả</button>
+            <span style="color: #f59e0b; font-size: 10px; font-weight: bold; white-space: nowrap;">RELOAD TỪ XA:</span>
+            <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('projector')" title="Tải lại Màn Hình Máy Chiếu">Projector</button>
+            <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('answer')" title="Tải lại Màn Hình MC Sound">Sound/MC</button>
+            <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('player')" title="Tải lại Màn Hình Người Chơi">Player</button>
+            <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('host')" title="Tải lại Màn Hình Host">Host</button>
+            <button class="btn-red" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('all')" title="Tải lại Tất Cả Màn Hình">Tất cả</button>
         </div>
 
         <div class="header-pin-bar">
-            <label>🔑 PIN PLAYER:</label>
+            <label>PIN PLAYER:</label>
             <input type="text" id="pin-code-input" maxlength="4" value="1234">
             <button class="btn-blue" style="width: auto; padding: 2px 6px;" onclick="updatePinCode()">Cập nhật</button>
             <button class="btn-orange" style="width: auto; padding: 2px 6px;" onclick="generateRandomPin()">Ngẫu nhiên</button>
@@ -409,11 +408,11 @@
     </header>
 
     <div class="tab-bar">
-        <button class="tab-button active" id="tab-btn-main" onclick="switchControllerTab('main')">🎮 BÀN ĐIỀU KHIỂN CHÍNH</button>
-        <button class="tab-button" id="tab-btn-questions" onclick="switchControllerTab('questions')">📁 DỮ LIỆU CÂU HỎI</button>
-        <button class="tab-button" id="tab-btn-progress" onclick="switchControllerTab('progress')">📊 TIẾN TRÌNH CHƠI</button>
-        <button class="tab-button" id="tab-btn-roles" onclick="switchControllerTab('roles')">🔄 QUẢN LÝ MÀN HÌNH (ROLES)</button>
-        <button class="tab-button" id="tab-btn-settings" onclick="switchControllerTab('settings')">⚙️ CÀI ĐẶT CẤU HÌNH</button>
+        <button class="tab-button active" id="tab-btn-main" onclick="switchControllerTab('main')">BÀN ĐIỀU KHIỂN CHÍNH</button>
+        <button class="tab-button" id="tab-btn-questions" onclick="switchControllerTab('questions')">DỮ LIỆU CÂU HỎI</button>
+        <button class="tab-button" id="tab-btn-progress" onclick="switchControllerTab('progress')">TIẾN TRÌNH CHƠI</button>
+        <button class="tab-button" id="tab-btn-roles" onclick="switchControllerTab('roles')">QUẢN LÝ MÀN HÌNH (ROLES)</button>
+        <button class="tab-button" id="tab-btn-settings" onclick="switchControllerTab('settings')">CÀI ĐẶT CẤU HÌNH</button>
     </div>
 
     <div id="main-dashboard" class="dashboard-container">
@@ -429,7 +428,7 @@
             <div class="form-group">
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 6px;">
                     <div>
-                        <label style="font-weight: 600;">🚪 Số Cửa Sử Dụng</label>
+                        <label style="font-weight: 600;">Số Cửa Sử Dụng</label>
                         <select id="select-round" onchange="handleDoorRuleChange()">
                             <option value="1">4 Cửa (Vòng 1 - 4)</option>
                             <option value="5">3 Cửa (Vòng 5 - 7)</option>
@@ -437,13 +436,13 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 600;">🎯 Chọn Số Vòng</label>
+                        <label style="font-weight: 600;">Chọn Số Vòng</label>
                         <select id="select-round-num" onchange="handleRoundNumSelectChange()">
                             <!-- Generated dynamically in controller.js -->
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 600;">❓ Chọn Câu Hỏi / Chủ Đề</label>
+                        <label style="font-weight: 600;">Chọn Câu Hỏi / Chủ Đề</label>
                         <select id="select-question-index" onchange="loadSelectedQuestion()">
                             <option value="">-- Chưa có --</option>
                         </select>
@@ -467,27 +466,27 @@
                 <textarea id="question-input" rows="2" placeholder="Nội dung câu hỏi chữ lớn..." style="margin-bottom: 4px; resize: vertical;"></textarea>
                 
                 <div style="background: #111317; border: 1px solid #222632; padding: 4px 6px; border-radius: 4px; margin-bottom: 6px;">
-                    <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">🎬 THÔNG TIN MEDIA (HÌNH ÁNH / VIDEO)</label>
+                    <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">THÔNG TIN MEDIA (HÌNH ÁNH / VIDEO)</label>
                     <div style="display: flex; gap: 4px; margin-bottom: 2px;">
                         <select id="main-media-type" style="width: 95px;" onchange="syncMainMediaToStore()">
                             <option value="none">Không có</option>
-                            <option value="image">🖼️ Hình ảnh</option>
-                            <option value="video">🎬 Video</option>
+                            <option value="image">Hình ảnh</option>
+                            <option value="video">Video</option>
                         </select>
                         <input type="text" id="main-media-url" placeholder="URL hoặc chọn file..." style="flex: 1;" onchange="handleManualMediaUrlInput(this)" oninput="handleManualMediaUrlInput(this)">
                         <input type="file" id="main-media-file-input" accept="image/*,video/*" style="display: none;" onchange="handleMainMediaFileUpload(event)">
-                        <button class="btn-purple" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="document.getElementById('main-media-file-input').click()">📁 Chọn File</button>
+                        <button class="btn-purple" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="document.getElementById('main-media-file-input').click()">Chọn File</button>
                     </div>
                 </div>
 
                 <div class="inline-group" style="margin-bottom: 6px;">
-                    <button class="btn-purple" onclick="sendMedia()">🎥 Hiện Hình/Video</button>
+                    <button class="btn-purple" onclick="sendMedia()">Hiện Hình/Video</button>
                     <button class="btn-blue" onclick="sendQuestion()">Hiện Câu Hỏi</button>
                     <button class="btn-orange" onclick="showAllQuestionAndAnswers()">Hiện Q &amp; A</button>
                 </div>
                 
                 <div style="border-top: 1px solid #222632; padding-top: 4px; display: flex; flex-direction: column; gap: 3px;">
-                    <button class="btn-blue" style="margin-bottom: 2px;" onclick="playSfx('SFX/drop_question_bed.mp3')">🎵 Bắt Đầu Hiện Đáp Án</button>
+                    <button class="btn-blue" style="margin-bottom: 2px;" onclick="playSfx('SFX/drop_question_bed.mp3')">Bắt Đầu Hiện Đáp Án</button>
                     
                     <div class="ans-row">
                         <input type="text" id="ans-1" placeholder="Đáp án cửa 1" oninput="updateDynamicControllerButtonLabels()">
@@ -536,17 +535,17 @@
             </div>
 
             <div class="form-group">
-                <label style="color: #38bdf8;">💰 TĂNG GIẢM CỌC TIỀN NGUỜI CHƠI</label>
+                <label style="color: #38bdf8;">TĂNG GIẢM CỌC TIỀN NGUỜI CHƠI</label>
                 <div style="display: flex; justify-content: space-between; align-items: center; background: #181b22; padding: 3px 6px; border-radius: 3px; margin-bottom: 4px; border: 1px solid #222632;">
                     <span style="font-size: 10px; color: #94a3b8;">Tổng tiền còn lại:</span>
                     <span id="mc-total-money" style="font-size: 11px; color: #38bdf8;">1.000.000 $A (40 cọc)</span>
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-bottom: 4px;">
-                    <button class="btn-blue" onclick="addPlayerStacksMC(1)">➕ Thêm 1 Cọc (+25k)</button>
-                    <button class="btn-blue" onclick="addPlayerStacksMC(4)">➕ Thêm 4 Cọc (+100k)</button>
-                    <button class="btn-orange" onclick="removePlayerStacksMC(1)">➖ Bớt 1 Cọc (-25k)</button>
-                    <button class="btn-orange" onclick="removePlayerStacksMC(4)">➖ Bớt 4 Cọc (-100k)</button>
+                    <button class="btn-blue" onclick="addPlayerStacksMC(1)">Thêm 1 Cọc (+25k)</button>
+                    <button class="btn-blue" onclick="addPlayerStacksMC(4)">Thêm 4 Cọc (+100k)</button>
+                    <button class="btn-orange" onclick="removePlayerStacksMC(1)">Bớt 1 Cọc (-25k)</button>
+                    <button class="btn-orange" onclick="removePlayerStacksMC(4)">Bớt 4 Cọc (-100k)</button>
                 </div>
 
                 <div style="display: flex; gap: 4px; align-items: center;">
@@ -557,11 +556,11 @@
             </div>
 
             <div class="form-group">
-                <label style="color: #f87171;">🔥 KÍCH HOẠT SẬP HỐ VẬT LÝ</label>
-                <button class="btn-orange" style="margin-bottom: 4px;" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Kích Hoạt (Nhạc Hồi Hộp)</button>
+                <label style="color: #f87171;">KÍCH HOẠT SẬP HỐ VẬT LÝ</label>
+                <button class="btn-orange" style="margin-bottom: 4px;" onclick="playSfx('SFX/drop_intrigue.mp3')">Kích Hoạt (Nhạc Hồi Hộp)</button>
                 
                 <div style="background: #181b22; border: 1px solid #222632; padding: 4px; border-radius: 4px; margin-bottom: 4px;">
-                    <div style="font-size: 10px; color: #fbbf24; margin-bottom: 3px;">☑️ CHỌN CÁC CỬA SAI ĐỂ SẬP CÙNG LÚC:</div>
+                    <div style="font-size: 10px; color: #fbbf24; margin-bottom: 3px;">CHỌN CÁC CỬA SAI ĐỂ SẬP CÙNG LÚC:</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 4px;">
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
                             <input type="checkbox" id="chk-door-1" class="door-chk" value="1" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
@@ -583,7 +582,7 @@
 
                     <div style="display: flex; gap: 3px;">
                         <button class="btn-red" style="flex: 1; padding: 4px;" onclick="openSelectedDoors()">
-                            💥 SẬP CÁC CỬA ĐÃ CHỌN
+                            SẬP CÁC CỬA ĐÃ CHỌN
                         </button>
                         <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="selectAllDoors(true)" title="Chọn tất cả 4 cửa">Tất cả</button>
                         <button style="width: auto; padding: 2px 6px; font-size: 10px; background: #222630; color: #fff; border: 1px solid #323848;" onclick="selectAllDoors(false)" title="Bỏ chọn">Bỏ chọn</button>
@@ -598,11 +597,11 @@
                     <button class="btn-red" id="btn-trap-door-4" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
                 </div>
 
-                <button class="btn-red" style="font-size: 11px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">💥 SẬP (Tiếng Sập Hố 2)</button>
+                <button class="btn-red" style="font-size: 11px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">SẬP (Tiếng Sập Hố 2)</button>
             </div>
 
             <div class="form-group">
-                <label style="color: #c084fc;">💬 GỬI TIN NHẮN ĐẾN HOST (MC)</label>
+                <label style="color: #c084fc;">GỬI TIN NHẮN ĐẾN HOST (MC)</label>
                 <div class="inline-group">
                     <input type="text" id="host-msg-input" placeholder="Nhập tin nhắn nhắn Host..." onkeypress="if(event.key==='Enter') sendMsgToHost()">
                     <button class="btn-purple" style="width: 60px; flex-shrink: 0;" onclick="sendMsgToHost()">Gửi</button>
@@ -612,7 +611,7 @@
             <div class="form-group" style="margin-top: auto;">
                 <label>Quản Lý Vòng Đấu</label>
                 <div style="display: flex; flex-direction: column; gap: 3px;">
-                    <button class="btn-blue" onclick="collectMoneyBack()">💵 THU TIỀN VỀ (BÀN)</button>
+                    <button class="btn-blue" onclick="collectMoneyBack()">THU TIỀN VỀ (BÀN)</button>
                     <button class="btn-orange" onclick="penaltyFine()">PHẠT GIẢM 1 CỌC TIỀN</button>
                     <button class="btn-red" onclick="resetRound()" style="margin-top: 2px;">RESET TOÀN BỘ VÒNG CHƠI</button>
                 </div>
@@ -625,7 +624,7 @@
             
             <div style="background: #111317; padding: 4px 8px; border-radius: 4px; border: 1px solid #222632; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
                 <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0; color: #60a5fa; font-size: 10px;">
-                    🔊 ÂM LƯỢNG: <span id="vol-display-val" style="color: #38bdf8; min-width: 32px; display: inline-block; text-align: right;">100%</span>
+                    ÂM LƯỢNG: <span id="vol-display-val" style="color: #38bdf8; min-width: 32px; display: inline-block; text-align: right;">100%</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 4px; flex: 1;">
                     <button class="btn-blue" style="width: 22px; height: 20px; padding: 0; font-size: 12px; flex-shrink: 0;" onclick="adjustVolume(-0.1)">-</button>
@@ -635,32 +634,32 @@
             </div>
 
             <div class="sfx-grid">
-                <button class="btn-blue" onclick="playSfx('SFX/drop_opening.mp3')">🎵 Mở Đầu (Opening)</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_welcome_contestants.mp3')">👋 Chào Thí Sinh</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_host_entrance.mp3')">🎤 MC Ra Sân Khấu</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_letsplay.mp3')">🚀 Let's Play</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_category.mp3')">🎯 Hiện Chủ Đề</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_chosen_category.mp3')">📌 Chốt Chủ Đề</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_question_bed.mp3')">❓ Nền Câu Hỏi</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_Reveal the Question_2.mp3')">💡 Hiện Câu Hỏi</button>
-                <button class="btn-blue" onclick="showAllQuestionAndAnswers()">📝 Hiện Q &amp; A</button>
-                <button class="btn-blue" onclick="collectMoneyBack()">💵 Thu Tiền Về</button>
-                <button class="btn-orange" onclick="playSfx('SFX/drop_intrigue.mp3')">🔥 Hồi Hộp Đặt Cược</button>
-                <button class="btn-orange" onclick="playSfx('SFX/drop_timer.mp3')">⏱️ Đếm Ngược 60s</button>
-                <button class="btn-orange" onclick="playSfx('SFX/drop_timer_q8.mp3')">⏰ Đếm Ngược Vòng 8</button>
-                <button class="btn-orange" onclick="add30Seconds()">➕ Cộng 30 Giây</button>
-                <button class="btn-orange" onclick="playSfx('SFX/drop_timer_stop.mp3')">🛑 Dừng Thời Gian</button>
-                <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_1.mp3')">💥 Sập Hố 1</button>
-                <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3')">💥 Sập Hố 2</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_win.mp3')">🏆 Chiến Thắng</button>
-                <button class="btn-red" onclick="playSfx('SFX/drop_lose.mp3')">❌ Thua Cuộc</button>
-                <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_in.mp3')">📺 Quảng Cáo Vào</button>
-                <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_out.mp3')">📺 Quảng Cáo Ra</button>
-                <button class="btn-purple" onclick="playSfx('SFX/drop_closing.mp3')">🎬 Kết Thúc Show</button>
-                <button class="btn-purple" onclick="playSfx('SFX/drop_main.mp3')">🌟 Nhạc Main</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_opening.mp3')">Mở Đầu (Opening)</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_welcome_contestants.mp3')">Chào Thí Sinh</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_host_entrance.mp3')">MC Ra Sân Khấu</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_letsplay.mp3')">Let's Play</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_category.mp3')">Hiện Chủ Đề</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_chosen_category.mp3')">Chốt Chủ Đề</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_question_bed.mp3')">Nền Câu Hỏi</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_Reveal the Question_2.mp3')">Hiện Câu Hỏi</button>
+                <button class="btn-blue" onclick="showAllQuestionAndAnswers()">Hiện Q &amp; A</button>
+                <button class="btn-blue" onclick="collectMoneyBack()">Thu Tiền Về</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_intrigue.mp3')">Hồi Hộp Đặt Cược</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_timer.mp3')">Đếm Ngược 60s</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_timer_q8.mp3')">Đếm Ngược Vòng 8</button>
+                <button class="btn-orange" onclick="add30Seconds()">Cộng 30 Giây</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_timer_stop.mp3')">Dừng Thời Gian</button>
+                <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_1.mp3')">Sập Hố 1</button>
+                <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3')">Sập Hố 2</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_win.mp3')">Chiến Thắng</button>
+                <button class="btn-red" onclick="playSfx('SFX/drop_lose.mp3')">Thua Cuộc</button>
+                <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_in.mp3')">Quảng Cáo Vào</button>
+                <button class="btn-purple" onclick="playSfx('SFX/drop_commercial_out.mp3')">Quảng Cáo Ra</button>
+                <button class="btn-purple" onclick="playSfx('SFX/drop_closing.mp3')">Kết Thúc Show</button>
+                <button class="btn-purple" onclick="playSfx('SFX/drop_main.mp3')">Nhạc Main</button>
             </div>
 
-            <button class="btn-red" style="margin-top: 3px;" onclick="stopSfx()">🔇 DỪNG TOÀN BỘ ÂM THANH</button>
+            <button class="btn-red" style="margin-top: 3px;" onclick="stopSfx()">DỪNG TOÀN BỘ ÂM THANH</button>
 
             <div class="form-group" style="margin-top: auto;">
                 <label>Phát File Âm Thanh Tùy Chọn:</label>
@@ -743,16 +742,16 @@
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <button class="btn-blue" style="padding: 10px; font-size: 12px;" onclick="showProgressOnProjector()">
-                    🚀 HIỂN THỊ TIẾN TRÌNH TRÊN PROJECTOR
+                    HIỂN THỊ TIẾN TRÌNH TRÊN PROJECTOR
                 </button>
                 <button class="btn-red" style="padding: 10px; font-size: 12px;" onclick="hideProgressOnProjector()">
-                    🛑 ẨN MÀN HÌNH TIẾN TRÌNH
+                    ẨN MÀN HÌNH TIẾN TRÌNH
                 </button>
                 <button class="btn-blue" style="padding: 10px; font-size: 12px;" onclick="showWinningMoneyOnProjector()">
-                    🏆 HIỂN THỊ TIỀN THẮNG (PROJECTOR)
+                    HIỂN THỊ TIỀN THẮNG (PROJECTOR)
                 </button>
                 <button class="btn-red" style="padding: 10px; font-size: 12px;" onclick="hideWinningMoneyOnProjector()">
-                    🛑 ẨN TIỀN THẮNG
+                    ẨN TIỀN THẮNG
                 </button>
             </div>
         </div>
@@ -761,7 +760,7 @@
     <!-- TAB 3: SETTINGS DASHBOARD -->
     <div id="settings-dashboard" class="settings-container" style="display: none;">
         <div class="panel" style="width: 100%; max-width: 800px; margin: 0 auto;">
-            <div class="panel-title">⚙️ CÀI ĐẶT CẤU HÌNH TRÒ CHƠI</div>
+            <div class="panel-title">CÀI ĐẶT CẤU HÌNH TRÒ CHƠI</div>
             <p style="font-size: 11px; color: #94a3b8; margin-bottom: 12px;">Chỉnh sửa các thông số kỹ thuật của trò chơi. Bấm "Lưu Cài Đặt &amp; Đồng Bộ" để áp dụng cho tất cả màn hình.</p>
             
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
@@ -772,13 +771,13 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="cfg-timer-seconds" style="font-weight: 600;">⏱️ Thời gian đếm ngược mặc định (giây):</label>
+                        <label for="cfg-timer-seconds" style="font-weight: 600;">Thời gian đếm ngược mặc định (giây):</label>
                         <input type="number" id="cfg-timer-seconds" min="5" max="300" value="60" oninput="updateSettingsPreview()">
                         <span style="font-size: 9px; color: #64748b;">Mặc định: 60 giây. Áp dụng khi câu hỏi không cài thời gian riêng.</span>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label style="font-weight: 600; color: #38bdf8;">⏱️ THỜI GIAN CỦA TỪNG CÂU HỎI 1 (GIÂY):</label>
+                        <label style="font-weight: 600; color: #38bdf8;">THỜI GIAN CỦA TỪNG CÂU HỎI 1 (GIÂY):</label>
                         <div id="cfg-question-timers-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
                             <!-- Generated dynamically by controller.js -->
                         </div>
@@ -786,7 +785,7 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="cfg-total-questions" style="font-weight: 600;">❓ Tổng số câu hỏi toàn chương trình:</label>
+                        <label for="cfg-total-questions" style="font-weight: 600;">Tổng số câu hỏi toàn chương trình:</label>
                         <input type="number" id="cfg-total-questions" min="1" max="20" value="8" oninput="renderSettingsQuestionTimersGrid(); updateSettingsPreview();">
                         <span style="font-size: 9px; color: #64748b;">Mặc định: 8 câu hỏi. Tự động cập nhật số ô câu hỏi trong Tiến Trình.</span>
                     </div>
@@ -799,19 +798,19 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="cfg-initial-stacks" style="font-weight: 600;">📦 Số lượng cọc tiền ban đầu:</label>
+                        <label for="cfg-initial-stacks" style="font-weight: 600;">Số lượng cọc tiền ban đầu:</label>
                         <input type="number" id="cfg-initial-stacks" min="1" max="200" value="40" oninput="updateSettingsPreview()">
                         <span style="font-size: 9px; color: #64748b;">Mặc định: 40 cọc tiền.</span>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="cfg-stack-value" style="font-weight: 600;">💵 Giá trị của 1 cọc tiền:</label>
+                        <label for="cfg-stack-value" style="font-weight: 600;">Giá trị của 1 cọc tiền:</label>
                         <input type="number" id="cfg-stack-value" min="1000" max="1000000000" step="1000" value="25000" oninput="updateSettingsPreview()">
                         <span style="font-size: 9px; color: #64748b;">Mặc định: 25.000 (Tổng tiền khởi tạo = Số cọc x Giá trị 1 cọc).</span>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="cfg-currency-unit" style="font-weight: 600;">🔤 Đơn vị tiền tệ hiển thị:</label>
+                        <label for="cfg-currency-unit" style="font-weight: 600;">Đơn vị tiền tệ hiển thị:</label>
                         <input type="text" id="cfg-currency-unit" value="$A" placeholder="Ví dụ: $A, VNĐ, ĐỒNG, $" oninput="updateSettingsPreview()">
                         <span style="font-size: 9px; color: #64748b;">Hiển thị phía sau con số tiền trên Bàn Điều Khiển, Tiến Trình, Player, Answer &amp; Projector.</span>
                     </div>
@@ -824,7 +823,7 @@
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label for="cfg-bet-delay-seconds" style="font-weight: 600;">⚡ Khoảng thời gian delay tốc độ đặt tiền (giây):</label>
+                        <label for="cfg-bet-delay-seconds" style="font-weight: 600;">Khoảng thời gian delay tốc độ đặt tiền (giây):</label>
                         <input type="number" id="cfg-bet-delay-seconds" min="0" max="5" step="0.025" value="0.125" oninput="updateSettingsPreview()">
                         <span style="font-size: 9px; color: #64748b;">Mặc định: 0.125 giây (125ms). Giúp kiểm soát tốc độ giãn cách giữa mỗi lần người chơi bấm nút Đặt tiền/Rút tiền.</span>
                     </div>
@@ -834,7 +833,7 @@
             <!-- Preview Panel -->
             <div style="background: #111317; border: 1px solid #262a36; border-radius: 6px; padding: 10px; margin-bottom: 12px;">
                 <div style="font-size: 10px; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">
-                    🔍 XEM TRƯỚC TỔNG QUAN CẤU HÌNH
+                    XEM TRƯỚC TỔNG QUAN CẤU HÌNH
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center;">
                     <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
@@ -859,15 +858,15 @@
             <!-- Action Buttons -->
             <div style="display: flex; gap: 8px;">
                 <button class="btn-blue" style="flex: 2; padding: 10px; font-size: 12px;" onclick="saveGameSettings()">
-                    💾 LƯU CÀI ĐẶT &amp; ĐỒNG BỘ
+                    LƯU CÀI ĐẶT &amp; ĐỒNG BỘ
                 </button>
                 <button class="btn-orange" style="flex: 1; padding: 10px; font-size: 12px;" onclick="resetGameSettingsToDefault()">
-                    🔄 KHÔI PHỤC MẶC ĐỊNH
+                    KHÔI PHỤC MẶC ĐỊNH
                 </button>
             </div>
 
             <div id="cfg-save-status" style="margin-top: 8px; font-size: 11px; text-align: center; color: #34d399; display: none;">
-                ✅ Đã lưu cài đặt và đồng bộ thành công!
+                Đã lưu cài đặt và đồng bộ thành công!
             </div>
         </div>
     </div>
@@ -877,17 +876,17 @@
         <div class="panel" style="width: 100%; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #262a36; padding-bottom: 8px;">
                 <div>
-                    <div class="panel-title" style="margin: 0; font-size: 14px; color: #60a5fa;">📁 DANH SÁCH &amp; QUẢN LÝ DỮ LIỆU CÂU HỎI &amp; MEDIA</div>
+                    <div class="panel-title" style="margin: 0; font-size: 14px; color: #60a5fa;">DANH SÁCH &amp; QUẢN LÝ DỮ LIỆU CÂU HỎI &amp; MEDIA</div>
                     <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">Xem, chỉnh sửa, gán hình ảnh/video cho từng câu hỏi A &amp; B. Bấm "Lưu Dữ Liệu Câu Hỏi" sau khi thay đổi.</div>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                    <button class="btn-green" style="width: auto; padding: 6px 12px; font-size: 11px;" onclick="addNewRoundToStore()">➕ Thêm Vòng Mới</button>
-                    <button class="btn-blue" style="width: auto; padding: 6px 12px; font-size: 11px;" onclick="saveQuestionsTabUI()">💾 Lưu Dữ Liệu Câu Hỏi &amp; Media</button>
+                    <button class="btn-green" style="width: auto; padding: 6px 12px; font-size: 11px;" onclick="addNewRoundToStore()">Thêm Vòng Mới</button>
+                    <button class="btn-blue" style="width: auto; padding: 6px 12px; font-size: 11px;" onclick="saveQuestionsTabUI()">Lưu Dữ Liệu Câu Hỏi &amp; Media</button>
                 </div>
             </div>
 
             <div id="qtab-save-status" style="display: none; font-size: 11px; text-align: center; color: #34d399; background: #064e3b; padding: 4px; border-radius: 4px;">
-                ✅ Đã lưu dữ liệu câu hỏi &amp; media thành công!
+                Đã lưu dữ liệu câu hỏi &amp; media thành công!
             </div>
 
             <div id="questions-data-list" style="display: flex; flex-direction: column; gap: 12px;">
@@ -901,16 +900,16 @@
         <div class="panel" style="width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px;">
             <div style="border-bottom: 1px solid #262a36; padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div class="panel-title" style="margin: 0; font-size: 14px; color: #60a5fa;">🔄 QUẢN LÝ &amp; TẢI LẠI CÁC MÀN HÌNH (ROLES &amp; REMOTE RELOAD)</div>
+                    <div class="panel-title" style="margin: 0; font-size: 14px; color: #60a5fa;">QUẢN LÝ &amp; TẢI LẠI CÁC MÀN HÌNH (ROLES &amp; REMOTE RELOAD)</div>
                     <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Khi một máy hoặc màn hình bị lag, phản hồi chậm, bạn có thể gửi lệnh tải lại (Reload) từ xa cho màn hình đó hoặc mở tab mới riêng biệt.</div>
                 </div>
                 <button class="btn-red" style="width: auto; padding: 8px 16px; font-size: 12px;" onclick="reloadRole('all')">
-                    🔥 RELOAD TẤT CẢ MÀN HÌNH
+                    RELOAD TẤT CẢ MÀN HÌNH
                 </button>
             </div>
 
             <div id="role-reload-status" style="display: none; background: #064e3b; border: 1px solid #059669; color: #34d399; padding: 8px 12px; border-radius: 6px; font-size: 12px; text-align: center; font-weight: bold;">
-                ⚡ Đã gửi lệnh tải lại!
+                Đã gửi lệnh tải lại!
             </div>
 
             <!-- Grid of Roles -->
@@ -919,7 +918,6 @@
                 <!-- Role 1: Projector -->
                 <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
-                        <span style="font-size: 20px;">🖥️</span>
                         <div>
                             <div style="font-size: 13px; font-weight: bold; color: #38bdf8;">MÀN HÌNH MÁY CHIẾU (PROJECTOR)</div>
                             <div style="font-size: 10px; color: #64748b;">File: projector.html</div>
@@ -927,15 +925,14 @@
                     </div>
                     <p style="font-size: 10px; color: #94a3b8;">Hiển thị giao diện chính cho khán giả, vòng chơi, hình ảnh/video, thời gian và tiền cược.</p>
                     <div style="display: flex; gap: 6px; margin-top: auto;">
-                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('projector')">🔄 Reload Máy Chiếu</button>
-                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('projector.html')">↗️ Mở Tab Mới</button>
+                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('projector')">Reload Máy Chiếu</button>
+                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('projector.html')">Mở Tab Mới</button>
                     </div>
                 </div>
 
                 <!-- Role 2: MC Sound / Answer -->
                 <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
-                        <span style="font-size: 20px;">🔊</span>
                         <div>
                             <div style="font-size: 13px; font-weight: bold; color: #34d399;">MÀN HÌNH MC / SOUND (ANSWER)</div>
                             <div style="font-size: 10px; color: #64748b;">File: answer.html</div>
@@ -943,15 +940,14 @@
                     </div>
                     <p style="font-size: 10px; color: #94a3b8;">Hiển thị đáp án các ô cửa, trạng thái tiền rơi, âm thanh hiệu ứng cửa sập.</p>
                     <div style="display: flex; gap: 6px; margin-top: auto;">
-                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('answer')">🔄 Reload MC/Sound</button>
-                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('answer.html')">↗️ Mở Tab Mới</button>
+                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('answer')">Reload MC/Sound</button>
+                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('answer.html')">Mở Tab Mới</button>
                     </div>
                 </div>
 
                 <!-- Role 3: Player -->
                 <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
-                        <span style="font-size: 20px;">📱</span>
                         <div>
                             <div style="font-size: 13px; font-weight: bold; color: #f59e0b;">MÀN HÌNH NGƯỜI CHƠI (PLAYER)</div>
                             <div style="font-size: 10px; color: #64748b;">File: player.html</div>
@@ -959,15 +955,14 @@
                     </div>
                     <p style="font-size: 10px; color: #94a3b8;">Giao diện máy tính bảng/điện thoại cho thí sinh thực hiện thao tác chia cọc tiền cược.</p>
                     <div style="display: flex; gap: 6px; margin-top: auto;">
-                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('player')">🔄 Reload Player</button>
-                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('player.html')">↗️ Mở Tab Mới</button>
+                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('player')">Reload Player</button>
+                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('player.html')">Mở Tab Mới</button>
                     </div>
                 </div>
 
                 <!-- Role 4: Host -->
                 <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
-                        <span style="font-size: 20px;">🎙️</span>
                         <div>
                             <div style="font-size: 13px; font-weight: bold; color: #c084fc;">MÀN HÌNH MC HOST</div>
                             <div style="font-size: 10px; color: #64748b;">File: host.html</div>
@@ -975,15 +970,14 @@
                     </div>
                     <p style="font-size: 10px; color: #94a3b8;">Màn hình nhắc bài cho MC chính, xem trước đáp án, giải thích câu hỏi và tin nhắn kỹ thuật.</p>
                     <div style="display: flex; gap: 6px; margin-top: auto;">
-                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('host')">🔄 Reload MC Host</button>
-                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('host.html')">↗️ Mở Tab Mới</button>
+                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('host')">Reload MC Host</button>
+                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('host.html')">Mở Tab Mới</button>
                     </div>
                 </div>
 
                 <!-- Role 5: Server -->
                 <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
-                        <span style="font-size: 20px;">🖥️</span>
                         <div>
                             <div style="font-size: 13px; font-weight: bold; color: #94a3b8;">MÀN HÌNH SERVER</div>
                             <div style="font-size: 10px; color: #64748b;">File: server.html</div>
@@ -991,15 +985,14 @@
                     </div>
                     <p style="font-size: 10px; color: #94a3b8;">Màn hình giám sát hệ thống server trung tâm và lưu lượng dữ liệu.</p>
                     <div style="display: flex; gap: 6px; margin-top: auto;">
-                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('server')">🔄 Reload Server</button>
-                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('server.html')">↗️ Mở Tab Mới</button>
+                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('server')">Reload Server</button>
+                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('server.html')">Mở Tab Mới</button>
                     </div>
                 </div>
 
                 <!-- Role 6: Controller -->
                 <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
-                        <span style="font-size: 20px;">🎮</span>
                         <div>
                             <div style="font-size: 13px; font-weight: bold; color: #60a5fa;">BÀN ĐIỀU KHIỂN CHÍNH (CONTROLLER)</div>
                             <div style="font-size: 10px; color: #64748b;">File: controller.html (Trang này)</div>
@@ -1007,8 +1000,8 @@
                     </div>
                     <p style="font-size: 10px; color: #94a3b8;">Trang điều khiển chính của kỹ thuật viên / đạo diễn chương trình.</p>
                     <div style="display: flex; gap: 6px; margin-top: auto;">
-                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('controller')">🔄 Reload Controller Hiện Tại</button>
-                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('controller.html')">↗️ Mở Tab Controller Mới</button>
+                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('controller')">Reload Controller Hiện Tại</button>
+                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('controller.html')">Mở Tab Controller Mới</button>
                     </div>
                 </div>
 

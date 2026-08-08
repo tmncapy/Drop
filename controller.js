@@ -44,7 +44,7 @@ function updateDynamicControllerButtonLabels() {
 
         // 3. Single Trapdoor Button
         const btnTrap = document.getElementById(`btn-trap-door-${i}`);
-        if (btnTrap) btnTrap.innerText = ansVal ? `💥 SẬP ${i}: ${ansVal}` : `SẬP HỐ LỖI ${i}`;
+        if (btnTrap) btnTrap.innerText = ansVal ? `SẬP ${i}: ${ansVal}` : `SẬP HỐ LỖI ${i}`;
 
         // 4. Bet Box Title
         const betTitle = document.getElementById(`mc-bet-title-${i}`);
@@ -1269,7 +1269,7 @@ function reloadRole(targetRole) {
 
     const toast = document.getElementById('role-reload-status');
     if (toast) {
-        toast.innerText = `⚡ Đã gửi tín hiệu TẢI LẠI đến: ${name}!`;
+        toast.innerText = `Đã gửi tín hiệu TẢI LẠI đến: ${name}!`;
         toast.style.display = 'block';
         setTimeout(() => { toast.style.display = 'none'; }, 3500);
     }
@@ -1340,7 +1340,7 @@ function updateProgressDataUI() {
             btn.className = `q-status-btn ${isPlayed ? 'played' : 'unplay'}`;
             btn.innerHTML = `
                 <span style="font-size:13px;">Câu ${i + 1}</span>
-                <span style="font-size:11px;">${isPlayed ? '✅ Đã chơi' : '🔴 Chưa chơi'}</span>
+                <span style="font-size:11px;">${isPlayed ? 'Đã chơi' : 'Chưa chơi'}</span>
             `;
             btn.onclick = () => toggleQuestionStatus(i);
             gridEl.appendChild(btn);
@@ -1615,14 +1615,14 @@ function renderQuestionsTabUI() {
         const defaultQTimer = (gameSettings.questionTimers && gameSettings.questionTimers[idx] !== undefined) ? gameSettings.questionTimers[idx] : (gameSettings.timerSeconds || 60);
         roundHeader.innerHTML = `
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">🎯 VÒNG ${q.round || (idx + 1)}</span>
+                <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">VÒNG ${q.round || (idx + 1)}</span>
                 <div style="display: flex; align-items: center; gap: 4px; background: #111317; padding: 2px 6px; border-radius: 4px; border: 1px solid #222632;">
-                    <label style="font-size: 10px; color: #fbbf24; margin: 0;">⏱️ Thời gian đếm ngược:</label>
+                    <label style="font-size: 10px; color: #fbbf24; margin: 0;">Thời gian đếm ngược:</label>
                     <input type="number" id="qtab-timerSeconds-${idx}" value="${q.timerSeconds || ''}" placeholder="${defaultQTimer}" min="5" max="300" style="width: 55px; padding: 1px 4px; font-size: 11px; text-align: center; border-radius: 3px; background: #181b22; color: #fff; border: 1px solid #323848;">
                     <span style="font-size: 10px; color: #94a3b8;">giây</span>
                 </div>
             </div>
-            <button class="btn-red" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="deleteRoundFromStore(${idx})">🗑️ Xóa Vòng</button>
+            <button class="btn-red" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="deleteRoundFromStore(${idx})">Xóa Vòng</button>
         `;
         roundCard.appendChild(roundHeader);
 
@@ -1633,7 +1633,7 @@ function renderQuestionsTabUI() {
         const secA = document.createElement('div');
         secA.style.cssText = "background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px;";
         secA.innerHTML = `
-            <div style="font-size: 11px; font-weight: bold; color: #fbbf24;">📌 CHỦ ĐỀ & CÂU HỎI A</div>
+            <div style="font-size: 11px; font-weight: bold; color: #fbbf24;">CHỦ ĐỀ & CÂU HỎI A</div>
             <div>
                 <label style="color: #94a3b8; font-size: 10px;">Chủ đề A:</label>
                 <input type="text" id="qtab-topicA-${idx}" value="${q.topicA || ''}" placeholder="Tên chủ đề A">
@@ -1649,7 +1649,7 @@ function renderQuestionsTabUI() {
                 <input type="text" id="qtab-ansA4-${idx}" value="${(q.ansA && q.ansA[3]) || ''}" placeholder="Cửa 4">
             </div>
             <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
-                <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">🎥 Media A (Hình / Video):</label>
+                <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">Media A (Hình / Video):</label>
                 <div style="display: flex; gap: 4px; align-items: center;">
                     <select id="qtab-mediaTypeA-${idx}" style="width: 90px;">
                         <option value="none" ${(!q.mediaTypeA || q.mediaTypeA==='none') ? 'selected' : ''}>Không</option>
@@ -1658,7 +1658,7 @@ function renderQuestionsTabUI() {
                     </select>
                     <input type="text" id="qtab-mediaUrlA-${idx}" value="${q.mediaUrlA || ''}" placeholder="URL hoặc chọn file..." style="flex: 1;">
                     <input type="file" id="qtab-fileA-${idx}" accept="image/*,video/*" style="display:none;" onchange="handleQuestionTabFileUpload(event, ${idx}, 'A')">
-                    <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('qtab-fileA-${idx}').click()">📁 File</button>
+                    <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('qtab-fileA-${idx}').click()">File</button>
                 </div>
             </div>
         `;
@@ -1667,7 +1667,7 @@ function renderQuestionsTabUI() {
         const secB = document.createElement('div');
         secB.style.cssText = "background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 8px; display: flex; flex-direction: column; gap: 6px;";
         secB.innerHTML = `
-            <div style="font-size: 11px; font-weight: bold; color: #fbbf24;">📌 CHỦ ĐỀ & CÂU HỎI B</div>
+            <div style="font-size: 11px; font-weight: bold; color: #fbbf24;">CHỦ ĐỀ & CÂU HỎI B</div>
             <div>
                 <label style="color: #94a3b8; font-size: 10px;">Chủ đề B:</label>
                 <input type="text" id="qtab-topicB-${idx}" value="${q.topicB || ''}" placeholder="Tên chủ đề B">
@@ -1683,7 +1683,7 @@ function renderQuestionsTabUI() {
                 <input type="text" id="qtab-ansB4-${idx}" value="${(q.ansB && q.ansB[3]) || ''}" placeholder="Cửa 4">
             </div>
             <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
-                <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">🎥 Media B (Hình / Video):</label>
+                <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">Media B (Hình / Video):</label>
                 <div style="display: flex; gap: 4px; align-items: center;">
                     <select id="qtab-mediaTypeB-${idx}" style="width: 90px;">
                         <option value="none" ${(!q.mediaTypeB || q.mediaTypeB==='none') ? 'selected' : ''}>Không</option>
@@ -1692,7 +1692,7 @@ function renderQuestionsTabUI() {
                     </select>
                     <input type="text" id="qtab-mediaUrlB-${idx}" value="${q.mediaUrlB || ''}" placeholder="URL hoặc chọn file..." style="flex: 1;">
                     <input type="file" id="qtab-fileB-${idx}" accept="image/*,video/*" style="display:none;" onchange="handleQuestionTabFileUpload(event, ${idx}, 'B')">
-                    <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('qtab-fileB-${idx}').click()">📁 File</button>
+                    <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="document.getElementById('qtab-fileB-${idx}').click()">File</button>
                 </div>
             </div>
         `;
