@@ -6,6 +6,7 @@ const DEFAULT_SETTINGS = {
     currencyUnit: '$A',
     totalQuestions: 8,
     betDelaySeconds: 0.125,
+    showScreenFrames: true,
     questionTimers: [60, 60, 60, 60, 60, 60, 60, 60]
 };
 
@@ -1425,6 +1426,7 @@ function populateSettingsFormUI() {
     const unitEl = document.getElementById('cfg-currency-unit');
     const totalQEl = document.getElementById('cfg-total-questions');
     const betDelayEl = document.getElementById('cfg-bet-delay-seconds');
+    const showFramesEl = document.getElementById('cfg-show-screen-frames');
 
     if (timeSecEl) timeSecEl.value = gameSettings.timerSeconds;
     if (initStacksEl) initStacksEl.value = gameSettings.initialStacks;
@@ -1432,6 +1434,7 @@ function populateSettingsFormUI() {
     if (unitEl) unitEl.value = gameSettings.currencyUnit;
     if (totalQEl) totalQEl.value = gameSettings.totalQuestions;
     if (betDelayEl) betDelayEl.value = (gameSettings.betDelaySeconds !== undefined) ? gameSettings.betDelaySeconds : 0.125;
+    if (showFramesEl) showFramesEl.value = (gameSettings.showScreenFrames !== false) ? "true" : "false";
 
     renderSettingsQuestionTimersGrid();
     updateSettingsPreview();
@@ -1452,6 +1455,9 @@ function updateSettingsPreview() {
     const prevMoney = document.getElementById('preview-cfg-money');
     const prevQ = document.getElementById('preview-cfg-questions');
     const prevDelay = document.getElementById('preview-cfg-delay');
+    const prevFrames = document.getElementById('preview-cfg-frames');
+
+    const showFramesVal = (document.getElementById('cfg-show-screen-frames')?.value !== "false");
 
     // Check if custom per-question timers are set
     let customTimeText = `${timeSec} giây`;
@@ -1473,6 +1479,7 @@ function updateSettingsPreview() {
     if (prevMoney) prevMoney.innerText = `${totalInitMoney.toLocaleString('vi-VN')} ${unit} (${initStacks} cọc)`;
     if (prevQ) prevQ.innerText = `${totalQ} câu`;
     if (prevDelay) prevDelay.innerText = `${betDelay}s (${Math.round(betDelay * 1000)}ms)`;
+    if (prevFrames) prevFrames.innerText = showFramesVal ? "Hiển thị" : "Ẩn";
 }
 
 function saveGameSettings() {
@@ -1490,6 +1497,8 @@ function saveGameSettings() {
         qTimers.push((isNaN(val) || val <= 0) ? timeSec : val);
     }
 
+    const showFramesVal = (document.getElementById('cfg-show-screen-frames')?.value !== "false");
+
     gameSettings = {
         timerSeconds: timeSec,
         initialStacks: initStacks,
@@ -1497,6 +1506,7 @@ function saveGameSettings() {
         currencyUnit: unit,
         totalQuestions: totalQ,
         betDelaySeconds: betDelay,
+        showScreenFrames: showFramesVal,
         questionTimers: qTimers
     };
 

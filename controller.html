@@ -828,6 +828,22 @@
                         <span style="font-size: 9px; color: #64748b;">Mặc định: 0.125 giây (125ms). Giúp kiểm soát tốc độ giãn cách giữa mỗi lần người chơi bấm nút Đặt tiền/Rút tiền.</span>
                     </div>
                 </div>
+
+                <!-- Group 4: Screen Frames Option -->
+                <div style="background: #181b22; border: 1px solid #222632; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 11px; color: #60a5fa; border-bottom: 1px solid #262a36; padding-bottom: 4px; font-weight: bold;">
+                        4. KHUNG MÀN HÌNH (MAIN1.PNG &amp; OUTLINESCREEN.PNG)
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="cfg-show-screen-frames" style="font-weight: 600;">Hiển thị 2 khung màn hình (main1.png &amp; outlinescreen.png):</label>
+                        <select id="cfg-show-screen-frames" onchange="updateSettingsPreview()" style="width: 100%; padding: 6px; border-radius: 4px; background: #111317; color: #fff; border: 1px solid #323848; font-size: 12px;">
+                            <option value="true">Hiển thị (Bật 2 khung main1.png &amp; outlinescreen.png)</option>
+                            <option value="false">Ẩn (Tắt 2 khung màn hình)</option>
+                        </select>
+                        <span style="font-size: 9px; color: #64748b;">Cho phép bật/tắt hiển thị 2 lớp khung màn hình main1.png và outlinescreen.png trên Projector.</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Preview Panel -->
@@ -835,7 +851,7 @@
                 <div style="font-size: 10px; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">
                     XEM TRƯỚC TỔNG QUAN CẤU HÌNH
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center;">
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center;">
                     <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
                         <div style="font-size: 9px; color: #94a3b8;">THỜI GIAN / CÂU</div>
                         <div id="preview-cfg-time" style="font-size: 14px; color: #f59e0b; margin-top: 2px;">60 giây</div>
@@ -851,6 +867,10 @@
                     <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
                         <div style="font-size: 9px; color: #94a3b8;">DELAY ĐẶT TIỀN</div>
                         <div id="preview-cfg-delay" style="font-size: 14px; color: #38bdf8; margin-top: 2px;">0.125 giây (125ms)</div>
+                    </div>
+                    <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
+                        <div style="font-size: 9px; color: #94a3b8;">KHUNG MÀN HÌNH</div>
+                        <div id="preview-cfg-frames" style="font-size: 14px; color: #a7f3d0; margin-top: 2px;">Hiển thị</div>
                     </div>
                 </div>
             </div>
