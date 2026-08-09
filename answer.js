@@ -48,6 +48,26 @@ function updateBetDisplays() {
     }
 }
 
+function fitAnswerText(el) {
+    if (!el || !el.innerText) return;
+    el.style.fontSize = '';
+    let currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+    let minSize = 12;
+    while ((el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) && currentSize > minSize) {
+        currentSize -= 1;
+        el.style.fontSize = currentSize + 'px';
+    }
+}
+
+function fitAllAnswers() {
+    for (let i = 1; i <= 4; i++) {
+        const insideTxt = document.getElementById(`inside-txt-${i}`);
+        if (insideTxt) fitAnswerText(insideTxt);
+    }
+}
+
+window.addEventListener('resize', fitAllAnswers);
+
 // Initial state on reload: all 4 doors are unused
 for (let i = 1; i <= 4; i++) {
     setUnusedStatus(i, true);
@@ -105,6 +125,7 @@ channel.onmessage = function(event) {
                     insideTxt.innerText = data.text;
                     insideTxt.classList.remove('hide-on-drop'); 
                     insideTxt.classList.add('show');
+                    setTimeout(() => fitAnswerText(insideTxt), 10);
                 }
 
                 const surfaceEl = document.getElementById(`surface-${targetDoorId}`);

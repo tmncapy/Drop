@@ -42,6 +42,22 @@ function updateBetDisplay() {
     }
 }
 
+function fitAnswerText(el) {
+    if (!el || !el.innerText) return;
+    el.style.fontSize = '';
+    let currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+    let minSize = 16;
+    while ((el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth) && currentSize > minSize) {
+        currentSize -= 2;
+        el.style.fontSize = currentSize + 'px';
+    }
+}
+
+window.addEventListener('resize', () => {
+    const insideTxt = document.getElementById(`inside-txt-${DOOR_ID}`);
+    if (insideTxt) fitAnswerText(insideTxt);
+});
+
 // Initial state
 setUnusedStatus(true);
 updateBetDisplay();
@@ -91,6 +107,7 @@ channel.onmessage = function(event) {
                     insideTxt.innerText = data.text;
                     insideTxt.classList.remove('hide-on-drop'); 
                     insideTxt.classList.add('show');
+                    setTimeout(() => fitAnswerText(insideTxt), 10);
                 }
 
                 const surfaceEl = document.getElementById(`surface-${DOOR_ID}`);
