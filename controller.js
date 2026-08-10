@@ -22,6 +22,226 @@ function loadGameSettings() {
     return { ...DEFAULT_SETTINGS };
 }
 
+// ==========================================
+// SYSTEM LOGS & REALTIME MONITORING ENGINE
+// ==========================================
+let systemLogs = loadSystemLogs();
+let activeLogFilter = 'all';
+
+function loadSystemLogs() {
+    try {
+        const saved = localStorage.getItem('gameshow_system_logs');
+        if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return [{
+        id: 'init_log_' + Date.now(),
+        timestamp: new Date().toTimeString().split(' ')[0],
+        date: new Date().toLocaleDateString('vi-VN'),
+        category: 'system',
+        title: 'KHỞI TẠO HỆ THỐNG',
+        message: 'Hệ thống Bàn Điều Khiển (Controller) sẵn sàng ghi nhận nhật ký.',
+        remainingMoney: (gameSettings.initialStacks || 40) * (gameSettings.stackValue || 25000),
+        remainingStacks: gameSettings.initialStacks || 40,
+        totalLost: 0,
+        totalLostStacks: 0
+    }];
+}
+
+function saveSystemLogs() {
+    try {
+        if (systemLogs.length > 300) {
+            systemLogs = systemLogs.slice(systemLogs.length - 300);
+        }
+        localStorage.setItem('gameshow_system_logs', JSON.stringify(systemLogs));
+    } catch(e) {}
+}
+
+function addSystemLog(category, title, message, extraData = {}) {
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0];
+    const dateStr = now.toLocaleDateString('vi-VN');
+
+    const stackVal = gameSettings.stackValue || 25000;
+    const initTotal = (gameSettings.initialStacks || 40) * stackVal;
+    const currentLost = Math.max(0, initTotal - currentMoneyAmount);
+
+    const logEntry = {
+        id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        timestamp: timeStr,
+        date: dateStr,
+        category: category, // 'bet', 'lost', 'auth', 'system'
+        title: title,
+        message: message,
+        remainingMoney: currentMoneyAmount,
+        remainingStacks: Math.round(currentMoneyAmount / stackVal),
+        totalLost: currentLost,
+        totalLostStacks: Math.round(currentLost / stackVal),
+        ...extraData
+    };
+
+    systemLogs.push(logEntry);
+    saveSystemLogs();
+
+    renderSystemLogsUI();
+    updateLogStatsSummaryUI();
+}
+
+function updateLogStatsSummaryUI() {
+    const unit = gameSettings.currencyUnit || '$A';
+    const stackVal = gameSettings.stackValue || 25000;
+    const initTotal = (gameSettings.initialStacks || 40) * stackVal;
+    const currentLost = Math.max(0, initTotal - currentMoneyAmount);
+
+    const totalBet = (lastMcBetsData.b1 || 0) + (lastMcBetsData.b2 || 0) + (lastMcBetsData.b3 || 0) + (lastMcBetsData.b4 || 0);
+
+    const remainingEl = document.getElementById('log-stat-remaining');
+    const remainingStacksEl = document.getElementById('log-stat-remaining-stacks');
+    if (remainingEl) remainingEl.innerText = `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit}`;
+    if (remainingStacksEl) remainingStacksEl.innerText = `(${Math.round(currentMoneyAmount / stackVal)} cọc)`;
+
+    const betEl = document.getElementById('log-stat-bet');
+    const betStacksEl = document.getElementById('log-stat-bet-stacks');
+    if (betEl) betEl.innerText = `${totalBet.toLocaleString('vi-VN')} ${unit}`;
+    if (betStacksEl) betStacksEl.innerText = `(${Math.round(totalBet / stackVal)} cọc)`;
+
+    const lostEl = document.getElementById('log-stat-lost');
+    const lostStacksEl = document.getElementById('log-stat-lost-stacks');
+    if (lostEl) lostEl.innerText = `${currentLost.toLocaleString('vi-VN')} ${unit}`;
+    if (lostStacksEl) lostStacksEl.innerText = `(${Math.round(currentLost / stackVal)} cọc)`;
+
+    const authStatusEl = document.getElementById('log-stat-auth-status');
+    const authDetailEl = document.getElementById('log-stat-auth-detail');
+    if (authStatusEl) authStatusEl.innerText = `🟢 PIN: ${currentPin}`;
+    if (authDetailEl) authDetailEl.innerText = `Đã xác thực & Đồng bộ`;
+}
+
+function setLogFilter(filterCategory) {
+    activeLogFilter = filterCategory;
+    const filterBtns = ['all', 'bet', 'lost', 'auth', 'system'];
+    filterBtns.forEach(cat => {
+        const btn = document.getElementById(`log-filter-btn-${cat}`);
+        if (btn) {
+            if (cat === filterCategory) {
+                btn.className = 'btn-blue';
+                btn.style.opacity = '1';
+            } else {
+                btn.className = 'btn-orange';
+                btn.style.opacity = '0.6';
+            }
+        }
+    });
+    renderSystemLogsUI();
+}
+
+function renderSystemLogsUI() {
+    const container = document.getElementById('logs-list-container');
+    if (!container) return;
+
+    const searchQuery = (document.getElementById('log-search-input')?.value || '').toLowerCase().trim();
+
+    let filtered = systemLogs.filter(log => {
+        if (activeLogFilter !== 'all' && log.category !== activeLogFilter) {
+            return false;
+        }
+        if (searchQuery) {
+            const matchTitle = (log.title || '').toLowerCase().includes(searchQuery);
+            const matchMsg = (log.message || '').toLowerCase().includes(searchQuery);
+            const matchTime = (log.timestamp || '').toLowerCase().includes(searchQuery);
+            return matchTitle || matchMsg || matchTime;
+        }
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; color: #64748b; padding: 40px 0; font-size: 12px;">
+                Không có nhật ký log nào phù hợp với bộ lọc hiện tại.
+            </div>
+        `;
+        return;
+    }
+
+    const unit = gameSettings.currencyUnit || '$A';
+
+    container.innerHTML = filtered.map(log => {
+        let tagBg = '#1e293b';
+        let tagColor = '#94a3b8';
+        let tagLabel = 'HỆ THỐNG';
+
+        if (log.category === 'bet') {
+            tagBg = '#1e3a8a'; tagColor = '#60a5fa'; tagLabel = 'ĐẶT TIỀN';
+        } else if (log.category === 'lost') {
+            tagBg = '#7f1d1d'; tagColor = '#fca5a5'; tagLabel = 'MẤT TIỀN';
+        } else if (log.category === 'auth') {
+            tagBg = '#064e3b'; tagColor = '#34d399'; tagLabel = 'ĐĂNG NHẬP / PIN';
+        }
+
+        return `
+            <div style="background: #161b22; border: 1px solid #222632; border-left: 3px solid ${tagColor}; border-radius: 4px; padding: 6px 10px; display: flex; flex-direction: column; gap: 3px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="background: ${tagBg}; color: ${tagColor}; font-size: 9px; font-weight: bold; padding: 1px 6px; border-radius: 3px;">
+                            [${tagLabel}]
+                        </span>
+                        <strong style="color: #f3f4f6; font-size: 11px;">${log.title}</strong>
+                    </div>
+                    <span style="color: #64748b; font-size: 10px;">🕒 ${log.timestamp} (${log.date})</span>
+                </div>
+                <div style="color: #cbd5e1; font-size: 11px; line-height: 1.4;">
+                    ${log.message}
+                </div>
+                <div style="display: flex; gap: 12px; font-size: 10px; color: #94a3b8; border-top: 1px dashed #222632; padding-top: 3px; margin-top: 2px;">
+                    <span>💰 Còn lại: <strong style="color: #38bdf8;">${(log.remainingMoney || 0).toLocaleString('vi-VN')} ${unit}</strong> (${log.remainingStacks || 0} cọc)</span>
+                    <span>📉 Tổng mất: <strong style="color: #f85149;">${(log.totalLost || 0).toLocaleString('vi-VN')} ${unit}</strong> (${log.totalLostStacks || 0} cọc)</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    const autoScrollChk = document.getElementById('log-autoscroll-chk');
+    if (autoScrollChk && autoScrollChk.checked) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+function clearSystemLogs() {
+    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ nhật ký log hệ thống?")) {
+        systemLogs = [];
+        saveSystemLogs();
+        addSystemLog('system', 'XÓA NHẬT KÝ', 'Đã xóa sạch nhật ký log hệ thống.');
+    }
+}
+
+function exportSystemLogsText() {
+    if (systemLogs.length === 0) {
+        alert("Hiện chưa có dữ liệu log để xuất!");
+        return;
+    }
+    const unit = gameSettings.currencyUnit || '$A';
+    let textContent = `====================================================\n`;
+    textContent += `   NHẬT KÝ HỆ THỐNG GAMESHOW MONEY DROP (LOGS)\n`;
+    textContent += `   Ngày xuất: ${new Date().toLocaleString('vi-VN')}\n`;
+    textContent += `====================================================\n\n`;
+
+    systemLogs.forEach((log, index) => {
+        textContent += `[#${index + 1}] [${log.timestamp} ${log.date}] [${(log.category || 'system').toUpperCase()}]\n`;
+        textContent += `Tiêu đề : ${log.title}\n`;
+        textContent += `Nội dung: ${log.message}\n`;
+        textContent += `Trạng thái tài chính: Còn lại ${(log.remainingMoney || 0).toLocaleString('vi-VN')} ${unit} (${log.remainingStacks || 0} cọc) | Tổng mất ${(log.totalLost || 0).toLocaleString('vi-VN')} ${unit}\n`;
+        textContent += `----------------------------------------------------\n`;
+    });
+
+    const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `nhat_ky_gameshow_${new Date().toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
 // --- DYNAMIC CONTROLLER BUTTON LABELS & TIMERS ---
 function updateDynamicControllerButtonLabels() {
     const topicA = (document.getElementById('topic-a')?.value || '').trim();
@@ -168,6 +388,8 @@ window.addEventListener('DOMContentLoaded', () => {
     setGlobalVolume(currentGlobalVolume);
     updateDynamicControllerButtonLabels();
     updateTimerForCurrentQuestion();
+    renderSystemLogsUI();
+    updateLogStatsSummaryUI();
 });
 
 function initPinCode() {
@@ -190,6 +412,7 @@ function updatePinCode() {
     currentPin = val;
     localStorage.setItem('game_pin', currentPin);
     sendCommand('update_pin', { pin: currentPin, forceLock: true });
+    addSystemLog('auth', 'CẬP NHẬT MÃ PIN', `Đã đổi mã PIN mới thành [${currentPin}]. Đã gửi tín hiệu bắt buộc Player xác nhận lại.`);
     alert(`Đã cập nhật mã PIN mới: ${currentPin} (Đã yêu cầu tất cả Player xác nhận lại)`);
 }
 
@@ -203,6 +426,7 @@ function generateRandomPin() {
 function forceLockPlayers() {
     localStorage.removeItem('player_auth_pin');
     sendCommand('update_pin', { pin: currentPin, forceLock: true });
+    addSystemLog('auth', 'KHÓA MÀN HÌNH PLAYER', `Đã gửi lệnh khóa khẩn cấp toàn bộ màn hình Người Chơi.`);
     alert("Đã gửi lệnh khóa tất cả màn hình Player!");
 }
 
@@ -215,7 +439,18 @@ channel.onmessage = function(event) {
         sendCommand('update_pin', { pin: currentPin });
         sendCommand('set_volume', { volume: currentGlobalVolume });
     }
+    if (action === 'player_authenticated') {
+        addSystemLog('auth', 'PLAYER XÁC THỰC', `Màn hình Player đã nhập đúng mã PIN và đăng nhập thành công.`);
+    }
+    if (action === 'request_player_state') {
+        addSystemLog('auth', 'KẾT NỐI PLAYER', `Màn hình Player kết nối và gửi yêu cầu đồng bộ.`);
+    }
     if (action === 'sync_bets_to_mc' && data) {
+        const prevB1 = lastMcBetsData.b1 || 0;
+        const prevB2 = lastMcBetsData.b2 || 0;
+        const prevB3 = lastMcBetsData.b3 || 0;
+        const prevB4 = lastMcBetsData.b4 || 0;
+
         lastMcBetsData.b1 = data.b1 || 0;
         lastMcBetsData.b2 = data.b2 || 0;
         lastMcBetsData.b3 = data.b3 || 0;
@@ -234,8 +469,19 @@ channel.onmessage = function(event) {
             inputEl.value = data.totalStacks;
         }
 
+        // Log bet changes if placement amounts updated
+        if (prevB1 !== data.b1 || prevB2 !== data.b2 || prevB3 !== data.b3 || prevB4 !== data.b4) {
+            const unit = gameSettings.currencyUnit || '$A';
+            const totalBet = (data.b1 || 0) + (data.b2 || 0) + (data.b3 || 0) + (data.b4 || 0);
+            const betDetails = `Cửa 1: ${(data.b1||0).toLocaleString('vi-VN')} ${unit} | Cửa 2: ${(data.b2||0).toLocaleString('vi-VN')} ${unit} | Cửa 3: ${(data.b3||0).toLocaleString('vi-VN')} ${unit} | Cửa 4: ${(data.b4||0).toLocaleString('vi-VN')} ${unit}`;
+            addSystemLog('bet', 'PLAYER ĐẶT TIỀN', `Đặt cược mới trên bàn: ${betDetails} (Tổng đặt: ${totalBet.toLocaleString('vi-VN')} ${unit}).`, {
+                b1: data.b1, b2: data.b2, b3: data.b3, b4: data.b4, totalBet: totalBet
+            });
+        }
+
         updateControllerMoneyLabels();
         updateProgressDataUI();
+        updateLogStatsSummaryUI();
         if (isProgressShowingOnProjector) {
             showProgressOnProjector();
         }
@@ -1050,6 +1296,7 @@ function collectMoneyBack() {
     }
     sendCommand('collect_winning');
     hideWinningMoneyOnProjector();
+    addSystemLog('system', 'THU TIỀN THẮNG VỀ BÀN', `Đã thu tiền thắng ở các cửa an toàn về bàn chuẩn bị vòng tiếp theo.`);
 }
 
 function showWinningMoneyOnProjector() {
@@ -1087,6 +1334,8 @@ function startTimer() {
         round: r
     });
 
+    addSystemLog('system', 'BẮT ĐẦU ĐẾM NGƯỢC', `Khởi động đếm ngược ${timeLeft}s cho Vòng ${r}.`);
+
     timerInterval = setInterval(() => {
         timeLeft--;
         updateTimerDisplay();
@@ -1101,6 +1350,7 @@ function startTimer() {
                 status: "timeout",
                 time: 0
             });
+            addSystemLog('system', 'HẾT GIỜ ĐẶT CƯỢC', `Đồng hồ đếm ngược đã về 0s. Khóa thời gian đặt cược.`);
         }
     }, 1000);
 }
@@ -1111,6 +1361,7 @@ function add30Seconds() {
     updateTimerDisplay();
     playSfx('SFX/drop_30s.wav', false, false);
     sendCommand('timer_control', { status: 'add30', time: timeLeft });
+    addSystemLog('system', 'CỘNG THÊM +30 GIÂY', `Cộng thêm +30s thời gian đặt cược (Thời gian mới: ${timeLeft}s).`);
     timerInterval = setInterval(() => {
         timeLeft--;
         updateTimerDisplay();
@@ -1118,6 +1369,7 @@ function add30Seconds() {
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             sendCommand('timer_control', { status: 'timeout' });
+            addSystemLog('system', 'HẾT GIỜ ĐẶT CƯỢC', `Đồng hồ đếm ngược đã về 0s.`);
         }
     }, 1000);
 }
@@ -1129,6 +1381,7 @@ function stopTimer() {
         time: timeLeft
     });
     playSfx('SFX/drop_timer_stop.mp3');
+    addSystemLog('system', 'DỪNG ĐẾM NGƯỢC', `Dừng thời gian đếm ngược ở mốc ${timeLeft}s.`);
 }
 
 function updateTimerDisplay() {
@@ -1150,6 +1403,15 @@ function updateTimerDisplay() {
 function openDoor(id) { 
     playSfx('SFX/drop_trapdoor_1.mp3', false, false);
     sendCommand('open_door', { doorId: id }); 
+
+    const unit = gameSettings.currencyUnit || '$A';
+    const doorBet = lastMcBetsData[`b${id}`] || 0;
+    const stackVal = gameSettings.stackValue || 25000;
+    const stacksLost = Math.round(doorBet / stackVal);
+
+    addSystemLog('lost', 'SẬP CỬA - MẤT TIỀN', `Mở sập cửa đáp án ${id}! Số tiền ${doorBet.toLocaleString('vi-VN')} ${unit} (${stacksLost} cọc) bị rơi xuống hố.`, {
+        doorId: id, lostBet: doorBet, lostStacks: stacksLost
+    });
 }
 
 function openSelectedDoors() {
@@ -1177,7 +1439,12 @@ function selectAllDoors(checkAll) {
     }
 }
 function collectWinningMoney() { collectMoneyBack(); }
-function penaltyFine() { sendCommand('penalty_fine'); }
+function penaltyFine() { 
+    sendCommand('penalty_fine'); 
+    const unit = gameSettings.currencyUnit || '$A';
+    const stackVal = gameSettings.stackValue || 25000;
+    addSystemLog('lost', 'PHẠT TRỪ CỌC TIỀN', `Bị phạt trừ 1 cọc tiền (${stackVal.toLocaleString('vi-VN')} ${unit}).`);
+}
 function addPlayerStacksMC(count) { sendCommand('add_player_stacks', { count: count }); }
 function removePlayerStacksMC(count) { sendCommand('remove_player_stacks', { count: count }); }
 function setPlayerStacksMC(count) { sendCommand('set_player_stacks', { count: count }); }
@@ -1268,6 +1535,8 @@ function reloadRole(targetRole) {
     };
     const name = roleNames[targetRole] || targetRole;
 
+    addSystemLog('system', 'RELOAD MÀN HÌNH', `Đã gửi lệnh Reload đến màn hình: ${name}.`);
+
     const toast = document.getElementById('role-reload-status');
     if (toast) {
         toast.innerText = `Đã gửi tín hiệu TẢI LẠI đến: ${name}!`;
@@ -1287,24 +1556,28 @@ function switchControllerTab(tabName) {
     const progDash = document.getElementById('progress-dashboard');
     const rolesDash = document.getElementById('roles-dashboard');
     const setDash = document.getElementById('settings-dashboard');
+    const logDash = document.getElementById('logs-dashboard');
 
     const btnMain = document.getElementById('tab-btn-main');
     const btnQ = document.getElementById('tab-btn-questions');
     const btnProg = document.getElementById('tab-btn-progress');
     const btnRoles = document.getElementById('tab-btn-roles');
     const btnSet = document.getElementById('tab-btn-settings');
+    const btnLog = document.getElementById('tab-btn-logs');
 
     if (mainDash) mainDash.style.display = (tabName === 'main') ? 'grid' : 'none';
     if (qDash) qDash.style.display = (tabName === 'questions') ? 'flex' : 'none';
     if (progDash) progDash.style.display = (tabName === 'progress') ? 'flex' : 'none';
     if (rolesDash) rolesDash.style.display = (tabName === 'roles') ? 'flex' : 'none';
     if (setDash) setDash.style.display = (tabName === 'settings') ? 'flex' : 'none';
+    if (logDash) logDash.style.display = (tabName === 'logs') ? 'flex' : 'none';
 
     if (btnMain) btnMain.classList.toggle('active', tabName === 'main');
     if (btnQ) btnQ.classList.toggle('active', tabName === 'questions');
     if (btnProg) btnProg.classList.toggle('active', tabName === 'progress');
     if (btnRoles) btnRoles.classList.toggle('active', tabName === 'roles');
     if (btnSet) btnSet.classList.toggle('active', tabName === 'settings');
+    if (btnLog) btnLog.classList.toggle('active', tabName === 'logs');
 
     if (tabName === 'questions') {
         renderQuestionsTabUI();
@@ -1312,6 +1585,9 @@ function switchControllerTab(tabName) {
         updateProgressDataUI();
     } else if (tabName === 'settings') {
         populateSettingsFormUI();
+    } else if (tabName === 'logs') {
+        renderSystemLogsUI();
+        updateLogStatsSummaryUI();
     }
 }
 
