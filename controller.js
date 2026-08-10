@@ -117,7 +117,7 @@ function updateLogStatsSummaryUI() {
 
 function setLogFilter(filterCategory) {
     activeLogFilter = filterCategory;
-    const filterBtns = ['all', 'bet', 'lost', 'auth', 'system'];
+    const filterBtns = ['all', 'bet', 'lost', 'sec', 'auth', 'system'];
     filterBtns.forEach(cat => {
         const btn = document.getElementById(`log-filter-btn-${cat}`);
         if (btn) {
@@ -174,6 +174,8 @@ function renderSystemLogsUI() {
             tagBg = '#7f1d1d'; tagColor = '#fca5a5'; tagLabel = 'MẤT TIỀN';
         } else if (log.category === 'auth') {
             tagBg = '#064e3b'; tagColor = '#34d399'; tagLabel = 'ĐĂNG NHẬP / PIN';
+        } else if (log.category === 'sec') {
+            tagBg = '#7c2d12'; tagColor = '#fb923c'; tagLabel = '⚠️ F12 / TÁC VỤ';
         }
 
         return `
@@ -444,6 +446,12 @@ channel.onmessage = function(event) {
     }
     if (action === 'request_player_state') {
         addSystemLog('auth', 'KẾT NỐI PLAYER', `Màn hình Player kết nối và gửi yêu cầu đồng bộ.`);
+    }
+    if (action === 'security_event' && data) {
+        addSystemLog('sec', `⚠️ ${data.title || 'CẢNH BÁO BẢO MẬT'}`, `[${data.role || 'Màn Hình'}] ${data.details || ''}`, {
+            secType: data.type,
+            role: data.role
+        });
     }
     if (action === 'sync_bets_to_mc' && data) {
         const prevB1 = lastMcBetsData.b1 || 0;

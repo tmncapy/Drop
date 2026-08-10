@@ -2,6 +2,55 @@
 
 (function () {
     // ==========================================
+    // 0. ROLE DETECTOR & REALTIME SECURITY CHANNEL
+    // ==========================================
+    function getRoleLabel() {
+        const path = window.location.pathname.toLowerCase();
+        if (path.includes('player')) return 'Người Chơi (Player)';
+        if (path.includes('controller')) return 'Bàn Điều Khiển (Controller)';
+        if (path.includes('host')) return 'MC Host';
+        if (path.includes('projector')) return 'Máy Chiếu (Projector)';
+        if (path.includes('answer')) return 'Màn Hình Cửa (Sound/MC)';
+        if (path.includes('server')) return 'Máy Chủ (Server)';
+        return document.title || 'Màn Hình Game';
+    }
+
+    let _secChannel = null;
+    function getSecurityChannel() {
+        if (_secChannel) return _secChannel;
+        if (typeof GameSyncChannel !== 'undefined') {
+            _secChannel = new GameSyncChannel('gameshow_money_drop');
+        } else if (typeof BroadcastChannel !== 'undefined') {
+            _secChannel = new BroadcastChannel('gameshow_money_drop');
+        }
+        return _secChannel;
+    }
+
+    let lastLoggedEvents = {};
+    function sendSecurityLogToController(type, title, details) {
+        const eventKey = `${type}_${title}`;
+        const now = Date.now();
+        if (lastLoggedEvents[eventKey] && (now - lastLoggedEvents[eventKey] < 3000)) {
+            return; // Cooldown to avoid spam
+        }
+        lastLoggedEvents[eventKey] = now;
+
+        const channel = getSecurityChannel();
+        if (channel) {
+            channel.postMessage({
+                action: 'security_event',
+                data: {
+                    type: type,
+                    role: getRoleLabel(),
+                    title: title,
+                    details: details,
+                    timestamp: new Date().toTimeString().split(' ')[0]
+                }
+            });
+        }
+    }
+
+    // ==========================================
     // 1. DEVTOOLS & SOURCE INSPECTION PROTECTION
     // ==========================================
     
@@ -9,6 +58,7 @@
     document.addEventListener('contextmenu', function (e) {
         e.preventDefault();
         showSecurityWarning('⚠️ Thao tác chuột phải (Xem nguồn trang) bị cấm để bảo mật Gameshow!');
+        sendSecurityLogToController('inspect_click', 'CỐ TÌNH BẤM CHUỘT PHẢI', `Thao tác chuột phải (Xem nguồn / Inspect element).`);
         return false;
     });
 
@@ -18,24 +68,28 @@
         if (e.keyCode === 123 || e.key === 'F12') {
             e.preventDefault();
             showSecurityWarning('⚠️ Phím F12 (Developer Tools) bị vô hiệu hóa!');
+            sendSecurityLogToController('f12_key', 'CỐ TÌNH BẤM PHÍM F12', `Phát hiện thao tác bấm phím F12 (Developer Tools).`);
             return false;
         }
         // Ctrl + Shift + I / J / C
         if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'i' || e.key === 'j' || e.key === 'c')) {
             e.preventDefault();
             showSecurityWarning('⚠️ Phím tắt Developer Tools bị vô hiệu hóa!');
+            sendSecurityLogToController('f12_key', 'CỐ TÌNH BẤM PHÍM TẮT INSPECT', `Bấm tổ hợp phím Ctrl+Shift+${(e.key||'').toUpperCase()} mở Developer Tools.`);
             return false;
         }
         // Cmd + Option + I / J / C (Mac)
         if (e.metaKey && e.altKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67 || e.key === 'I' || e.key === 'J' || e.key === 'C' || e.key === 'i' || e.key === 'j' || e.key === 'c')) {
             e.preventDefault();
             showSecurityWarning('⚠️ Phím tắt Developer Tools bị vô hiệu hóa!');
+            sendSecurityLogToController('f12_key', 'CỐ TÌNH BẤM PHÍM TẮT INSPECT (MAC)', `Bấm tổ hợp phím Cmd+Opt+${(e.key||'').toUpperCase()} mở Developer Tools.`);
             return false;
         }
         // Ctrl + U (View Source)
         if (e.ctrlKey && (e.keyCode === 85 || e.key === 'U' || e.key === 'u')) {
             e.preventDefault();
             showSecurityWarning('⚠️ Xem nguồn trang (Ctrl+U) bị vô hiệu hóa!');
+            sendSecurityLogToController('f12_key', 'CỐ TÌNH XEM CODE NGUỒN (CTRL+U)', `Bấm Ctrl+U mở View Source.`);
             return false;
         }
         // Ctrl + S (Save Page)
@@ -43,6 +97,38 @@
             e.preventDefault();
             showSecurityWarning('⚠️ Lưu trang web bị vô hiệu hóa!');
             return false;
+        }
+    });
+
+    // DevTools Open Detection (Window Size Heuristics)
+    let devToolsOpen = false;
+    function checkDevToolsOpened() {
+        const widthThreshold = (window.outerWidth - window.innerWidth) > 160;
+        const heightThreshold = (window.outerHeight - window.innerHeight) > 160;
+        if ((widthThreshold || heightThreshold) && window.outerWidth > 0 && window.outerHeight > 0) {
+            if (!devToolsOpen) {
+                devToolsOpen = true;
+                sendSecurityLogToController('devtools_open', 'PHÁT HIỆN DÙNG F12 / DEVTOOLS', `Cửa sổ Developer Tools (Console / Inspect) đang mở trên màn hình.`);
+            }
+        } else {
+            devToolsOpen = false;
+        }
+    }
+    window.addEventListener('resize', checkDevToolsOpened);
+    setInterval(checkDevToolsOpened, 2500);
+
+    // Tab Switch & Window Focus Detection
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            sendSecurityLogToController('tab_switch', 'CHUYỂN TAB / RỜI MÀN HÌNH', `Đã chuyển sang Tab khác hoặc thu nhỏ trình duyệt (Rời khỏi màn hình game).`);
+        } else {
+            sendSecurityLogToController('tab_return', 'QUAY LẠI TÀI KHOẢN GAME', `Đã quay trở lại tab màn hình game.`);
+        }
+    });
+
+    window.addEventListener('blur', function () {
+        if (!document.hidden) {
+            sendSecurityLogToController('window_blur', 'RỜI TIÊU ĐIỂM (FOCUS)', `Con trỏ / Tiêu điểm bị rời khỏi màn hình game (Mở ứng dụng khác).`);
         }
     });
 
