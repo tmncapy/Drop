@@ -222,10 +222,10 @@ channel.onmessage = function(event) {
                 vSplit.classList.add('active');
                 // Trigger reflow for smooth animation start
                 void vSplit.offsetWidth;
-                // Phase 1: Entrance Split Vertical In (Cửa sập gập khép từ trên & dưới vào giữa)
+                // Phase 1: Entrance Split Vertical In (Cửa sập gập khép từ trên & dưới vào giữa - 1.0s)
                 vSplit.classList.add('split-in');
 
-                // Phase 2: Exit Split Vertical Out (Sau đó mở ra thông báo số tiền đã rơi)
+                // Phase 2: Exit Split Vertical Out (Sau đó mở ra thông báo số tiền đã rơi - 1.0s)
                 setTimeout(() => {
                     if (bgLayer) bgLayer.classList.add('collapsed-bg'); 
                     if (fallTxt) {
@@ -238,8 +238,8 @@ channel.onmessage = function(event) {
 
                     setTimeout(() => {
                         vSplit.classList.remove('active', 'split-out');
-                    }, 750);
-                }, 750);
+                    }, 1000);
+                }, 1000);
             } else {
                 if (bgLayer) bgLayer.classList.add('collapsed-bg'); 
                 if (fallTxt) {

@@ -96,23 +96,26 @@
             background-image: url('dropdoor.png') !important;
         }
 
+        /* TEXT ĐÁP ÁN TRÊN NỀN INDOOR.PNG (CĂN GIỮA TRUNG TÂM GRAPHIC) */
         .answer-text-inside {
-            position: absolute; top: 0%; bottom: 14%; left: 3%; right: 3%; width: 94%; height: 86%;
-            display: flex; align-items: center; justify-content: center; padding: 0 3vw 5vh 3vw;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.3);
+            width: 90%; height: 90%;
+            display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;
             font-size: clamp(64px, 14vw, 210px); font-weight: bold; text-align: center; color: #ffffff;
             font-family: 'Myriad Pro Bold', 'Myriad Pro', Arial, sans-serif;
             text-shadow: 0 3px 6px rgba(0,0,0,0.6); z-index: 2;
-            opacity: 0; transform: scale(0.3);
+            opacity: 0;
             transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none;
             word-break: break-word;
-            line-height: 1.2;
+            line-height: 1.15;
             box-sizing: border-box;
         }
-        .answer-text-inside.show { opacity: 1; transform: scale(1); }
+        .answer-text-inside.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         .answer-text-inside.hide-on-drop { opacity: 0 !important; transform: scale(0.3) !important; transition: all 0.2s ease !important; }
 
         .fall-status-text {
-            position: absolute; top: 2%; bottom: 12%; left: 3%; right: 3%; width: 94%; height: 86%;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 90%; height: 90%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 20px;
             color: #ff3333; font-size: clamp(48px, 9vw, 140px); font-weight: normal; text-align: center;
@@ -120,24 +123,26 @@
             text-shadow: none;
             opacity: 0; transition: opacity 0.4s ease; pointer-events: none;
             font-family: 'UVN Thanh Pho Nang', sans-serif;
+            box-sizing: border-box;
         }
         .fall-status-text.active { opacity: 1; }
 
+        /* LỚP BỀ MẶT CỬA DOOR.PNG (CHẬM THÊM 0.25S -> 1.0S) */
         .door-surface {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3;
-            display: flex; transition: transform 0.75s cubic-bezier(0.77, 0, 0.175, 1);
+            display: flex; transition: transform 1.0s cubic-bezier(0.77, 0, 0.175, 1);
         }
 
         .door-wing {
             width: 50%; height: 100%; background-size: 200% 100%; background-position: left center;
-            background-image: url('door.png'); transition: transform 0.75s cubic-bezier(0.25, 1, 0.5, 1), background-image 0.2s ease; background-repeat: no-repeat;
+            background-image: url('door.png'); transition: transform 1.0s cubic-bezier(0.25, 1, 0.5, 1), background-image 0.2s ease; background-repeat: no-repeat;
         }
         .door-wing.right { background-position: right center; }
 
         .door-surface.wiped .door-wing.left { transform: translateX(-100%); }
         .door-surface.wiped .door-wing.right { transform: translateX(100%); }
 
-        .door-surface.closing { transition: transform 0.75s ease-in-out !important; }
+        .door-surface.closing { transition: transform 1.0s ease-in-out !important; }
         .door-surface.closing .door-wing { transform: translateX(0) !important; }
 
         .door-surface.dropped { display: none; }
@@ -155,7 +160,7 @@
             background-image: url('door.png');
             background-size: 200% 100%;
             background-repeat: no-repeat;
-            transition: transform 0.75s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 1.0s cubic-bezier(0.25, 1, 0.5, 1);
             box-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
         .v-panel.left {

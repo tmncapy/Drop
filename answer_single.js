@@ -203,8 +203,8 @@ channel.onmessage = function(event) {
 
                     setTimeout(() => {
                         vSplit.classList.remove('active', 'split-out');
-                    }, 750);
-                }, 750);
+                    }, 1000);
+                }, 1000);
             } else {
                 if (bgLayer) bgLayer.classList.add('collapsed-bg'); 
                 if (fallTxt) {
