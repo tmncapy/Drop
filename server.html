@@ -351,17 +351,43 @@
         <div class="network-status-badge">🟢 Đang kết nối Server Network</div>
     </div>
 
-    <!-- Security Switch -->
-    <div class="global-toggle-strip">
-        <div class="toggle-label-text">
-            <span>🔒 TRẠNG THÁI KHÓA BẢO MẬT MÃ PIN TOÀN HỆ THỐNG:</span>
-            <span id="pin-status-text" style="color: #3fb950;">ĐANG KÍCH HOẠT</span>
+    <!-- Global Toggle & Server Questions Section -->
+    <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px;">
+        <!-- Security Switch -->
+        <div class="global-toggle-strip" style="height: 100%;">
+            <div class="toggle-label-text">
+                <span>🔒 TRẠNG THÁI KHÓA BẢO MẬT MÃ PIN TOÀN HỆ THỐNG:</span>
+                <span id="pin-status-text" style="color: #3fb950;">ĐANG KÍCH HOẠT</span>
+            </div>
+            <div class="toggle-switch-wrapper">
+                <label class="switch">
+                    <input type="checkbox" id="toggle-global-pin" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
-        <div class="toggle-switch-wrapper">
-            <label class="switch">
-                <input type="checkbox" id="toggle-global-pin" checked>
-                <span class="slider"></span>
-            </label>
+
+        <!-- Web Server Questions Manager Card -->
+        <div style="background: #161b22; border: 2px solid #30363d; border-radius: 12px; padding: 16px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #30363d; padding-bottom: 8px;">
+                <h3 style="font-size: 16px; color: #58a6ff; font-weight: 800; display: flex; align-items: center; gap: 8px; margin: 0;">
+                    📂 QUẢN LÝ ĐỀ THI TRÊN WEB SERVER
+                </h3>
+                <span id="server-files-count-badge" style="background: #238636; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: bold;">0 files</span>
+            </div>
+
+            <!-- Upload Box -->
+            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; background: #0d1117; padding: 8px 12px; border-radius: 8px; border: 1px solid #30363d;">
+                <input type="file" id="server-upload-input" accept=".xlsx, .xls" style="flex: 1; font-size: 12px; color: #8b949e;">
+                <button class="btn-action btn-save" style="padding: 6px 14px; font-size: 12px;" onclick="uploadQuestionFileToServer()">
+                    ⬆️ Nạp Đề Lên Server
+                </button>
+            </div>
+
+            <!-- Files Table/List -->
+            <div id="server-files-container" style="max-height: 180px; overflow-y: auto; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 6px;">
+                <div style="text-align: center; color: #8b949e; font-size: 12px; padding: 12px;">Đang tải danh sách file trên server...</div>
+            </div>
         </div>
     </div>
 
@@ -445,8 +471,131 @@
         // Load existing PIN settings on start
         document.addEventListener('DOMContentLoaded', () => {
             loadCurrentPinSettings();
+            fetchServerQuestionFiles();
             addLog("Khởi tạo Server Manager thành công. Hệ thống sẵn sàng.");
         });
+
+        // Server Questions Management Functions
+        async function fetchServerQuestionFiles() {
+            const container = document.getElementById('server-files-container');
+            const badge = document.getElementById('server-files-count-badge');
+            try {
+                const res = await fetch('/api/questions/list');
+                const data = await res.json();
+                if (!data.success) {
+                    if (container) container.innerHTML = `<div style="color:#f85149; text-align:center; padding:10px;">Lỗi: ${data.error}</div>`;
+                    return;
+                }
+
+                const files = data.files || [];
+                const activeFile = data.activeFile;
+                if (badge) badge.innerText = `${files.length} file${files.length !== 1 ? 's' : ''}`;
+
+                if (files.length === 0) {
+                    if (container) container.innerHTML = `<div style="text-align:center; color:#8b949e; padding:12px;">Chưa có file đề thi nào trên server. Hãy tải file Excel lên.</div>`;
+                    return;
+                }
+
+                let html = '<div style="display:flex; flex-direction:column; gap:6px;">';
+                files.forEach(f => {
+                    const isActive = activeFile && activeFile.filename === f.filename;
+                    const dateStr = new Date(f.modifiedAt).toLocaleString('vi-VN');
+                    html += `
+                        <div style="display:flex; align-items:center; justify-content:space-between; background:#161b22; padding:8px 10px; border-radius:6px; border:1px solid ${isActive ? '#238636' : '#30363d'};">
+                            <div style="flex:1; overflow:hidden; margin-right:10px;">
+                                <div style="font-weight:bold; font-size:12px; color:${isActive ? '#3fb950' : '#e6edf3'}; display:flex; align-items:center; gap:6px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
+                                    ${isActive ? '⭐ [ĐANG CHỌN]' : '📄'} ${f.originalName}
+                                </div>
+                                <div style="font-size:10px; color:#8b949e; margin-top:2px;">
+                                    Dung lượng: ${f.sizeFormatted} | Cập nhật: ${dateStr}
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+                                ${!isActive ? `<button style="background:#238636; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;" onclick="selectActiveServerFile('${f.filename}')">Chọn</button>` : `<span style="color:#3fb950; font-size:11px; font-weight:bold;">Mặc định</span>`}
+                                <button style="background:#da3633; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;" onclick="deleteServerQuestionFile('${f.filename}', '${f.originalName}')">Xóa</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                if (container) container.innerHTML = html;
+            } catch (err) {
+                console.warn('Failed to fetch server questions list:', err);
+                if (container) container.innerHTML = `<div style="color:#f85149; text-align:center; padding:10px;">Không thể kết nối API Server Questions</div>`;
+            }
+        }
+
+        async function uploadQuestionFileToServer() {
+            const input = document.getElementById('server-upload-input');
+            if (!input || !input.files || input.files.length === 0) {
+                alert('Vui lòng chọn 1 file Excel (.xlsx, .xls) để nạp lên server.');
+                return;
+            }
+
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('questionFile', file);
+
+            try {
+                addLog(`⏳ Đang nạp file "${file.name}" lên Web Server...`);
+                const res = await fetch('/api/questions/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    addLog(`✅ Nạp file đề thi "${file.name}" lên server thành công!`);
+                    input.value = '';
+                    fetchServerQuestionFiles();
+                    // Notify controllers
+                    syncChannel.postMessage({ action: 'server_questions_updated', data: data.activeFile });
+                    if (window.showSecurityWarning) window.showSecurityWarning('✅ Đã nạp file đề thi thành công lên Server!');
+                } else {
+                    alert('Lỗi nạp file: ' + (data.error || 'Thất bại'));
+                    addLog(`❌ Lỗi nạp file: ${data.error}`);
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Lỗi khi tải file lên server!');
+            }
+        }
+
+        async function selectActiveServerFile(filename) {
+            try {
+                const res = await fetch('/api/questions/select', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    addLog(`⭐ Đã đặt file "${filename}" làm đề mặc định trên server.`);
+                    fetchServerQuestionFiles();
+                    syncChannel.postMessage({ action: 'server_questions_updated', data: data.activeFile });
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function deleteServerQuestionFile(filename, displayName) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa file "${displayName}" khỏi server?`)) return;
+            try {
+                const res = await fetch(`/api/questions/file/${encodeURIComponent(filename)}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    addLog(`🗑️ Đã xóa file "${displayName}" khỏi server.`);
+                    fetchServerQuestionFiles();
+                    syncChannel.postMessage({ action: 'server_questions_updated' });
+                } else {
+                    alert('Lỗi xóa file: ' + (data.error || 'Thất bại'));
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
         function addLog(msg) {
             const container = document.getElementById('log-content');

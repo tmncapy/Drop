@@ -422,8 +422,35 @@
             <div class="panel-title">1. NẠP DỮ LIỆU & NỘI DUNG</div>
             
             <div class="form-group">
-                <label>1. Tải Câu Hỏi Từ Excel</label>
-                <input type="file" id="excel-file" accept=".xlsx, .xls" onchange="importExcel(this)">
+                <label style="color: #60a5fa; font-weight: bold; border-bottom: 1px solid #262a36; padding-bottom: 3px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+                    <span>1. NẠP DỮ LIỆU CÂU HỎI (2 CÁCH)</span>
+                    <span id="current-loaded-question-badge" style="font-size: 9px; background: #064e3b; color: #34d399; padding: 1px 6px; border-radius: 4px;">Đã nạp 0 câu</span>
+                </label>
+
+                <!-- Cách 1: Nạp từ máy tính -->
+                <div style="background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 5px; margin-bottom: 6px;">
+                    <label style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 2px;">CÁCH 1: NẠP FILE EXCEL TỪ MÁY TÍNH (LOCAL)</label>
+                    <input type="file" id="excel-file" accept=".xlsx, .xls" onchange="importExcel(this)" style="font-size: 10px;">
+                </div>
+
+                <!-- Cách 2: Chọn file đề đã nạp sẵn trên Server -->
+                <div style="background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 5px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                        <label style="font-size: 10px; color: #38bdf8; font-weight: bold; margin-bottom: 0;">CÁCH 2: CHỌN FILE ĐỀ CÓ SẴN TRÊN SERVER</label>
+                        <button class="btn-blue" style="width: auto; padding: 1px 5px; font-size: 9px;" onclick="loadServerQuestionsList()" title="Làm mới danh sách file trên server">🔄 Làm mới</button>
+                    </div>
+                    <select id="select-server-question-file" style="width: 100%; margin-bottom: 4px; padding: 4px; border-radius: 3px; background: #181b22; color: #fff; border: 1px solid #323848; font-size: 11px;">
+                        <option value="">-- Đang tải danh sách đề từ Server... --</option>
+                    </select>
+                    <div style="display: flex; gap: 4px;">
+                        <button class="btn-green" style="flex: 1; padding: 4px 6px; font-size: 10px;" onclick="importSelectedServerQuestionFile()">
+                            📥 TẢI &amp; NẠP ĐỀ TỪ SERVER
+                        </button>
+                        <button class="btn-purple" style="width: auto; padding: 4px 8px; font-size: 10px;" onclick="uploadCurrentExcelToServer()" title="Nạp file đính kèm hiện tại lên server">
+                            ⬆️ Nạp Lên Server
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group">

@@ -392,6 +392,12 @@ window.addEventListener('DOMContentLoaded', () => {
     updateTimerForCurrentQuestion();
     renderSystemLogsUI();
     updateLogStatsSummaryUI();
+    loadServerQuestionsList();
+
+    const badge = document.getElementById('current-loaded-question-badge');
+    if (badge && excelDataStore) {
+        badge.innerText = `Đã nạp ${excelDataStore.length} vòng`;
+    }
 });
 
 function initPinCode() {
@@ -494,7 +500,121 @@ channel.onmessage = function(event) {
             showProgressOnProjector();
         }
     }
+    if (action === 'server_questions_updated') {
+        loadServerQuestionsList();
+    }
 };
+
+// ==========================================
+// WEB SERVER QUESTION FILE MANAGEMENT
+// ==========================================
+let serverQuestionFilesList = [];
+
+async function loadServerQuestionsList() {
+    const selectEl = document.getElementById('select-server-question-file');
+    if (!selectEl) return;
+    try {
+        selectEl.innerHTML = '<option value="">-- Đang tải từ Server... --</option>';
+        const res = await fetch('/api/questions/list');
+        const data = await res.json();
+        if (!data.success) {
+            selectEl.innerHTML = '<option value="">-- Không thể kết nối Server --</option>';
+            return;
+        }
+
+        serverQuestionFilesList = data.files || [];
+        const activeFile = data.activeFile;
+
+        if (serverQuestionFilesList.length === 0) {
+            selectEl.innerHTML = '<option value="">-- Chưa có file đề thi nào trên Server --</option>';
+            return;
+        }
+
+        selectEl.innerHTML = '';
+        const defaultOp = document.createElement('option');
+        defaultOp.value = '';
+        defaultOp.textContent = `-- Chọn file đề thi từ Server (${serverQuestionFilesList.length} files) --`;
+        selectEl.appendChild(defaultOp);
+
+        let activeValToSelect = '';
+        serverQuestionFilesList.forEach(f => {
+            const op = document.createElement('option');
+            op.value = f.filename;
+            const isActive = activeFile && activeFile.filename === f.filename;
+            op.textContent = `${isActive ? '⭐ [ĐANG CHỌN] ' : ''}${f.originalName} (${f.sizeFormatted})`;
+            if (isActive) activeValToSelect = f.filename;
+            selectEl.appendChild(op);
+        });
+
+        if (activeValToSelect) {
+            selectEl.value = activeValToSelect;
+        }
+    } catch (err) {
+        console.warn('Failed to load server questions:', err);
+        if (selectEl) selectEl.innerHTML = '<option value="">-- Lỗi kết nối Web Server --</option>';
+    }
+}
+
+async function importSelectedServerQuestionFile() {
+    const selectEl = document.getElementById('select-server-question-file');
+    if (!selectEl || !selectEl.value) {
+        alert('Vui lòng chọn 1 file đề thi từ danh sách Server!');
+        return;
+    }
+
+    const filename = selectEl.value;
+    const selectedFileInfo = serverQuestionFilesList.find(f => f.filename === filename);
+    const displayName = selectedFileInfo ? selectedFileInfo.originalName : filename;
+
+    try {
+        const fileUrl = `/api/questions/file/${encodeURIComponent(filename)}`;
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const buffer = await response.arrayBuffer();
+        const data = new Uint8Array(buffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+        
+        parseExcelQuestions(json);
+        addSystemLog('system', 'NẠP ĐỀ TỪ SERVER', `Đã nạp thành công bộ đề "${displayName}" từ Web Server.`);
+        alert(`✅ Đã nạp thành công bộ đề "${displayName}" từ Web Server!`);
+    } catch (e) {
+        console.error('Lỗi khi nạp file từ server:', e);
+        alert(`❌ Không thể tải file đề thi từ Server: ${e.message}`);
+    }
+}
+
+async function uploadCurrentExcelToServer() {
+    const fileInput = document.getElementById('excel-file');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        alert('Vui lòng chọn file Excel ở CÁCH 1 trước khi tải lên Server!');
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('questionFile', file);
+
+    try {
+        const res = await fetch('/api/questions/upload', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            alert(`✅ Đã nạp file "${file.name}" lên Web Server thành công!`);
+            loadServerQuestionsList();
+            sendCommand('server_questions_updated');
+        } else {
+            alert(`Lỗi nạp file: ${data.error || 'Thất bại'}`);
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Lỗi kết nối khi nạp file lên server!');
+    }
+}
 
 // Periodic heartbeat broadcast every 3s to guarantee cross-device sync
 setInterval(() => {
@@ -638,6 +758,11 @@ function parseExcelQuestions(rows) {
 
     saveExcelDataStore();
     updateQuestionSelector();
+
+    const badge = document.getElementById('current-loaded-question-badge');
+    if (badge) {
+        badge.innerText = `Đã nạp ${excelDataStore.length} vòng`;
+    }
 }
 
 function populateRoundNumSelect() {
