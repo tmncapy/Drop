@@ -21,6 +21,8 @@ function setUnusedStatus(doorId, isUnused) {
     const betBox = document.getElementById(`bet-box-${doorId}`);
     if (betBox && isUnused) {
         betBox.classList.remove('show');
+        const insideTxt = document.getElementById(`inside-txt-${doorId}`);
+        if (insideTxt) insideTxt.classList.remove('shift-up');
     }
 }
 
@@ -146,6 +148,8 @@ channel.onmessage = function(event) {
                 if (!isUnused) {
                     const bBox = document.getElementById(`bet-box-${i}`);
                     if (bBox) bBox.classList.add('show');
+                    const insideTxt = document.getElementById(`inside-txt-${i}`);
+                    if (insideTxt) insideTxt.classList.add('shift-up');
                     const wingL = document.getElementById(`wing-l-${i}`);
                     if (wingL) wingL.classList.add('bg-moneydoor');
                     const wingR = document.getElementById(`wing-r-${i}`);
@@ -167,6 +171,8 @@ channel.onmessage = function(event) {
             for (let i = 1; i <= 4; i++) {
                 const bBox = document.getElementById(`bet-box-${i}`);
                 if (bBox) bBox.classList.remove('show');
+                const insideTxt = document.getElementById(`inside-txt-${i}`);
+                if (insideTxt) insideTxt.classList.remove('shift-up');
                 const wingL = document.getElementById(`wing-l-${i}`);
                 if (wingL) wingL.classList.remove('bg-moneydoor');
                 const wingR = document.getElementById(`wing-r-${i}`);
@@ -208,7 +214,7 @@ channel.onmessage = function(event) {
             const vSplit = document.getElementById(`v-split-${doorId}`);
 
             if (insideText) {
-                insideText.classList.remove('show');
+                insideText.classList.remove('show', 'shift-up');
                 insideText.classList.add('hide-on-drop');
             }
 

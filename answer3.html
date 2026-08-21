@@ -96,22 +96,31 @@
             background-image: url('dropdoor.png') !important;
         }
 
-        /* TEXT ĐÁP ÁN TRÊN NỀN INDOOR.PNG (CĂN GIỮA TRUNG TÂM GRAPHIC PHẦN ĐỎ) */
+        /* TEXT ĐÁP ÁN TRÊN NỀN INDOOR.PNG (MẶC ĐỊNH NẰM CHÍNH GIỮA LAYER CỬA) */
         .answer-text-inside {
-            position: absolute; top: 43%; left: 50%; transform: translate(-50%, -50%) scale(0.3);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.3);
             width: 90%; height: 72%;
             display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;
             font-size: clamp(64px, 14vw, 210px); font-weight: bold; text-align: center; color: #ffffff;
             font-family: 'Myriad Pro Bold', 'Myriad Pro', Arial, sans-serif;
             text-shadow: 0 3px 6px rgba(0,0,0,0.6); z-index: 2;
             opacity: 0;
-            transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+                        transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+                        top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            pointer-events: none;
             word-break: break-word;
             line-height: 1.15;
             box-sizing: border-box;
         }
         .answer-text-inside.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         .answer-text-inside.hide-on-drop { opacity: 0 !important; transform: translate(-50%, -50%) scale(0.3) !important; transition: all 0.2s ease !important; }
+
+        /* KHI XUẤT HIỆN KHUNG TIỀN CƯỢC: DỊCH CHUYỂN TEXT LÊN TRUNG TÂM PHẦN ĐỎ (TOP 43%) */
+        .door-frame:has(.bet-box.show) .answer-text-inside,
+        .answer-text-inside.shift-up {
+            top: 43%;
+        }
 
         .fall-status-text {
             position: absolute; top: 43%; left: 50%; transform: translate(-50%, -50%);

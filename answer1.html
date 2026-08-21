@@ -78,22 +78,31 @@
             background-image: url('dropdoor.png') !important;
         }
 
-        /* TEXT ĐÁP ÁN TRÊN NỀN INDOOR.PNG (CĂN GIỮA TRUNG TÂM GRAPHIC PHẦN ĐỎ) */
+        /* TEXT ĐÁP ÁN TRÊN NỀN INDOOR.PNG (MẶC ĐỊNH NẰM CHÍNH GIỮA LAYER CỬA) */
         .answer-text-inside {
-            position: absolute; top: 43%; left: 50%; transform: translate(-50%, -50%) scale(0.3);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.3);
             width: 90%; height: 72%;
             display: flex; align-items: center; justify-content: center; padding: 0; margin: 0;
             font-size: clamp(22px, 2.8vw, 48px); font-weight: bold; text-align: center; color: #ffffff;
             font-family: 'Myriad Pro Bold', 'Myriad Pro', Arial, sans-serif;
             text-shadow: 0 2px 4px rgba(0,0,0,0.6); z-index: 2;
             opacity: 0;
-            transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+                        transform 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+                        top 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            pointer-events: none;
             word-break: break-word;
             line-height: 1.2;
             box-sizing: border-box;
         }
         .answer-text-inside.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         .answer-text-inside.hide-on-drop { opacity: 0 !important; transform: translate(-50%, -50%) scale(0.3) !important; transition: all 0.2s ease !important; }
+
+        /* KHI XUẤT HIỆN KHUNG TIỀN CƯỢC: DỊCH CHUYỂN TEXT LÊN TRUNG TÂM PHẦN ĐỎ (TOP 43%) */
+        .door-frame:has(.bet-box.show) .answer-text-inside,
+        .answer-text-inside.shift-up {
+            top: 43%;
+        }
 
         /* CHỮ BÁO TIỀN RƠI CĂN GIỮA ĐỒNG ĐỀU */
         .fall-status-text {
@@ -110,15 +119,15 @@
         }
         .fall-status-text.active { opacity: 1; }
 
-        /* LỚP BỀ MẶT CỬA DOOR.PNG (CHẬM THÊM 0.25S -> 1.0S) */
+        /* LỚP BỀ MẶT CỬA DOOR.PNG */
         .door-surface {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3;
-            display: flex; transition: transform 1.0s cubic-bezier(0.77, 0, 0.175, 1);
+            display: flex; transition: transform 0.75s cubic-bezier(0.77, 0, 0.175, 1);
         }
 
         .door-wing {
             width: 50%; height: 100%; background-size: 200% 100%; background-position: left center;
-            background-image: url('door.png'); transition: transform 1.0s cubic-bezier(0.25, 1, 0.5, 1), background-image 0.2s ease; background-repeat: no-repeat;
+            background-image: url('door.png'); transition: transform 0.75s cubic-bezier(0.25, 1, 0.5, 1), background-image 0.2s ease; background-repeat: no-repeat;
         }
         .door-wing.right { background-position: right center; }
 
@@ -126,14 +135,14 @@
         .door-surface.wiped .door-wing.left { transform: translateX(-100%); }
         .door-surface.wiped .door-wing.right { transform: translateX(100%); }
 
-        /* Khép cửa sập 1.0s */
-        .door-surface.closing { transition: transform 1.0s ease-in-out !important; }
+        /* Khép cửa sập 0.75s */
+        .door-surface.closing { transition: transform 0.75s ease-in-out !important; }
         .door-surface.closing .door-wing { transform: translateX(0) !important; }
 
         /* Ẩn bề mặt khi sập hố */
         .door-surface.dropped { display: none; }
 
-        /* SPLIT CỬA SẬP (SPLIT HORIZONTAL IN & OUT - 1.0S) */
+        /* SPLIT CỬA SẬP (SPLIT HORIZONTAL IN & OUT) */
         .v-split-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 8; pointer-events: none; overflow: hidden; display: none;
@@ -147,7 +156,7 @@
             background-image: url('door.png');
             background-size: 200% 100%;
             background-repeat: no-repeat;
-            transition: transform 1.0s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 0.75s cubic-bezier(0.25, 1, 0.5, 1);
             box-shadow: 0 0 10px rgba(0,0,0,0.8);
         }
         .v-panel.left {

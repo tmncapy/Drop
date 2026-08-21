@@ -22,6 +22,8 @@ function setUnusedStatus(isUnused) {
     const betBox = document.getElementById(`bet-box-${DOOR_ID}`);
     if (betBox && isUnused) {
         betBox.classList.remove('show');
+        const insideTxt = document.getElementById(`inside-txt-${DOOR_ID}`);
+        if (insideTxt) insideTxt.classList.remove('shift-up');
     }
 }
 
@@ -123,6 +125,8 @@ channel.onmessage = function(event) {
             if (!isUnusedAll) {
                 const bBox = document.getElementById(`bet-box-${DOOR_ID}`);
                 if (bBox) bBox.classList.add('show');
+                const insideTxt = document.getElementById(`inside-txt-${DOOR_ID}`);
+                if (insideTxt) insideTxt.classList.add('shift-up');
                 const wingL = document.getElementById(`wing-l-${DOOR_ID}`);
                 if (wingL) wingL.classList.add('bg-moneydoor');
                 const wingR = document.getElementById(`wing-r-${DOOR_ID}`);
@@ -141,6 +145,8 @@ channel.onmessage = function(event) {
             
             const bBox = document.getElementById(`bet-box-${DOOR_ID}`);
             if (bBox) bBox.classList.remove('show');
+            const insideTxt = document.getElementById(`inside-txt-${DOOR_ID}`);
+            if (insideTxt) insideTxt.classList.remove('shift-up');
             const wingL = document.getElementById(`wing-l-${DOOR_ID}`);
             if (wingL) wingL.classList.remove('bg-moneydoor');
             const wingR = document.getElementById(`wing-r-${DOOR_ID}`);
@@ -166,7 +172,6 @@ channel.onmessage = function(event) {
 
             const betB = document.getElementById(`bet-box-${DOOR_ID}`);
             if (betB) betB.classList.remove('show');
-
             const surface = document.getElementById(`surface-${DOOR_ID}`);
             const fallTxt = document.getElementById(`fall-txt-${DOOR_ID}`);
             const bgLayer = document.getElementById(`bg-layer-${DOOR_ID}`);
@@ -176,7 +181,7 @@ channel.onmessage = function(event) {
             const vSplit = document.getElementById(`v-split-${DOOR_ID}`);
 
             if (insideText) {
-                insideText.classList.remove('show');
+                insideText.classList.remove('show', 'shift-up');
                 insideText.classList.add('hide-on-drop');
             }
 
