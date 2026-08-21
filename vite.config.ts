@@ -19,15 +19,20 @@ export default defineConfig(() => {
           host: path.resolve(__dirname, 'host.html'),
           player: path.resolve(__dirname, 'player.html'),
           answer: path.resolve(__dirname, 'answer.html'),
+          answer1: path.resolve(__dirname, 'answer1.html'),
+          answer2: path.resolve(__dirname, 'answer2.html'),
+          answer3: path.resolve(__dirname, 'answer3.html'),
+          answer4: path.resolve(__dirname, 'answer4.html'),
           projector: path.resolve(__dirname, 'projector.html'),
+          bigscreen: path.resolve(__dirname, 'bigscreen.html'),
+          bigscreen_complete: path.resolve(__dirname, 'bigscreen_complete.html'),
         },
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+      host: '0.0.0.0',
+      port: 3000,
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
   };

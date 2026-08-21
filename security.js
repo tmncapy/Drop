@@ -11,7 +11,6 @@
         if (path.includes('host')) return 'MC Host';
         if (path.includes('projector')) return 'Máy Chiếu (Projector)';
         if (path.includes('answer')) return 'Màn Hình Cửa (Sound/MC)';
-        if (path.includes('server')) return 'Máy Chủ (Server)';
         return document.title || 'Màn Hình Game';
     }
 
@@ -206,6 +205,8 @@
     // System to Initialize PIN Modal Lock
     function initPinProtection(role, roleTitle) {
         if (!role || !roleTitle) return;
+        // Player has its own dedicated PIN screen handled by player.js
+        if (role === 'player') return;
 
         // Listen for realtime PIN updates or logout signals
         if (window.GameSyncChannel && !window._pinSyncChannel) {
@@ -359,7 +360,7 @@
                     ">XÁC NHẬN VÀO TRANG</button>
 
                     <div style="margin-top: 18px; font-size: 11px; color: #6e7681;">
-                        💡 Quản lý hoặc cài đặt lại mã PIN tại trang <strong style="color: #58a6ff;">server.html</strong>
+                        💡 Mã PIN được cài đặt và quản lý trực tiếp tại <strong style="color: #58a6ff;">Bàn Điều Khiển (Controller)</strong>
                     </div>
                 </div>
             `;

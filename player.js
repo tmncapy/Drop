@@ -44,20 +44,22 @@ function submitPin() {
     const pinInput = document.getElementById('pin-input');
     const val = pinInput ? pinInput.value.trim() : "";
     const errorEl = document.getElementById('pin-error');
-    if (val === currentPin) {
+    const validPin = currentPin || localStorage.getItem('game_pin') || '1234';
+
+    if (val === validPin) {
         if (errorEl) errorEl.innerText = "";
         localStorage.setItem('player_authenticated', 'true');
-        localStorage.setItem('player_auth_pin', currentPin);
+        localStorage.setItem('player_auth_pin', validPin);
+        sessionStorage.setItem('auth_pin_player', validPin);
         unlockPlayerScreen();
         channel.postMessage({
             action: 'player_authenticated',
-            data: { pin: currentPin, senderId: playerTabId }
+            data: { pin: validPin, senderId: playerTabId }
         });
         channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
     } else {
-        if (errorEl) errorEl.innerText = "❌ Mã PIN sai! Vui lòng thử lại.";
+        if (errorEl) errorEl.innerText = "❌ Mã PIN không đúng! Vui lòng thử lại.";
         if (pinInput) {
-            pinInput.value = "";
             pinInput.focus();
         }
     }
@@ -68,7 +70,7 @@ function unlockPlayerScreen() {
     if (overlay) overlay.style.display = 'none';
 }
 
-function lockPlayerScreen(clearInput = true) {
+function lockPlayerScreen(clearInput = false) {
     const overlay = document.getElementById('pin-lock-overlay');
     if (overlay) overlay.style.display = 'flex';
     const pinInput = document.getElementById('pin-input');
@@ -85,15 +87,13 @@ function lockPlayerScreen(clearInput = true) {
 function checkInitialAuth() {
     channel.postMessage({ action: 'request_pin' });
     const isAuth = localStorage.getItem('player_authenticated') === 'true';
-    const savedAuth = localStorage.getItem('player_auth_pin');
+    const savedAuth = localStorage.getItem('player_auth_pin') || sessionStorage.getItem('auth_pin_player');
     const storedPin = localStorage.getItem('game_pin') || '1234';
     if (isAuth && savedAuth && savedAuth === storedPin) {
         unlockPlayerScreen();
         channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
     } else {
-        localStorage.removeItem('player_authenticated');
-        localStorage.removeItem('player_auth_pin');
-        lockPlayerScreen(true);
+        lockPlayerScreen(false);
     }
 }
 
@@ -376,26 +376,27 @@ channel.onmessage = function(event) {
 
         case 'update_pin':
             if (data && data.pin) {
-                const oldPin = currentPin;
                 currentPin = data.pin;
                 localStorage.setItem('game_pin', currentPin);
                 
                 const pinNotice = document.getElementById('pin-status-notice');
                 if (pinNotice) {
-                    pinNotice.innerText = `🟢 Đã đồng bộ mã PIN từ MC`;
+                    pinNotice.innerText = `🟢 Đã kết nối với MC`;
                     pinNotice.style.color = '#00e676';
                     pinNotice.style.borderColor = 'rgba(0,230,118,0.3)';
                 }
 
-                const savedAuth = localStorage.getItem('player_auth_pin');
-
-                // Lock screen ONLY if controller changed the PIN or explicitly requested forceLock:
-                if (data.forceLock || (oldPin && oldPin !== currentPin)) {
+                if (data.forceLock) {
                     localStorage.removeItem('player_authenticated');
                     localStorage.removeItem('player_auth_pin');
-                    lockPlayerScreen(true);
-                } else if (localStorage.getItem('player_authenticated') === 'true' && savedAuth === currentPin) {
-                    unlockPlayerScreen();
+                    sessionStorage.removeItem('auth_pin_player');
+                    lockPlayerScreen(false);
+                } else {
+                    const isAuth = localStorage.getItem('player_authenticated') === 'true';
+                    const savedAuth = localStorage.getItem('player_auth_pin') || sessionStorage.getItem('auth_pin_player');
+                    if (isAuth && savedAuth === currentPin) {
+                        unlockPlayerScreen();
+                    }
                 }
             }
             break;
@@ -683,13 +684,5 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // Periodically request PIN from MC if screen is locked
-    setInterval(() => {
-        const overlay = document.getElementById('pin-lock-overlay');
-        if (overlay && overlay.style.display !== 'none') {
-            channel.postMessage({ action: 'request_pin' });
-        }
-    }, 2000);
 });
 
