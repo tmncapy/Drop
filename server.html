@@ -475,15 +475,32 @@
             addLog("Khởi tạo Server Manager thành công. Hệ thống sẵn sàng.");
         });
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // Server Questions Management Functions
         async function fetchServerQuestionFiles() {
             const container = document.getElementById('server-files-container');
             const badge = document.getElementById('server-files-count-badge');
             try {
                 const res = await fetch('/api/questions/list');
+                if (!res.ok) {
+                    throw new Error(`Mã phản hồi HTTP: ${res.status}`);
+                }
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    throw new Error('Định dạng dữ liệu từ Server không hợp lệ');
+                }
                 const data = await res.json();
                 if (!data.success) {
-                    if (container) container.innerHTML = `<div style="color:#f85149; text-align:center; padding:10px;">Lỗi: ${data.error}</div>`;
+                    if (container) container.innerHTML = `<div style="color:#f85149; text-align:center; padding:10px;">Lỗi: ${escapeHtml(data.error)}</div>`;
                     return;
                 }
 
@@ -500,19 +517,23 @@
                 files.forEach(f => {
                     const isActive = activeFile && activeFile.filename === f.filename;
                     const dateStr = new Date(f.modifiedAt).toLocaleString('vi-VN');
+                    const encFilename = encodeURIComponent(f.filename);
+                    const encOriginalName = encodeURIComponent(f.originalName);
+                    const safeOriginalName = escapeHtml(f.originalName);
+
                     html += `
                         <div style="display:flex; align-items:center; justify-content:space-between; background:#161b22; padding:8px 10px; border-radius:6px; border:1px solid ${isActive ? '#238636' : '#30363d'};">
                             <div style="flex:1; overflow:hidden; margin-right:10px;">
-                                <div style="font-weight:bold; font-size:12px; color:${isActive ? '#3fb950' : '#e6edf3'}; display:flex; align-items:center; gap:6px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
-                                    ${isActive ? '⭐ [ĐANG CHỌN]' : '📄'} ${f.originalName}
+                                <div style="font-weight:bold; font-size:12px; color:${isActive ? '#3fb950' : '#e6edf3'}; display:flex; align-items:center; gap:6px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${safeOriginalName}">
+                                    ${isActive ? '⭐ [ĐANG CHỌN]' : '📄'} ${safeOriginalName}
                                 </div>
                                 <div style="font-size:10px; color:#8b949e; margin-top:2px;">
                                     Dung lượng: ${f.sizeFormatted} | Cập nhật: ${dateStr}
                                 </div>
                             </div>
                             <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
-                                ${!isActive ? `<button style="background:#238636; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;" onclick="selectActiveServerFile('${f.filename}')">Chọn</button>` : `<span style="color:#3fb950; font-size:11px; font-weight:bold;">Mặc định</span>`}
-                                <button style="background:#da3633; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;" onclick="deleteServerQuestionFile('${f.filename}', '${f.originalName}')">Xóa</button>
+                                ${!isActive ? `<button style="background:#238636; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;" onclick="selectActiveServerFile(decodeURIComponent('${encFilename}'))">Chọn</button>` : `<span style="color:#3fb950; font-size:11px; font-weight:bold;">Mặc định</span>`}
+                                <button style="background:#da3633; color:#fff; border:none; border-radius:4px; padding:4px 8px; font-size:11px; cursor:pointer;" onclick="deleteServerQuestionFile(decodeURIComponent('${encFilename}'), decodeURIComponent('${encOriginalName}'))">Xóa</button>
                             </div>
                         </div>
                     `;
@@ -521,7 +542,14 @@
                 if (container) container.innerHTML = html;
             } catch (err) {
                 console.warn('Failed to fetch server questions list:', err);
-                if (container) container.innerHTML = `<div style="color:#f85149; text-align:center; padding:10px;">Không thể kết nối API Server Questions</div>`;
+                if (container) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:12px; background:#161b22; border-radius:6px;">
+                            <div style="color:#f85149; font-size:12px; margin-bottom:8px;">⚠️ ${escapeHtml(err.message || 'Không thể kết nối API Server Questions')}</div>
+                            <button onclick="fetchServerQuestionFiles()" style="background:#238636; color:#fff; border:none; border-radius:4px; padding:4px 12px; font-size:11px; cursor:pointer;">🔄 Thử Lại Kết Nối</button>
+                        </div>
+                    `;
+                }
             }
         }
 

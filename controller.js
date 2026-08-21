@@ -516,9 +516,16 @@ async function loadServerQuestionsList() {
     try {
         selectEl.innerHTML = '<option value="">-- Đang tải từ Server... --</option>';
         const res = await fetch('/api/questions/list');
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error('Non-JSON response');
+        }
         const data = await res.json();
         if (!data.success) {
-            selectEl.innerHTML = '<option value="">-- Không thể kết nối Server --</option>';
+            selectEl.innerHTML = '<option value="">-- Lỗi từ Server --</option>';
             return;
         }
 
@@ -551,7 +558,7 @@ async function loadServerQuestionsList() {
         }
     } catch (err) {
         console.warn('Failed to load server questions:', err);
-        if (selectEl) selectEl.innerHTML = '<option value="">-- Lỗi kết nối Web Server --</option>';
+        if (selectEl) selectEl.innerHTML = '<option value="">-- Bấm 🔄 Làm mới để kết nối lại Server --</option>';
     }
 }
 
