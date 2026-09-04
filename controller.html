@@ -457,6 +457,117 @@
         </div>
     </div>
 
+    <!-- Player Direct Access Link & Invalidation Modal Dialog -->
+    <div id="player-link-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); z-index:99998; align-items:center; justify-content:center;">
+        <div style="background:#111317; border:2px solid #8b5cf6; border-radius:12px; width:92%; max-width:650px; max-height:90vh; display:flex; flex-direction:column; box-shadow:0 20px 45px rgba(0,0,0,0.85); overflow:hidden; font-family:'Myriad Pro', Arial, sans-serif;">
+            
+            <!-- Modal Header -->
+            <div style="background:linear-gradient(135deg, #1e1b4b, #2e1065); border-bottom:1px solid #4c1d95; padding:12px 18px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="color:#e9d5ff; font-size:16px; font-weight:bold; display:flex; align-items:center; gap:8px;">
+                        <span>🔗 QUẢN LÝ &amp; TẠO ĐƯỜNG LINK PLAYER</span>
+                        <span id="player-link-active-badge" style="font-size:10px; background:rgba(34,197,94,0.2); color:#4ade80; padding:2px 8px; border-radius:12px; border:1px solid rgba(74,222,128,0.4);">● Đang hiệu lực</span>
+                    </div>
+                    <div style="font-size:11px; color:#a78bfa; margin-top:3px;">Người chơi mở link sẽ vào thẳng trận đấu mà không cần nhập mật khẩu. Mỗi lần tạo link mới sẽ vô hiệu hóa tất cả link cũ!</div>
+                </div>
+                <button style="background:#ef4444; border:none; color:#fff; width:28px; height:28px; border-radius:6px; font-size:14px; font-weight:bold; cursor:pointer;" onclick="closePlayerLinkModal()">✕</button>
+            </div>
+
+            <!-- Modal Body Content -->
+            <div style="padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; background:#0c0e14;">
+                
+                <!-- Notice Banner -->
+                <div style="background:rgba(139,92,246,0.1); border:1px solid rgba(139,92,246,0.3); border-radius:8px; padding:10px 14px; font-size:12px; color:#c4b5fd; line-height:1.4;">
+                    ⚡ <strong>Quy chế bảo mật:</strong> Khi bạn bấm <strong>"TẠO LINK MỚI"</strong>, hệ thống sẽ cấp mã phòng &amp; mật khẩu mới. Bất kỳ người chơi nào đang truy cập bằng đường link cũ sẽ <strong>ngay lập tức bị khóa màn hình và vô hiệu hóa</strong>.
+                </div>
+
+                <!-- Parameters Row: Room ID + Auth Password -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div style="background:#181b22; border:1px solid #262a36; border-radius:8px; padding:10px;">
+                        <label style="display:block; font-size:11px; color:#94a3b8; font-weight:bold; margin-bottom:4px; text-transform:uppercase;">
+                            1. Mã Số Phòng (roomid):
+                        </label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="modal-room-id-input" style="flex:1; background:#0f172a; border:1px solid #334155; color:#38bdf8; font-size:15px; font-weight:bold; padding:6px 10px; border-radius:4px; text-align:center;" value="R1234">
+                        </div>
+                        <span style="font-size:10px; color:#64748b; margin-top:3px; display:block;">Mã định danh phòng thi đấu</span>
+                    </div>
+
+                    <div style="background:#181b22; border:1px solid #262a36; border-radius:8px; padding:10px;">
+                        <label style="display:block; font-size:11px; color:#94a3b8; font-weight:bold; margin-bottom:4px; text-transform:uppercase;">
+                            2. Password Xác Thực (auth):
+                        </label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="modal-auth-token-input" style="flex:1; background:#0f172a; border:1px solid #334155; color:#34d399; font-size:15px; font-weight:bold; padding:6px 10px; border-radius:4px; text-align:center;" value="drop88">
+                        </div>
+                        <span style="font-size:10px; color:#64748b; margin-top:3px; display:block;">Mã bảo mật khóa link cũ</span>
+                    </div>
+                </div>
+
+                <!-- Domain selector -->
+                <div style="background:#14171f; border:1px solid #222632; border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <div>
+                        <div style="font-size:12px; font-weight:bold; color:#f1f5f9;">Tên Miền Đích Cho Người Chơi:</div>
+                        <div style="font-size:11px; color:#64748b;">Mặc định dùng GitHub Pages theo yêu cầu hoặc đổi sang server hiện tại</div>
+                    </div>
+                    <select id="modal-base-url-select" onchange="changePlayerBaseUrlMode(this.value)" style="background:#1e293b; border:1px solid #475569; color:#f8fafc; font-size:12px; padding:5px 10px; border-radius:6px;">
+                        <option value="github">GitHub Pages (https://tmncapy.github.io/Drop/player.html)</option>
+                        <option value="origin">Server Hiện Tại (Local / Render Domain)</option>
+                    </select>
+                </div>
+
+                <!-- Full Link Display Box -->
+                <div style="background:#181b22; border:1px solid #3b2a59; border-radius:8px; padding:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <label style="font-size:11px; font-weight:bold; color:#c084fc; text-transform:uppercase;">
+                            🔗 ĐƯỜNG LINK TRUY CẬP ĐẦY ĐỦ CHO PLAYER:
+                        </label>
+                        <span id="player-link-copy-status" style="font-size:11px; color:#34d399; display:none; font-weight:bold;">✓ Đã sao chép vào bộ nhớ tạm!</span>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="modal-full-player-link" readonly style="flex:1; background:#0b0d12; border:1px solid #4c1d95; color:#a7f3d0; font-family:monospace; font-size:12px; padding:8px 12px; border-radius:6px;" value="https://tmncapy.github.io/Drop/player.html?roomid=R1234&amp;auth=drop88" onclick="this.select()">
+                        <button type="button" class="btn-blue" style="width:auto; padding:8px 16px; font-size:12px; font-weight:bold; white-space:nowrap;" onclick="copyCurrentPlayerLink()">
+                            📋 SAO CHÉP LINK
+                        </button>
+                    </div>
+                </div>
+
+                <!-- QR Code Container (Collapsible or Shown) -->
+                <div id="player-qr-box" style="background:#14171f; border:1px solid #262a36; border-radius:8px; padding:12px; display:flex; align-items:center; justify-content:center; gap:16px;">
+                    <div style="background:#ffffff; padding:6px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+                        <img id="modal-player-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&amp;data=https://tmncapy.github.io/Drop/player.html" alt="QR Code Player" style="width:130px; height:130px; display:block;">
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:13px; font-weight:bold; color:#38bdf8; margin-bottom:4px;">📱 QUÉT MÃ QR TRÊN ĐIỆN THOẠI / TABLET</div>
+                        <p style="font-size:11px; color:#94a3b8; line-height:1.4; margin:0 0 8px 0;">Thí sinh chỉ cần mở camera trên điện thoại hoặc iPad quét mã QR trên là sẽ được chuyển thẳng vào trận đấu với quyền chơi hợp lệ ngay lập tức.</p>
+                        <div style="font-size:10px; color:#60a5fa; font-weight:bold;">✓ Tự động cập nhật mỗi khi tạo link mới</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons Row -->
+                <div style="display:grid; grid-template-columns: 1.4fr 1fr 1fr; gap:8px; margin-top:4px;">
+                    <button type="button" class="btn-purple" style="padding:10px; font-size:12px; font-weight:bold; background:linear-gradient(135deg, #7c3aed, #a855f7); border:1px solid #c084fc; border-radius:6px; box-shadow:0 4px 12px rgba(124,58,237,0.3);" onclick="generateNewPlayerLink()">
+                        🔄 TẠO LINK MỚI (HỦY LINK CŨ)
+                    </button>
+                    <button type="button" class="btn-green" style="padding:10px; font-size:12px; font-weight:bold; border-radius:6px;" onclick="applyCustomPlayerLink()">
+                        💾 LƯU MÃ TỰ ĐẶT
+                    </button>
+                    <button type="button" class="btn-blue" style="padding:10px; font-size:12px; font-weight:bold; border-radius:6px;" onclick="openActivePlayerLinkTab()">
+                        🚀 MỞ TAB PLAYER
+                    </button>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #222632; pt:8px; margin-top:4px;">
+                    <span style="font-size:11px; color:#64748b;">Trạng thái: Mã PIN đồng bộ tương ứng: <strong id="modal-synced-pin-text" style="color:#f59e0b;">R1234</strong></span>
+                    <button type="button" class="btn-red" style="width:auto; padding:4px 10px; font-size:11px;" onclick="forceInvalidateAllPlayerLinks()">
+                        🔒 HỦY TOÀN BỘ LINK &amp; KHÓA PLAYER
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <header>
         <h1>HỆ THỐNG ĐIỀU KHIỂN TRÒ CHƠI <span class="header-badge">LIVE</span></h1>
         
@@ -467,6 +578,17 @@
             <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('player')" title="Tải lại Màn Hình Người Chơi">Player</button>
             <button class="btn-orange" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('host')" title="Tải lại Màn Hình Host">Host</button>
             <button class="btn-red" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="reloadRole('all')" title="Tải lại Tất Cả Màn Hình">Tất cả</button>
+        </div>
+
+        <!-- LINK PLAYER QUICK ACCESS BAR -->
+        <div class="header-pin-bar" style="border-color: #8b5cf6; background: #1e1b4b;">
+            <label style="color: #d8b4fe;">LINK PLAYER:</label>
+            <button class="btn-purple" style="width: auto; padding: 2px 8px; font-size: 11px; font-weight: bold; background: linear-gradient(135deg, #7c3aed, #a855f7); border: 1px solid #c084fc; border-radius: 4px;" onclick="openPlayerLinkModal()" title="Mở hộp thoại Tạo &amp; Quản lý Link Người Chơi">
+                🔗 TẠO LINK PLAYER
+            </button>
+            <button class="btn-blue" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="copyCurrentPlayerLink()" title="Sao chép nhanh link Player hiện tại">
+                📋 Copy
+            </button>
         </div>
 
         <div class="header-pin-bar">
