@@ -24,6 +24,13 @@ let currentRound = 1;
 let currentPin = localStorage.getItem('game_pin') || '1234';
 const playerTabId = 'player_' + Math.random().toString(36).substring(2, 9);
 
+// --- URL PARAMETERS FOR DIRECT PLAYER LINK ACCESS ---
+const urlParams = new URLSearchParams(window.location.search);
+const urlRoomId = urlParams.get('roomid');
+const urlAuth = urlParams.get('auth');
+const isUrlLinkMode = Boolean(urlRoomId && urlAuth);
+let isCurrentLinkInvalidated = false;
+
 const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
 
 // --- ANTI-SPAM BETTING/WITHDRAWAL DELAY (Default 0.125s = 125ms) ---
@@ -31,6 +38,7 @@ let lastBetActionTime = 0;
 let BET_COOLDOWN_MS = (gameSettings.betDelaySeconds !== undefined ? parseFloat(gameSettings.betDelaySeconds) : 0.125) * 1000;
 
 function isBetActionAllowed() {
+    if (isCurrentLinkInvalidated) return false;
     const now = Date.now();
     if (now - lastBetActionTime < BET_COOLDOWN_MS) {
         return false;
@@ -39,7 +47,7 @@ function isBetActionAllowed() {
     return true;
 }
 
-// --- PIN SECURITY ---
+// --- PIN & DIRECT LINK SECURITY ---
 function submitPin() {
     const pinInput = document.getElementById('pin-input');
     const val = pinInput ? pinInput.value.trim() : "";
@@ -66,11 +74,13 @@ function submitPin() {
 }
 
 function unlockPlayerScreen() {
+    if (isCurrentLinkInvalidated) return;
     const overlay = document.getElementById('pin-lock-overlay');
     if (overlay) overlay.style.display = 'none';
 }
 
 function lockPlayerScreen(clearInput = false) {
+    if (isCurrentLinkInvalidated) return;
     const overlay = document.getElementById('pin-lock-overlay');
     if (overlay) overlay.style.display = 'flex';
     const pinInput = document.getElementById('pin-input');
@@ -84,16 +94,79 @@ function lockPlayerScreen(clearInput = false) {
     }
 }
 
+function showLinkInvalidatedScreen(room, reason) {
+    isCurrentLinkInvalidated = true;
+    isLock = true;
+    const overlay = document.getElementById('pin-lock-overlay');
+    if (overlay) overlay.style.display = 'flex';
+
+    const card = document.querySelector('.pin-card');
+    if (card) {
+        card.innerHTML = `
+            <div class="pin-icon" style="font-size: 46px; margin-bottom: 8px;">🚫</div>
+            <h2 style="color: #ef4444; font-size: 19px; font-weight: bold; margin-bottom: 6px;">LIÊN KẾT ĐÃ BỊ VÔ HIỆU HÓA</h2>
+            <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid #ef4444; border-radius: 8px; padding: 12px; color: #fca5a5; font-size: 13px; line-height: 1.5; text-align: center; margin: 10px 0;">
+                ${reason || 'Đường link này đã bị Controller vô hiệu hóa do đã tạo đường link mới.'}
+            </div>
+            <div style="font-size: 12px; color: #94a3b8; margin: 6px 0 12px 0;">
+                Mã phòng: <strong style="color: #f59e0b;">${room || urlRoomId || 'Không xác định'}</strong>
+            </div>
+            <div style="font-size: 11px; color: #64748b; margin-bottom: 14px;">
+                💡 Vui lòng liên hệ Kỹ thuật / MC để nhận đường link tham gia mới nhất.
+            </div>
+            <button class="pin-submit-btn" style="background: #334155; border: 1px solid #475569; width: 100%;" onclick="window.location.reload()">
+                🔄 TẢI LẠI TRANG
+            </button>
+        `;
+    }
+}
+
 function checkInitialAuth() {
     channel.postMessage({ action: 'request_pin' });
-    const isAuth = localStorage.getItem('player_authenticated') === 'true';
-    const savedAuth = localStorage.getItem('player_auth_pin') || sessionStorage.getItem('auth_pin_player');
-    const storedPin = localStorage.getItem('game_pin') || '1234';
-    if (isAuth && savedAuth && savedAuth === storedPin) {
-        unlockPlayerScreen();
-        channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
+    channel.postMessage({ 
+        action: 'request_active_room_auth',
+        data: { urlRoomId, urlAuth, senderId: playerTabId }
+    });
+
+    if (isUrlLinkMode) {
+        const pinNotice = document.getElementById('pin-status-notice');
+        if (pinNotice) {
+            pinNotice.innerText = `🔍 Đang xác thực đường link (Phòng: ${urlRoomId})...`;
+            pinNotice.style.color = '#38bdf8';
+            pinNotice.style.borderColor = 'rgba(56,189,248,0.4)';
+        }
+
+        const activeRoom = localStorage.getItem('active_player_room_id');
+        const activeAuth = localStorage.getItem('active_player_auth_token');
+
+        if (activeRoom && activeAuth) {
+            if (urlRoomId === activeRoom && urlAuth === activeAuth) {
+                // Valid link cached!
+                localStorage.setItem('player_authenticated', 'true');
+                localStorage.setItem('player_auth_pin', urlRoomId);
+                unlockPlayerScreen();
+                channel.postMessage({
+                    action: 'player_authenticated',
+                    data: { roomid: urlRoomId, auth: urlAuth, senderId: playerTabId, viaLink: true }
+                });
+                channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
+                return;
+            } else {
+                // Mismatch with stored active link
+                showLinkInvalidatedScreen(urlRoomId, "Link này đã bị vô hiệu hóa vì Controller đã tạo một đường link mới!");
+                return;
+            }
+        }
     } else {
-        lockPlayerScreen(false);
+        const isAuth = localStorage.getItem('player_authenticated') === 'true';
+        const savedAuth = localStorage.getItem('player_auth_pin') || sessionStorage.getItem('auth_pin_player');
+        const storedPin = localStorage.getItem('game_pin') || '1234';
+        if (isAuth && savedAuth && savedAuth === storedPin) {
+            unlockPlayerScreen();
+            channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
+        } else {
+            lockPlayerScreen(false);
+        }
     }
 }
 
@@ -371,7 +444,68 @@ channel.onmessage = function(event) {
     switch(action) {
         case 'mqtt_connected':
             channel.postMessage({ action: 'request_pin' });
+            channel.postMessage({ 
+                action: 'request_active_room_auth',
+                data: { urlRoomId, urlAuth, senderId: playerTabId }
+            });
             channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
+            break;
+
+        case 'update_player_room_auth':
+            if (data && data.roomid && data.auth) {
+                localStorage.setItem('active_player_room_id', data.roomid);
+                localStorage.setItem('active_player_auth_token', data.auth);
+                localStorage.setItem('game_pin', data.roomid);
+                currentPin = data.roomid;
+
+                const pinNotice = document.getElementById('pin-status-notice');
+                if (pinNotice) {
+                    pinNotice.innerText = `🟢 Đã đồng bộ Phòng: ${data.roomid}`;
+                    pinNotice.style.color = '#00e676';
+                    pinNotice.style.borderColor = 'rgba(0,230,118,0.3)';
+                }
+
+                if (isUrlLinkMode) {
+                    if (urlRoomId === data.roomid && urlAuth === data.auth) {
+                        // Link is currently valid!
+                        isCurrentLinkInvalidated = false;
+                        localStorage.setItem('player_authenticated', 'true');
+                        localStorage.setItem('player_auth_pin', data.roomid);
+                        unlockPlayerScreen();
+                        channel.postMessage({
+                            action: 'player_authenticated',
+                            data: { roomid: data.roomid, auth: data.auth, senderId: playerTabId, viaLink: true }
+                        });
+                        channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
+                    } else {
+                        // Controller generated a new link! Old link MUST be invalidated immediately!
+                        showLinkInvalidatedScreen(urlRoomId, "Đường link bạn đang sử dụng đã bị vô hiệu hóa vì Controller vừa tạo một đường link mới!");
+                    }
+                } else {
+                    if (data.forceInvalidate) {
+                        localStorage.removeItem('player_authenticated');
+                        localStorage.removeItem('player_auth_pin');
+                        sessionStorage.removeItem('auth_pin_player');
+                        lockPlayerScreen(true);
+                    }
+                }
+            }
+            break;
+
+        case 'player_auth_success':
+            if (!data || !data.targetSenderId || data.targetSenderId === playerTabId) {
+                isCurrentLinkInvalidated = false;
+                localStorage.setItem('player_authenticated', 'true');
+                localStorage.setItem('player_auth_pin', data.roomid || urlRoomId);
+                unlockPlayerScreen();
+                channel.postMessage({ action: 'request_player_state', senderId: playerTabId });
+            }
+            break;
+
+        case 'player_auth_failed':
+            if (!data || !data.targetSenderId || data.targetSenderId === playerTabId) {
+                showLinkInvalidatedScreen(urlRoomId, data.reason || "Đường link này không hợp lệ hoặc đã bị vô hiệu hóa!");
+            }
             break;
 
         case 'update_pin':

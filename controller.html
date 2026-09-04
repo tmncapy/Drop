@@ -1213,17 +1213,33 @@
                 </div>
 
                 <!-- Role 3: Player -->
-                <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
+                <div style="background: #181b22; border: 1px solid #7c3aed; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
                         <div>
-                            <div style="font-size: 13px; font-weight: bold; color: #f59e0b;">MÀN HÌNH NGƯỜI CHƠI (PLAYER)</div>
-                            <div style="font-size: 10px; color: #64748b;">File: player.html</div>
+                            <div style="font-size: 13px; font-weight: bold; color: #c084fc;">MÀN HÌNH NGƯỜI CHƠI (PLAYER)</div>
+                            <div style="font-size: 10px; color: #64748b;">File: player.html | Vào trực tiếp qua Link</div>
                         </div>
+                        <span id="role-player-link-badge" style="font-size: 9px; background: rgba(34,197,94,0.2); color: #4ade80; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(74,222,128,0.4);">Link Hợp Lệ</span>
                     </div>
-                    <p style="font-size: 10px; color: #94a3b8;">Giao diện máy tính bảng/điện thoại cho thí sinh thực hiện thao tác chia cọc tiền cược.</p>
-                    <div style="display: flex; gap: 6px; margin-top: auto;">
-                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('player')">Reload Player</button>
-                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('player.html')">Mở Tab Mới</button>
+                    <p style="font-size: 10px; color: #94a3b8; margin: 0;">Giao diện chia cọc tiền cược cho thí sinh. Sử dụng link có sẵn mã phòng &amp; auth để vào thẳng game.</p>
+                    
+                    <!-- Link preview in card -->
+                    <div style="background: #111317; border: 1px solid #3b1d6e; border-radius: 4px; padding: 6px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 10px;">
+                            <span style="color: #94a3b8;">Phòng: <strong id="card-player-roomid" style="color: #38bdf8;">R1234</strong></span>
+                            <span style="color: #94a3b8;">Auth: <strong id="card-player-auth" style="color: #34d399;">drop88</strong></span>
+                        </div>
+                        <input type="text" id="card-player-link-input" readonly style="font-size: 10px; font-family: monospace; padding: 3px 6px; background: #0c0e14; border: 1px solid #262a36; color: #a7f3d0; border-radius: 3px;" value="https://tmncapy.github.io/Drop/player.html?roomid=R1234&amp;auth=drop88" onclick="this.select()">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        <button class="btn-purple" style="padding: 6px; font-size: 11px; font-weight: bold;" onclick="openPlayerLinkModal()">🔗 Quản Lý Link</button>
+                        <button class="btn-blue" style="padding: 6px; font-size: 11px;" onclick="copyCurrentPlayerLink()">📋 Copy Link</button>
+                    </div>
+
+                    <div style="display: flex; gap: 6px; margin-top: auto; border-top: 1px solid #262a36; padding-top: 6px;">
+                        <button class="btn-orange" style="flex: 1; padding: 6px; font-size: 11px;" onclick="reloadRole('player')">Reload Player</button>
+                        <button class="btn-blue" style="flex: 1; padding: 6px; font-size: 11px;" onclick="openActivePlayerLinkTab()">Mở Link Trực Tiếp</button>
                     </div>
                 </div>
 

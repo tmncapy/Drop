@@ -407,6 +407,209 @@ function initPinCode() {
     }
     localStorage.setItem('game_pin', currentPin);
     sendCommand('update_pin', { pin: currentPin });
+    initPlayerLink();
+}
+
+// ==========================================
+// PLAYER DIRECT LINK & AUTH INVALIDATION SYSTEM
+// ==========================================
+const GITHUB_PLAYER_BASE_URL = 'https://tmncapy.github.io/Drop/player.html';
+let activePlayerRoomId = localStorage.getItem('active_player_room_id') || ('R' + Math.floor(1000 + Math.random() * 9000));
+let activePlayerAuth = localStorage.getItem('active_player_auth_token') || (Math.random().toString(36).substring(2, 8).toLowerCase());
+let playerBaseUrlMode = localStorage.getItem('player_link_base_mode') || 'github';
+
+function initPlayerLink() {
+    localStorage.setItem('active_player_room_id', activePlayerRoomId);
+    localStorage.setItem('active_player_auth_token', activePlayerAuth);
+    localStorage.setItem('player_link_base_mode', playerBaseUrlMode);
+    
+    updatePlayerLinkUI();
+    
+    // Broadcast active room auth to channel
+    sendCommand('update_player_room_auth', {
+        roomid: activePlayerRoomId,
+        auth: activePlayerAuth
+    });
+}
+
+function getPlayerFullLink() {
+    let baseUrl = GITHUB_PLAYER_BASE_URL;
+    if (playerBaseUrlMode === 'origin') {
+        const origin = window.location.origin;
+        const path = window.location.pathname.replace(/controller\.html.*$/, 'player.html');
+        baseUrl = `${origin}${path}`;
+    }
+    return `${baseUrl}?roomid=${encodeURIComponent(activePlayerRoomId)}&auth=${encodeURIComponent(activePlayerAuth)}`;
+}
+
+function updatePlayerLinkUI() {
+    const fullLink = getPlayerFullLink();
+    
+    // Update Modal inputs
+    const modalRoomInput = document.getElementById('modal-room-id-input');
+    const modalAuthInput = document.getElementById('modal-auth-token-input');
+    const modalFullLinkInput = document.getElementById('modal-full-player-link');
+    const modalBaseSelect = document.getElementById('modal-base-url-select');
+    const modalSyncedPin = document.getElementById('modal-synced-pin-text');
+    const modalQrImg = document.getElementById('modal-player-qr-img');
+
+    if (modalRoomInput) modalRoomInput.value = activePlayerRoomId;
+    if (modalAuthInput) modalAuthInput.value = activePlayerAuth;
+    if (modalFullLinkInput) modalFullLinkInput.value = fullLink;
+    if (modalBaseSelect) modalBaseSelect.value = playerBaseUrlMode;
+    if (modalSyncedPin) modalSyncedPin.innerText = activePlayerRoomId;
+    if (modalQrImg) {
+        modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(fullLink)}`;
+    }
+
+    // Update Role Card inputs
+    const cardRoom = document.getElementById('card-player-roomid');
+    const cardAuth = document.getElementById('card-player-auth');
+    const cardLinkInput = document.getElementById('card-player-link-input');
+
+    if (cardRoom) cardRoom.innerText = activePlayerRoomId;
+    if (cardAuth) cardAuth.innerText = activePlayerAuth;
+    if (cardLinkInput) cardLinkInput.value = fullLink;
+}
+
+function openPlayerLinkModal() {
+    updatePlayerLinkUI();
+    const modal = document.getElementById('player-link-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closePlayerLinkModal() {
+    const modal = document.getElementById('player-link-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function generateNewPlayerLink() {
+    // Generate new unique roomid and auth token
+    const newRoomId = 'R' + Math.floor(1000 + Math.random() * 9000);
+    const newAuth = Math.random().toString(36).substring(2, 8).toLowerCase();
+
+    activePlayerRoomId = newRoomId;
+    activePlayerAuth = newAuth;
+
+    localStorage.setItem('active_player_room_id', activePlayerRoomId);
+    localStorage.setItem('active_player_auth_token', activePlayerAuth);
+
+    // Keep PIN in sync
+    currentPin = newRoomId;
+    localStorage.setItem('game_pin', currentPin);
+    const pinInput = document.getElementById('pin-code-input');
+    if (pinInput) pinInput.value = currentPin;
+
+    // Invalidate all old player links and sessions across the network
+    sendCommand('update_player_room_auth', {
+        roomid: activePlayerRoomId,
+        auth: activePlayerAuth,
+        forceInvalidate: true
+    });
+    sendCommand('update_pin', { pin: currentPin, forceLock: true });
+
+    addSystemLog('auth', 'TẠO LINK PLAYER MỚI', `Đã tạo đường link mới [roomid=${activePlayerRoomId} & auth=${activePlayerAuth}]. Tất cả link cũ đã bị vô hiệu hóa!`);
+    
+    updatePlayerLinkUI();
+    
+    const copyStatus = document.getElementById('player-link-copy-status');
+    if (copyStatus) {
+        copyStatus.innerText = '⚡ ĐÃ TẠO LINK MỚI & VÔ HIỆU HÓA LINK CŨ!';
+        copyStatus.style.display = 'inline';
+        setTimeout(() => { if (copyStatus) copyStatus.style.display = 'none'; }, 3500);
+    }
+}
+
+function applyCustomPlayerLink() {
+    const modalRoomInput = document.getElementById('modal-room-id-input');
+    const modalAuthInput = document.getElementById('modal-auth-token-input');
+
+    const newRoom = modalRoomInput ? modalRoomInput.value.trim() : '';
+    const newAuth = modalAuthInput ? modalAuthInput.value.trim() : '';
+
+    if (!newRoom || !newAuth) {
+        alert("Vui lòng nhập đầy đủ Mã phòng và Mật khẩu!");
+        return;
+    }
+
+    activePlayerRoomId = newRoom;
+    activePlayerAuth = newAuth;
+
+    localStorage.setItem('active_player_room_id', activePlayerRoomId);
+    localStorage.setItem('active_player_auth_token', activePlayerAuth);
+
+    // Invalidate old links and broadcast new custom credentials
+    sendCommand('update_player_room_auth', {
+        roomid: activePlayerRoomId,
+        auth: activePlayerAuth,
+        forceInvalidate: true
+    });
+
+    addSystemLog('auth', 'ĐỔI MÃ PHÒNG / AUTH TÙY CHỌN', `Đã cập nhật mã tùy chọn [roomid=${activePlayerRoomId} & auth=${activePlayerAuth}]. Đã vô hiệu hóa phiên cũ.`);
+    updatePlayerLinkUI();
+
+    alert(`Đã lưu và kích hoạt đường link mới!\nPhòng: ${activePlayerRoomId}\nMật khẩu: ${activePlayerAuth}`);
+}
+
+function copyCurrentPlayerLink() {
+    const fullLink = getPlayerFullLink();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullLink).then(() => {
+            showPlayerLinkCopiedFeedback();
+        }).catch(() => {
+            fallbackCopyText(fullLink);
+        });
+    } else {
+        fallbackCopyText(fullLink);
+    }
+}
+
+function fallbackCopyText(text) {
+    const tempInput = document.createElement('textarea');
+    tempInput.value = text;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    try {
+        document.execCommand('copy');
+        showPlayerLinkCopiedFeedback();
+    } catch(e) {
+        prompt("Sao chép đường link bên dưới:", text);
+    }
+    document.body.removeChild(tempInput);
+}
+
+function showPlayerLinkCopiedFeedback() {
+    const copyStatus = document.getElementById('player-link-copy-status');
+    if (copyStatus) {
+        copyStatus.innerText = '✓ Đã sao chép link vào bộ nhớ tạm!';
+        copyStatus.style.display = 'inline';
+        setTimeout(() => { if (copyStatus) copyStatus.style.display = 'none'; }, 2500);
+    }
+    const cardInput = document.getElementById('card-player-link-input');
+    if (cardInput) {
+        cardInput.style.borderColor = '#00e676';
+        setTimeout(() => { if (cardInput) cardInput.style.borderColor = '#262a36'; }, 1000);
+    }
+}
+
+function changePlayerBaseUrlMode(mode) {
+    playerBaseUrlMode = mode;
+    localStorage.setItem('player_link_base_mode', playerBaseUrlMode);
+    updatePlayerLinkUI();
+}
+
+function openActivePlayerLinkTab() {
+    const fullLink = getPlayerFullLink();
+    window.open(fullLink, '_blank');
+}
+
+function forceInvalidateAllPlayerLinks() {
+    if (!confirm("Bạn có chắc chắn muốn HỦY TOÀN BỘ LINK và KHÓA tất cả màn hình Người Chơi ngay lập tức?")) {
+        return;
+    }
+    // Generate fresh credentials to permanently revoke old one
+    generateNewPlayerLink();
+    addSystemLog('auth', 'HỦY KHẨN CẤP TOÀN BỘ LINK', `Đã hủy toàn bộ đường link người chơi và phát lệnh khóa khẩn cấp.`);
 }
 
 function updatePinCode() {
@@ -434,6 +637,7 @@ function generateRandomPin() {
 function forceLockPlayers() {
     localStorage.removeItem('player_auth_pin');
     sendCommand('update_pin', { pin: currentPin, forceLock: true });
+    sendCommand('update_player_room_auth', { roomid: activePlayerRoomId, auth: activePlayerAuth, forceInvalidate: true });
     addSystemLog('auth', 'KHÓA MÀN HÌNH PLAYER', `Đã gửi lệnh khóa khẩn cấp toàn bộ màn hình Người Chơi.`);
     alert("Đã gửi lệnh khóa tất cả màn hình Player!");
 }
@@ -451,10 +655,35 @@ channel.onmessage = function(event) {
     }
     if (action === 'mqtt_connected' || action === 'request_pin') {
         sendCommand('update_pin', { pin: currentPin });
+        sendCommand('update_player_room_auth', { roomid: activePlayerRoomId, auth: activePlayerAuth });
         sendCommand('set_volume', { volume: currentGlobalVolume });
     }
+    if (action === 'request_active_room_auth') {
+        // Send current valid room credentials
+        sendCommand('update_player_room_auth', {
+            roomid: activePlayerRoomId,
+            auth: activePlayerAuth
+        });
+        if (data && data.urlRoomId && data.urlAuth) {
+            if (data.urlRoomId === activePlayerRoomId && data.urlAuth === activePlayerAuth) {
+                sendCommand('player_auth_success', {
+                    targetSenderId: data.senderId,
+                    roomid: activePlayerRoomId,
+                    auth: activePlayerAuth
+                });
+                addSystemLog('auth', 'PLAYER VÀO TRỰC TIẾP BẰNG LINK', `Người chơi tham gia qua link hợp lệ [Phòng: ${activePlayerRoomId}].`);
+            } else {
+                sendCommand('player_auth_failed', {
+                    targetSenderId: data.senderId,
+                    reason: `Đường link này (Phòng: ${data.urlRoomId}) đã bị vô hiệu hóa bởi Controller! Vui lòng liên hệ Kỹ thuật để lấy link mới nhất.`
+                });
+                addSystemLog('auth', 'TỪ CHỐI LINK PLAYER CŨ', `Phát hiện truy cập bằng link cũ/không hợp lệ [Phòng: ${data.urlRoomId}]. Đã khóa và từ chối.`);
+            }
+        }
+    }
     if (action === 'player_authenticated') {
-        addSystemLog('auth', 'PLAYER XÁC THỰC', `Màn hình Player đã nhập đúng mã PIN và đăng nhập thành công.`);
+        const info = data && data.viaLink ? `qua Đường Link Trực Tiếp [Phòng: ${data.roomid || activePlayerRoomId}]` : `nhập mã PIN [${data.pin || currentPin}]`;
+        addSystemLog('auth', 'PLAYER XÁC THỰC THÀNH CÔNG', `Màn hình Player đã xác thực thành công ${info}.`);
     }
     if (action === 'request_player_state') {
         addSystemLog('auth', 'KẾT NỐI PLAYER', `Màn hình Player kết nối và gửi yêu cầu đồng bộ.`);
