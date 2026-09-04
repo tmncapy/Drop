@@ -366,6 +366,40 @@
             border-color: #991b1b;
             color: #fca5a5;
         }
+        .chat-quick-btn {
+            background: #181b22;
+            color: #d8b4fe;
+            border: 1px solid #4a1d96;
+            border-radius: 4px;
+            font-size: 10px;
+            padding: 2px 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .chat-quick-btn:hover {
+            background: #6b21a8;
+            color: #ffffff;
+            border-color: #c084fc;
+        }
+        .chat-toast-item {
+            background: #1e1b4b;
+            border: 1px solid #a855f7;
+            color: #f5f3ff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            font-size: 12px;
+            max-width: 320px;
+            pointer-events: auto;
+            cursor: pointer;
+            animation: toastSlideIn 0.3s ease;
+            transition: opacity 0.3s;
+        }
+        @keyframes toastSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -381,6 +415,45 @@
             </div>
             <div id="compress-status-text" style="color:#38bdf8; font-size:14px; font-weight:bold;">Đang xử lý... 0%</div>
             <div style="color:#64748b; font-size:11px; margin-top:8px;">Tự động tối ưu 480p để truyền mượt mà, không bị giật lag khi chiếu trên Projector.</div>
+        </div>
+    </div>
+
+    <!-- Floating Toast for incoming Host Messages -->
+    <div id="controller-chat-toast-container" style="position:fixed; top:65px; right:20px; z-index:99999; display:flex; flex-direction:column; gap:8px; pointer-events:none;"></div>
+
+    <!-- Controller Chat Modal Dialog -->
+    <div id="controller-chat-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); z-index:99998; align-items:center; justify-content:center;">
+        <div style="background:#111317; border:2px solid #a855f7; border-radius:12px; width:90%; max-width:640px; height:80vh; max-height:600px; display:flex; flex-direction:column; box-shadow:0 15px 35px rgba(0,0,0,0.8); overflow:hidden; font-family:'Myriad Pro', Arial, sans-serif;">
+            <div style="background:#1a102f; border-bottom:1px solid #3b1d6e; padding:10px 16px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="color:#d8b4fe; font-size:15px; font-weight:bold; display:flex; align-items:center; gap:8px;">
+                    <span>💬 TRAO ĐỔI KỊCH BẢN VỚI MC HOST</span>
+                    <span style="font-size:10px; background:rgba(46,160,67,0.2); color:#3fb950; padding:2px 6px; border-radius:10px; border:1px solid rgba(63,185,80,0.4);">● Đang kết nối</span>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button style="background:transparent; border:1px solid #4a1d96; color:#c084fc; padding:3px 8px; border-radius:4px; font-size:11px; cursor:pointer;" onclick="clearScriptChatHistory()">🗑️ Xóa lịch sử</button>
+                    <button style="background:#ef4444; border:none; color:#fff; width:26px; height:26px; border-radius:4px; font-size:13px; font-weight:bold; cursor:pointer;" onclick="closeControllerChatModal()">✕</button>
+                </div>
+            </div>
+
+            <!-- Modal Chat History -->
+            <div id="modal-chat-history" style="flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; background:#0a0c10;">
+            </div>
+
+            <!-- Modal Quick Presets -->
+            <div style="background:#12151c; border-top:1px solid #222632; padding:6px 12px; display:flex; flex-wrap:wrap; gap:4px;">
+                <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('🟢 Sẵn sàng lên sóng!')">🟢 Sẵn sàng</button>
+                <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('⏳ Kéo dài thời gian giao lưu!')">⏳ Giao lưu thêm</button>
+                <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('⏱️ Chuẩn bị đếm ngược!')">⏱️ Sắp đếm ngược</button>
+                <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('📖 Đọc giải thích đáp án!')">📖 Đọc giải thích</button>
+                <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('⚡ Chuẩn bị sập hố!')">⚡ Sắp sập hố</button>
+                <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('📺 Nghỉ giải lao quảng cáo!')">📺 Quảng cáo</button>
+            </div>
+
+            <!-- Modal Input Bar -->
+            <div style="background:#161b22; border-top:1px solid #30363d; padding:10px 12px; display:flex; gap:8px;">
+                <input type="text" id="modal-chat-input" placeholder="Nhập tin nhắn trao đổi kịch bản với Host... (Enter để gửi)" style="flex:1; background:#0d1117; border:1px solid #30363d; color:#f0f6fc; padding:8px 12px; border-radius:6px; font-size:13px;" onkeypress="if(event.key==='Enter') sendModalChatMessage()">
+                <button type="button" class="btn-purple" style="padding:8px 16px; font-size:13px; font-weight:bold;" onclick="sendModalChatMessage()">GỬI HOST</button>
+            </div>
         </div>
     </div>
 
@@ -414,6 +487,10 @@
         <button class="tab-button" id="tab-btn-roles" onclick="switchControllerTab('roles')">QUẢN LÝ MÀN HÌNH (ROLES)</button>
         <button class="tab-button" id="tab-btn-settings" onclick="switchControllerTab('settings')">CÀI ĐẶT CẤU HÌNH</button>
         <button class="tab-button" id="tab-btn-logs" onclick="switchControllerTab('logs')">NHẬT KÝ HỆ THỐNG (LOG)</button>
+        <button class="tab-button" id="tab-btn-chat" onclick="openControllerChatModal()" style="border-color: #7e22ce; color: #d8b4fe; position: relative;" title="Mở cửa sổ Chat trao đổi kịch bản với Host">
+            💬 CHAT KỊCH BẢN HOST 
+            <span id="controller-chat-tab-badge" style="display:none; background:#ef4444; color:#fff; font-size:9px; padding:1px 5px; border-radius:10px; margin-left:4px; font-weight:bold;">0</span>
+        </button>
     </div>
 
     <div id="main-dashboard" class="dashboard-container">
@@ -423,33 +500,14 @@
             
             <div class="form-group">
                 <label style="color: #60a5fa; font-weight: bold; border-bottom: 1px solid #262a36; padding-bottom: 3px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
-                    <span>1. NẠP DỮ LIỆU CÂU HỎI (2 CÁCH)</span>
+                    <span>1. NẠP DỮ LIỆU CÂU HỎI TỪ EXCEL</span>
                     <span id="current-loaded-question-badge" style="font-size: 9px; background: #064e3b; color: #34d399; padding: 1px 6px; border-radius: 4px;">Đã nạp 0 câu</span>
                 </label>
 
-                <!-- Cách 1: Nạp từ máy tính -->
-                <div style="background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 5px; margin-bottom: 6px;">
-                    <label style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 2px;">CÁCH 1: NẠP FILE EXCEL TỪ MÁY TÍNH (LOCAL)</label>
-                    <input type="file" id="excel-file" accept=".xlsx, .xls" onchange="importExcel(this)" style="font-size: 10px;">
-                </div>
-
-                <!-- Cách 2: Chọn file đề đã nạp sẵn trên Server -->
-                <div style="background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 5px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
-                        <label style="font-size: 10px; color: #38bdf8; font-weight: bold; margin-bottom: 0;">CÁCH 2: CHỌN FILE ĐỀ CÓ SẴN TRÊN SERVER</label>
-                        <button class="btn-blue" style="width: auto; padding: 1px 5px; font-size: 9px;" onclick="loadServerQuestionsList()" title="Làm mới danh sách file trên server">🔄 Làm mới</button>
-                    </div>
-                    <select id="select-server-question-file" style="width: 100%; margin-bottom: 4px; padding: 4px; border-radius: 3px; background: #181b22; color: #fff; border: 1px solid #323848; font-size: 11px;">
-                        <option value="">-- Đang tải danh sách đề từ Server... --</option>
-                    </select>
-                    <div style="display: flex; gap: 4px;">
-                        <button class="btn-green" style="flex: 1; padding: 4px 6px; font-size: 10px;" onclick="importSelectedServerQuestionFile()">
-                            📥 TẢI &amp; NẠP ĐỀ TỪ SERVER
-                        </button>
-                        <button class="btn-purple" style="width: auto; padding: 4px 8px; font-size: 10px;" onclick="uploadCurrentExcelToServer()" title="Nạp file đính kèm hiện tại lên server">
-                            ⬆️ Nạp Lên Server
-                        </button>
-                    </div>
+                <!-- Nạp từ máy tính -->
+                <div style="background: #111317; border: 1px solid #222632; border-radius: 4px; padding: 6px;">
+                    <label style="font-size: 10px; color: #94a3b8; font-weight: bold; margin-bottom: 4px; display: block;">CHỌN FILE EXCEL ĐỀ THI (.XLSX, .XLS):</label>
+                    <input type="file" id="excel-file" accept=".xlsx, .xls" onchange="importExcel(this)" style="font-size: 11px;">
                 </div>
             </div>
 
@@ -628,11 +686,36 @@
                 <button class="btn-red" style="font-size: 11px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">SẬP (Tiếng Sập Hố 2)</button>
             </div>
 
-            <div class="form-group">
-                <label style="color: #c084fc;">GỬI TIN NHẮN ĐẾN HOST (MC)</label>
+            <div class="form-group" style="background: #111317; border: 1px solid #2d1b4e; border-radius: 6px; padding: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px solid #2d1b4e; padding-bottom: 3px;">
+                    <label style="color: #c084fc; font-weight: bold; font-size: 11px; margin-bottom: 0; display: flex; align-items: center; gap: 4px;">
+                        <span>💬 TRAO ĐỔI KỊCH BẢN VỚI HOST</span>
+                        <span id="controller-unread-badge" style="display:none; background:#ef4444; color:#fff; font-size:9px; padding:1px 5px; border-radius:8px; font-weight:bold;">0</span>
+                    </label>
+                    <div style="display: flex; gap: 3px;">
+                        <button type="button" style="background: transparent; color: #94a3b8; border: 1px solid #334155; border-radius: 3px; font-size: 9px; padding: 1px 4px; cursor: pointer;" onclick="clearScriptChatHistory()" title="Xóa toàn bộ lịch sử chat">🗑️</button>
+                        <button type="button" style="background: #2d1b4e; color: #d8b4fe; border: 1px solid #7e22ce; border-radius: 3px; font-size: 9px; padding: 1px 5px; cursor: pointer;" onclick="openControllerChatModal()" title="Mở hộp chat to">🔍 Phóng to</button>
+                    </div>
+                </div>
+
+                <!-- Chat history box -->
+                <div id="controller-chat-history" style="height: 95px; overflow-y: auto; background: #090a0d; border: 1px solid #1e1b2e; border-radius: 4px; padding: 5px; margin-bottom: 4px; display: flex; flex-direction: column; gap: 4px; font-size: 11px;">
+                    <div style="color: #64748b; text-align: center; font-style: italic; margin: auto;">Chưa có tin nhắn nào giữa Host và Phòng Máy.</div>
+                </div>
+
+                <!-- Quick scenarios for Controller -->
+                <div style="display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 4px;">
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('🟢 Sẵn sàng lên sóng!')">🟢 Sẵn sàng</button>
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('⏳ Kéo dài thời gian giao lưu!')">⏳ Giao lưu</button>
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('⏱️ Chuẩn bị đếm ngược!')">⏱️ Đếm ngược</button>
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('📖 Đọc giải thích đáp án!')">📖 Giải thích</button>
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('⚡ Chuẩn bị sập hố!')">⚡ Sập hố</button>
+                    <button type="button" class="chat-quick-btn" onclick="sendQuickTechMsg('📺 Nghỉ giải lao quảng cáo!')">📺 Quảng cáo</button>
+                </div>
+
                 <div class="inline-group">
-                    <input type="text" id="host-msg-input" placeholder="Nhập tin nhắn nhắn Host..." onkeypress="if(event.key==='Enter') sendMsgToHost()">
-                    <button class="btn-purple" style="width: 60px; flex-shrink: 0;" onclick="sendMsgToHost()">Gửi</button>
+                    <input type="text" id="host-msg-input" placeholder="Nhập tin nhắn kịch bản gửi Host..." onkeypress="if(event.key==='Enter') sendMsgToHost()">
+                    <button type="button" class="btn-purple" style="width: 55px; flex-shrink: 0; padding: 3px 6px; font-size: 11px;" onclick="sendMsgToHost()">Gửi</button>
                 </div>
             </div>
 
@@ -1037,22 +1120,7 @@
                     </div>
                 </div>
 
-                <!-- Role 5: Server -->
-                <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
-                        <div>
-                            <div style="font-size: 13px; font-weight: bold; color: #94a3b8;">MÀN HÌNH SERVER</div>
-                            <div style="font-size: 10px; color: #64748b;">File: server.html</div>
-                        </div>
-                    </div>
-                    <p style="font-size: 10px; color: #94a3b8;">Màn hình giám sát hệ thống server trung tâm và lưu lượng dữ liệu.</p>
-                    <div style="display: flex; gap: 6px; margin-top: auto;">
-                        <button class="btn-orange" style="flex: 1; padding: 8px;" onclick="reloadRole('server')">Reload Server</button>
-                        <button class="btn-blue" style="flex: 1; padding: 8px;" onclick="openRoleTab('server.html')">Mở Tab Mới</button>
-                    </div>
-                </div>
-
-                <!-- Role 6: Controller -->
+                <!-- Role 5: Controller -->
                 <div style="background: #181b22; border: 1px solid #262a36; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #262a36; padding-bottom: 6px;">
                         <div>

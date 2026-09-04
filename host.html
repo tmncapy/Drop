@@ -323,36 +323,223 @@
             background: linear-gradient(135deg, #0d1626 0%, #080d1a 100%);
             border: 3px solid #388bfd;
             border-radius: 14px;
-            padding: 20px 24px;
+            padding: 12px 18px;
             box-shadow: 0 0 25px rgba(56, 139, 253, 0.3);
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .tech-box.chat-glow {
+            border-color: #58a6ff !important;
+            box-shadow: 0 0 35px rgba(88, 166, 255, 0.7) !important;
+        }
+        .tech-box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            border-bottom: 2px solid rgba(56, 139, 253, 0.3);
+            padding-bottom: 6px;
         }
         .tech-box-title {
             color: #58a6ff;
             font-weight: normal;
             font-family: 'Myriad Pro', Arial, sans-serif;
-            font-size: 18px;
-            margin-bottom: 12px;
-            border-bottom: 2px solid rgba(56, 139, 253, 0.3);
-            padding-bottom: 8px;
+            font-size: 15px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1.2px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
-        .tech-msg-content {
-            color: #00ff88;
-            font-size: 32px;
-            font-weight: normal;
-            font-family: 'Myriad Pro', Arial, sans-serif;
-            line-height: 1.35;
-            word-wrap: break-word;
-            flex: 1;
+        .tech-box-actions {
             display: flex;
             align-items: center;
-            text-shadow: 0 0 12px rgba(0, 255, 136, 0.4);
+            gap: 6px;
+        }
+        .tech-header-btn {
+            background: rgba(22, 27, 34, 0.85);
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .tech-header-btn:hover {
+            background: #21262d;
+            border-color: #58a6ff;
+            color: #58a6ff;
+        }
+
+        /* Latest Directive Announcement Banner */
+        .tech-latest-banner {
+            background: rgba(56, 139, 253, 0.12);
+            border-left: 3px solid #00ff88;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 28px;
+        }
+        .tech-latest-label {
+            font-size: 10px;
+            color: #00ff88;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+        .tech-latest-text {
+            font-size: 15px;
+            color: #f0f6fc;
+            font-weight: normal;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Chat messages list */
+        .host-chat-list {
+            flex: 1;
+            min-height: 80px;
+            max-height: 115px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding-right: 4px;
+            margin-bottom: 6px;
+            scrollbar-width: thin;
+            scrollbar-color: #30363d transparent;
+        }
+        .host-chat-list::-webkit-scrollbar {
+            width: 4px;
+        }
+        .host-chat-list::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 4px;
+        }
+        .chat-msg-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            max-width: 90%;
+        }
+        .chat-msg-row.tech {
+            align-self: flex-start;
+        }
+        .chat-msg-row.host {
+            align-self: flex-end;
+        }
+        .chat-msg-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+        }
+        .chat-msg-row.tech .chat-msg-meta {
+            color: #58a6ff;
+        }
+        .chat-msg-row.host .chat-msg-meta {
+            color: #f1e05a;
+            justify-content: flex-end;
+        }
+        .chat-msg-bubble {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.35;
+            word-break: break-word;
+        }
+        .chat-msg-row.tech .chat-msg-bubble {
+            background: #162238;
+            border: 1px solid #1f6feb;
+            color: #ffffff;
+            border-top-left-radius: 2px;
+        }
+        .chat-msg-row.host .chat-msg-bubble {
+            background: #242214;
+            border: 1px solid #9e6a03;
+            color: #fff9c4;
+            border-top-right-radius: 2px;
+        }
+
+        /* Quick scenario chips */
+        .host-quick-chips {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-width: none;
+        }
+        .host-quick-chips::-webkit-scrollbar {
+            display: none;
+        }
+        .host-chip-btn {
+            background: rgba(22, 27, 34, 0.9);
+            border: 1px solid #30363d;
+            color: #f1e05a;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .host-chip-btn:hover {
+            background: #f1e05a;
+            color: #090c10;
+            border-color: #f1e05a;
+            transform: translateY(-1px);
+        }
+
+        /* Input row */
+        .host-chat-input-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .host-chat-input {
+            flex: 1;
+            background: #090d14;
+            border: 1px solid #30363d;
+            color: #f0f6fc;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .host-chat-input:focus {
+            border-color: #58a6ff;
+            box-shadow: 0 0 8px rgba(88, 166, 255, 0.3);
+        }
+        .host-chat-send-btn {
+            background: linear-gradient(135deg, #1f6feb, #238636);
+            border: 1px solid #2ea043;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+        .host-chat-send-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
     </style>
 </head>
@@ -416,9 +603,44 @@
         <div class="explain-container">
             <div id="explain-box">💡 Giải thích đáp án từ hệ thống: <span id="explain-text">Chưa có dữ liệu</span></div>
         </div>
-        <div class="tech-box">
-            <div class="tech-box-title">💬 Tin nhắn từ phòng Kỹ Thuật:</div>
-            <div class="tech-msg-content" id="tech-msg-display">Hệ thống đang sẵn sàng.</div>
+        <div class="tech-box" id="host-tech-box">
+            <div class="tech-box-header">
+                <div class="tech-box-title">
+                    <span>💬 TRAO ĐỔI KỊCH BẢN (MC ⇄ KỸ THUẬT)</span>
+                    <span style="font-size: 10px; background: rgba(46, 160, 67, 0.2); color: #3fb950; padding: 1px 6px; border-radius: 10px; border: 1px solid rgba(63, 185, 80, 0.4);">● Trực tiếp</span>
+                </div>
+                <div class="tech-box-actions">
+                    <button class="tech-header-btn" id="btn-toggle-sound" onclick="toggleHostChatSound()" title="Bật/Tắt chuông báo tin nhắn">🔔 Chuông</button>
+                    <button class="tech-header-btn" onclick="clearHostChatHistory()" title="Xóa lịch sử chat">🗑️ Xóa</button>
+                </div>
+            </div>
+
+            <!-- Latest Directive Announcement Banner -->
+            <div class="tech-latest-banner" id="tech-latest-banner">
+                <span class="tech-latest-label">Chỉ đạo mới nhất:</span>
+                <span class="tech-latest-text" id="tech-msg-display">Hệ thống đang sẵn sàng.</span>
+            </div>
+
+            <!-- Chat messages list -->
+            <div class="host-chat-list" id="host-chat-list">
+                <!-- Messages rendered dynamically -->
+            </div>
+
+            <!-- Quick Script Scenario Chips -->
+            <div class="host-quick-chips">
+                <button class="host-chip-btn" onclick="sendQuickHostMsg('⚡ Sẵn sàng!')">⚡ Sẵn sàng</button>
+                <button class="host-chip-btn" onclick="sendQuickHostMsg('⏳ Xin thêm 30s!')">⏳ Xin thêm 30s</button>
+                <button class="host-chip-btn" onclick="sendQuickHostMsg('🎯 Đã chốt kịch bản!')">🎯 Đã chốt kịch bản</button>
+                <button class="host-chip-btn" onclick="sendQuickHostMsg('💡 Cần gợi ý đáp án!')">💡 Cần gợi ý</button>
+                <button class="host-chip-btn" onclick="sendQuickHostMsg('👥 Đang giao lưu thí sinh!')">👥 Đang giao lưu</button>
+                <button class="host-chip-btn" onclick="sendQuickHostMsg('🔔 Chờ hiệu lệnh phòng máy!')">🔔 Chờ hiệu lệnh</button>
+            </div>
+
+            <!-- Message Input Row -->
+            <div class="host-chat-input-row">
+                <input type="text" id="host-chat-input" class="host-chat-input" placeholder="MC nhập tin nhắn kịch bản đến Controller... (Enter để gửi)" onkeypress="if(event.key==='Enter') sendHostChatMessage()">
+                <button class="host-chat-send-btn" onclick="sendHostChatMessage()">GỬI TIN</button>
+            </div>
         </div>
     </div>
 
@@ -517,12 +739,198 @@
                 document.getElementById('explain-text').innerText = data.explain || "Không có giải thích cho câu này.";
             }
             if (action === 'tech_to_host_msg') {
-                document.getElementById('tech-msg-display').innerText = data.msg;
+                const text = (data && (data.text || data.msg)) || (typeof data === 'string' ? data : '');
+                if (text) {
+                    const latestEl = document.getElementById('tech-msg-display');
+                    if (latestEl) latestEl.innerText = text;
+
+                    // Subtle box glow pulse
+                    const box = document.getElementById('host-tech-box');
+                    if (box) {
+                        box.classList.add('chat-glow');
+                        setTimeout(() => box.classList.remove('chat-glow'), 2500);
+                    }
+
+                    // Play audio notification chime
+                    playChatNotificationSound();
+
+                    // Record to persistent chat history
+                    const history = getChatHistory();
+                    const alreadyExists = data.id && history.some(h => h.id === data.id);
+                    if (!alreadyExists) {
+                        const now = new Date();
+                        const timeStr = data.time || now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        history.push({
+                            id: data.id || Date.now(),
+                            sender: 'tech',
+                            senderName: data.senderName || 'KỸ THUẬT',
+                            text: text,
+                            msg: text,
+                            time: timeStr
+                        });
+                        saveChatHistory(history);
+                    }
+                    renderHostChatList();
+                }
+            }
+            if (action === 'clear_script_chat') {
+                localStorage.removeItem('gameshow_script_chat');
+                renderHostChatList();
             }
             if (action === 'reset_round') {
                 resetAllHostVisuals();
             }
         };
+
+        // --- HOST SCRIPT CHAT LOGIC ---
+        let hostChatSoundEnabled = true;
+
+        function toggleHostChatSound() {
+            hostChatSoundEnabled = !hostChatSoundEnabled;
+            const btn = document.getElementById('btn-toggle-sound');
+            if (btn) {
+                btn.innerText = hostChatSoundEnabled ? '🔔 Chuông' : '🔕 Tắt';
+                btn.style.color = hostChatSoundEnabled ? '#c9d1d9' : '#8b949e';
+            }
+        }
+
+        function playChatNotificationSound() {
+            if (!hostChatSoundEnabled) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.setValueAtTime(880.00, now + 0.08); // A5
+                
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                
+                osc.start(now);
+                osc.stop(now + 0.28);
+            } catch(e) {}
+        }
+
+        function getChatHistory() {
+            try {
+                return JSON.parse(localStorage.getItem('gameshow_script_chat')) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveChatHistory(history) {
+            try {
+                if (history.length > 60) history = history.slice(-60);
+                localStorage.setItem('gameshow_script_chat', JSON.stringify(history));
+            } catch (e) {}
+        }
+
+        function renderHostChatList() {
+            const listEl = document.getElementById('host-chat-list');
+            if (!listEl) return;
+            const history = getChatHistory();
+            if (history.length === 0) {
+                listEl.innerHTML = '<div style="color:#8b949e; text-align:center; font-style:italic; margin:auto; font-size:12px;">Chưa có tin nhắn trao đổi kịch bản nào.</div>';
+                return;
+            }
+
+            listEl.innerHTML = history.map(item => {
+                const isHost = item.sender === 'host';
+                const timeStr = item.time || '';
+                const senderTitle = isHost ? 'MC HOST' : 'KỸ THUẬT';
+                const rowClass = isHost ? 'chat-msg-row host' : 'chat-msg-row tech';
+                const badgeStyle = isHost 
+                    ? 'background:rgba(241,224,90,0.15); color:#f1e05a; border:1px solid rgba(241,224,90,0.4);' 
+                    : 'background:rgba(56,139,253,0.15); color:#58a6ff; border:1px solid rgba(56,139,253,0.4);';
+
+                return `
+                    <div class="${rowClass}">
+                        <div class="chat-msg-meta">
+                            <span style="font-size:9px; padding:1px 5px; border-radius:4px; font-weight:bold; ${badgeStyle}">[${senderTitle}]</span>
+                            <span style="opacity:0.7;">${timeStr}</span>
+                        </div>
+                        <div class="chat-msg-bubble">${escapeHtml(item.text || item.msg || '')}</div>
+                    </div>
+                `;
+            }).join('');
+
+            listEl.scrollTop = listEl.scrollHeight;
+        }
+
+        function sendHostChatMessage() {
+            const input = document.getElementById('host-chat-input');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            const msgObj = {
+                id: Date.now(),
+                sender: 'host',
+                senderName: 'MC HOST',
+                text: text,
+                msg: text,
+                time: timeStr
+            };
+
+            const history = getChatHistory();
+            history.push(msgObj);
+            saveChatHistory(history);
+            renderHostChatList();
+
+            channel.postMessage({
+                action: 'host_to_tech_msg',
+                data: msgObj
+            });
+
+            input.value = '';
+            input.focus();
+        }
+
+        function sendQuickHostMsg(presetText) {
+            const input = document.getElementById('host-chat-input');
+            if (input) input.value = presetText;
+            sendHostChatMessage();
+        }
+
+        function clearHostChatHistory() {
+            if (confirm("Bạn có chắc muốn xóa lịch sử chat trao đổi kịch bản không?")) {
+                localStorage.removeItem('gameshow_script_chat');
+                renderHostChatList();
+                channel.postMessage({ action: 'clear_script_chat' });
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        // Initialize chat history on load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderHostChatList();
+            const history = getChatHistory();
+            if (history.length > 0) {
+                const lastTech = [...history].reverse().find(m => m.sender === 'tech');
+                if (lastTech) {
+                    const latestEl = document.getElementById('tech-msg-display');
+                    if (latestEl) latestEl.innerText = lastTech.text || lastTech.msg;
+                }
+            }
+        });
 
         function resetAllHostVisuals() {
             currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };

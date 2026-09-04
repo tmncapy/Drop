@@ -392,7 +392,7 @@ window.addEventListener('DOMContentLoaded', () => {
     updateTimerForCurrentQuestion();
     renderSystemLogsUI();
     updateLogStatsSummaryUI();
-    loadServerQuestionsList();
+    renderControllerChatHistory();
 
     const badge = document.getElementById('current-loaded-question-badge');
     if (badge && excelDataStore) {
@@ -443,6 +443,12 @@ let lastMcBetsData = { b1: 0, b2: 0, b3: 0, b4: 0, totalMoney: null, totalStacks
 // Listen to messages from other windows/tabs (e.g., live player bets)
 channel.onmessage = function(event) {
     const { action, data } = event.data;
+    if (action === 'host_to_tech_msg' && data) {
+        handleIncomingHostMessage(data);
+    }
+    if (action === 'clear_script_chat') {
+        handleClearScriptChat(false);
+    }
     if (action === 'mqtt_connected' || action === 'request_pin') {
         sendCommand('update_pin', { pin: currentPin });
         sendCommand('set_volume', { volume: currentGlobalVolume });
@@ -500,128 +506,7 @@ channel.onmessage = function(event) {
             showProgressOnProjector();
         }
     }
-    if (action === 'server_questions_updated') {
-        loadServerQuestionsList();
-    }
 };
-
-// ==========================================
-// WEB SERVER QUESTION FILE MANAGEMENT
-// ==========================================
-let serverQuestionFilesList = [];
-
-async function loadServerQuestionsList() {
-    const selectEl = document.getElementById('select-server-question-file');
-    if (!selectEl) return;
-    try {
-        selectEl.innerHTML = '<option value="">-- Đang tải từ Server... --</option>';
-        const res = await fetch('/api/questions/list');
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-        }
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-            throw new Error('Non-JSON response');
-        }
-        const data = await res.json();
-        if (!data.success) {
-            selectEl.innerHTML = '<option value="">-- Lỗi từ Server --</option>';
-            return;
-        }
-
-        serverQuestionFilesList = data.files || [];
-        const activeFile = data.activeFile;
-
-        if (serverQuestionFilesList.length === 0) {
-            selectEl.innerHTML = '<option value="">-- Chưa có file đề thi nào trên Server --</option>';
-            return;
-        }
-
-        selectEl.innerHTML = '';
-        const defaultOp = document.createElement('option');
-        defaultOp.value = '';
-        defaultOp.textContent = `-- Chọn file đề thi từ Server (${serverQuestionFilesList.length} files) --`;
-        selectEl.appendChild(defaultOp);
-
-        let activeValToSelect = '';
-        serverQuestionFilesList.forEach(f => {
-            const op = document.createElement('option');
-            op.value = f.filename;
-            const isActive = activeFile && activeFile.filename === f.filename;
-            op.textContent = `${isActive ? '⭐ [ĐANG CHỌN] ' : ''}${f.originalName} (${f.sizeFormatted})`;
-            if (isActive) activeValToSelect = f.filename;
-            selectEl.appendChild(op);
-        });
-
-        if (activeValToSelect) {
-            selectEl.value = activeValToSelect;
-        }
-    } catch (err) {
-        console.warn('Failed to load server questions:', err);
-        if (selectEl) selectEl.innerHTML = '<option value="">-- Bấm 🔄 Làm mới để kết nối lại Server --</option>';
-    }
-}
-
-async function importSelectedServerQuestionFile() {
-    const selectEl = document.getElementById('select-server-question-file');
-    if (!selectEl || !selectEl.value) {
-        alert('Vui lòng chọn 1 file đề thi từ danh sách Server!');
-        return;
-    }
-
-    const filename = selectEl.value;
-    const selectedFileInfo = serverQuestionFilesList.find(f => f.filename === filename);
-    const displayName = selectedFileInfo ? selectedFileInfo.originalName : filename;
-
-    try {
-        const fileUrl = `/api/questions/file/${encodeURIComponent(filename)}`;
-        const response = await fetch(fileUrl);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const buffer = await response.arrayBuffer();
-        const data = new Uint8Array(buffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-        
-        parseExcelQuestions(json);
-        addSystemLog('system', 'NẠP ĐỀ TỪ SERVER', `Đã nạp thành công bộ đề "${displayName}" từ Web Server.`);
-        alert(`✅ Đã nạp thành công bộ đề "${displayName}" từ Web Server!`);
-    } catch (e) {
-        console.error('Lỗi khi nạp file từ server:', e);
-        alert(`❌ Không thể tải file đề thi từ Server: ${e.message}`);
-    }
-}
-
-async function uploadCurrentExcelToServer() {
-    const fileInput = document.getElementById('excel-file');
-    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-        alert('Vui lòng chọn file Excel ở CÁCH 1 trước khi tải lên Server!');
-        return;
-    }
-
-    const file = fileInput.files[0];
-    const formData = new FormData();
-    formData.append('questionFile', file);
-
-    try {
-        const res = await fetch('/api/questions/upload', {
-            method: 'POST',
-            body: formData
-        });
-        const data = await res.json();
-        if (data.success) {
-            alert(`✅ Đã nạp file "${file.name}" lên Web Server thành công!`);
-            loadServerQuestionsList();
-            sendCommand('server_questions_updated');
-        } else {
-            alert(`Lỗi nạp file: ${data.error || 'Thất bại'}`);
-        }
-    } catch (e) {
-        console.error(e);
-        alert('Lỗi kết nối khi nạp file lên server!');
-    }
-}
 
 // Periodic heartbeat broadcast every 3s to guarantee cross-device sync
 setInterval(() => {
@@ -1451,13 +1336,256 @@ function hideWinningMoneyOnProjector() {
     sendCommand('hide_winning_money');
 }
 
-function sendMsgToHost() {
+// --- CONTROLLER <-> HOST SCRIPT CHAT LOGIC ---
+let unreadChatCount = 0;
+
+function playChatChime() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(783.99, now + 0.08); // G5
+        
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+        
+        osc.start(now);
+        osc.stop(now + 0.28);
+    } catch(e) {}
+}
+
+function getScriptChatHistory() {
+    try {
+        return JSON.parse(localStorage.getItem('gameshow_script_chat')) || [];
+    } catch(e) {
+        return [];
+    }
+}
+
+function saveScriptChatHistory(history) {
+    try {
+        if (history.length > 60) history = history.slice(-60);
+        localStorage.setItem('gameshow_script_chat', JSON.stringify(history));
+    } catch(e) {}
+}
+
+function escapeChatHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function handleIncomingHostMessage(data) {
+    const text = (data && (data.text || data.msg)) || '';
+    if (!text) return;
+
+    playChatChime();
+
+    const history = getScriptChatHistory();
+    const alreadyExists = data.id && history.some(m => m.id === data.id);
+    if (!alreadyExists) {
+        const now = new Date();
+        const timeStr = data.time || now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        history.push({
+            id: data.id || Date.now(),
+            sender: 'host',
+            senderName: data.senderName || 'MC HOST',
+            text: text,
+            msg: text,
+            time: timeStr
+        });
+        saveScriptChatHistory(history);
+    }
+
+    renderControllerChatHistory();
+
+    const modal = document.getElementById('controller-chat-modal');
+    const isModalOpen = modal && modal.style.display === 'flex';
+    if (!isModalOpen) {
+        unreadChatCount++;
+        updateChatUnreadBadge();
+    }
+
+    showControllerChatToast(`💬 MC Host: ${text}`);
+
+    if (typeof addSystemLog === 'function') {
+        addSystemLog('system', 'TIN NHẮN TỪ MC HOST', `MC Host: "${text}"`);
+    }
+}
+
+function renderControllerChatHistory() {
+    const inlineBox = document.getElementById('controller-chat-history');
+    const modalBox = document.getElementById('modal-chat-history');
+    const history = getScriptChatHistory();
+
+    const renderItems = (isModal) => {
+        if (history.length === 0) {
+            return `<div style="color: #64748b; text-align: center; font-style: italic; margin: auto; font-size: ${isModal ? '13px' : '11px'};">Chưa có tin nhắn nào giữa Host và Phòng Máy.</div>`;
+        }
+
+        return history.map(item => {
+            const isHost = item.sender === 'host';
+            const senderTitle = isHost ? 'MC HOST' : 'KỸ THUẬT';
+            const badgeBg = isHost ? '#78350f' : '#1e3a8a';
+            const badgeColor = isHost ? '#fef08a' : '#93c5fd';
+            const bubbleBg = isHost ? '#1c1917' : '#111827';
+            const bubbleBorder = isHost ? '#b45309' : '#1d4ed8';
+            const textColor = isHost ? '#fef9c3' : '#f0f9ff';
+            const align = isHost ? 'flex-start' : 'flex-end';
+            const bubblePadding = isModal ? '6px 12px' : '3px 8px';
+            const fontSize = isModal ? '13px' : '11px';
+
+            return `
+                <div style="display:flex; flex-direction:column; align-self:${align}; max-width:85%; gap:2px;">
+                    <div style="display:flex; gap:4px; align-items:center; font-size:9px; justify-content:${isHost ? 'flex-start' : 'flex-end'}; color:#94a3b8;">
+                        <span style="background:${badgeBg}; color:${badgeColor}; padding:1px 4px; border-radius:3px; font-weight:bold;">[${senderTitle}]</span>
+                        <span>${item.time || ''}</span>
+                    </div>
+                    <div style="background:${bubbleBg}; border:1px solid ${bubbleBorder}; color:${textColor}; padding:${bubblePadding}; border-radius:6px; font-size:${fontSize}; word-break:break-word;">
+                        ${escapeChatHtml(item.text || item.msg || '')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    if (inlineBox) {
+        inlineBox.innerHTML = renderItems(false);
+        inlineBox.scrollTop = inlineBox.scrollHeight;
+    }
+    if (modalBox) {
+        modalBox.innerHTML = renderItems(true);
+        modalBox.scrollTop = modalBox.scrollHeight;
+    }
+}
+
+function sendMsgToHost(customText) {
     const input = document.getElementById('host-msg-input');
+    const text = (typeof customText === 'string' ? customText : (input ? input.value : '')).trim();
+    if (!text) return;
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const msgObj = {
+        id: Date.now(),
+        sender: 'tech',
+        senderName: 'KỸ THUẬT',
+        text: text,
+        msg: text,
+        time: timeStr
+    };
+
+    const history = getScriptChatHistory();
+    history.push(msgObj);
+    saveScriptChatHistory(history);
+    renderControllerChatHistory();
+
+    sendCommand('tech_to_host_msg', msgObj);
+
+    if (input) input.value = '';
+
+    if (typeof addSystemLog === 'function') {
+        addSystemLog('system', 'GỬI TIN ĐẾN HOST', `Kỹ thuật: "${text}"`);
+    }
+}
+
+function sendQuickTechMsg(preset) {
+    sendMsgToHost(preset);
+}
+
+function sendModalChatMessage() {
+    const input = document.getElementById('modal-chat-input');
     if (!input) return;
-    const msg = input.value.trim();
-    if (!msg) return;
-    sendCommand('tech_to_host_msg', { msg: msg });
+    const text = input.value.trim();
+    if (!text) return;
+    sendMsgToHost(text);
     input.value = '';
+    input.focus();
+}
+
+function openControllerChatModal() {
+    const modal = document.getElementById('controller-chat-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        renderControllerChatHistory();
+        unreadChatCount = 0;
+        updateChatUnreadBadge();
+        const input = document.getElementById('modal-chat-input');
+        if (input) input.focus();
+    }
+}
+
+function closeControllerChatModal() {
+    const modal = document.getElementById('controller-chat-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        unreadChatCount = 0;
+        updateChatUnreadBadge();
+    }
+}
+
+function updateChatUnreadBadge() {
+    const inlineBadge = document.getElementById('controller-unread-badge');
+    const tabBadge = document.getElementById('controller-chat-tab-badge');
+    if (inlineBadge) {
+        if (unreadChatCount > 0) {
+            inlineBadge.style.display = 'inline-block';
+            inlineBadge.innerText = unreadChatCount;
+        } else {
+            inlineBadge.style.display = 'none';
+        }
+    }
+    if (tabBadge) {
+        if (unreadChatCount > 0) {
+            tabBadge.style.display = 'inline-block';
+            tabBadge.innerText = unreadChatCount;
+        } else {
+            tabBadge.style.display = 'none';
+        }
+    }
+}
+
+function showControllerChatToast(text) {
+    const container = document.getElementById('controller-chat-toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = 'chat-toast-item';
+    toast.innerText = text;
+    toast.onclick = () => {
+        openControllerChatModal();
+        toast.remove();
+    };
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 4500);
+}
+
+function clearScriptChatHistory() {
+    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử trao đổi kịch bản giữa Kỹ Thuật và Host không?")) {
+        handleClearScriptChat(true);
+    }
+}
+
+function handleClearScriptChat(broadcast) {
+    localStorage.removeItem('gameshow_script_chat');
+    unreadChatCount = 0;
+    updateChatUnreadBadge();
+    renderControllerChatHistory();
+    if (broadcast) {
+        sendCommand('clear_script_chat');
+    }
 }
 
 function startTimer() {
