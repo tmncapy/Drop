@@ -214,6 +214,258 @@ function clearSystemLogs() {
     }
 }
 
+function exportSystemLogsExcel() {
+    if (typeof XLSX === 'undefined') {
+        alert("Thư viện Excel (XLSX) chưa sẵn sàng. Vui lòng kiểm tra kết nối mạng và thử lại!");
+        return;
+    }
+
+    if (!systemLogs || systemLogs.length === 0) {
+        alert("Hiện chưa có dữ liệu nhật ký hệ thống để xuất ra Excel!");
+        return;
+    }
+
+    const unit = gameSettings.currencyUnit || '$A';
+    const stackVal = gameSettings.stackValue || 25000;
+    const initStacks = gameSettings.initialStacks || 40;
+    const initMoney = initStacks * stackVal;
+    const currentLost = Math.max(0, initMoney - currentMoneyAmount);
+
+    const wb = XLSX.utils.book_new();
+
+    // Helper: Category label in Vietnamese
+    const getCatLabel = (cat) => {
+        switch(cat) {
+            case 'bet': return 'Đặt Tiền';
+            case 'lost': return 'Mất Tiền / Sập Hố';
+            case 'sec': return 'Cảnh Báo Bảo Mật / F12';
+            case 'auth': return 'Đăng Nhập / PIN / Link';
+            case 'system': return 'Hệ Thống / Điều Khiển';
+            default: return (cat || '').toUpperCase();
+        }
+    };
+
+    // =============================================================
+    // SHEET 1: TỔNG QUAN TRẬN ĐẤU (Overview & Stats)
+    // =============================================================
+    const overviewData = [
+        ["BÁO CÁO TỔNG QUAN TRẬN ĐẤU GAMESHOW MONEY DROP", ""],
+        ["Thời gian xuất báo cáo", new Date().toLocaleString('vi-VN')],
+        ["", ""],
+        ["1. CẤU HÌNH TRÒ CHƠI", ""],
+        ["Tổng số câu hỏi", `${gameSettings.totalQuestions || 8} câu`],
+        ["Thời gian đếm ngược chuẩn", `${gameSettings.timerSeconds || 60} giây`],
+        ["Số cọc tiền ban đầu", `${initStacks} cọc`],
+        ["Giá trị mỗi cọc", `${stackVal.toLocaleString('vi-VN')} ${unit}`],
+        ["Tổng tiền ban đầu", `${initMoney.toLocaleString('vi-VN')} ${unit}`],
+        ["Độ trễ chia tiền", `${gameSettings.betDelaySeconds || 0.125} giây`],
+        ["Mã PIN / Mã phòng hiện tại", currentPin || '---'],
+        ["", ""],
+        ["2. KẾT QUẢ HIỆN TẠI", ""],
+        ["Số tiền còn lại trên bàn", `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit}`],
+        ["Số cọc còn lại", `${Math.round(currentMoneyAmount / stackVal)} cọc`],
+        ["Tổng số tiền đã rơi hố (mất)", `${currentLost.toLocaleString('vi-VN')} ${unit}`],
+        ["Số cọc đã mất", `${Math.round(currentLost / stackVal)} cọc`],
+        ["Tỷ lệ bảo toàn số tiền", `${((currentMoneyAmount / (initMoney || 1)) * 100).toFixed(1)}%`],
+        ["", ""],
+        ["3. THỐNG KÊ NHẬT KÝ HỆ THỐNG", ""],
+        ["Tổng số bản ghi nhật ký", systemLogs.length],
+        ["Số lượt đặt cược (Bet)", systemLogs.filter(l => l.category === 'bet').length],
+        ["Số lần sập hố / mất tiền (Lost)", systemLogs.filter(l => l.category === 'lost').length],
+        ["Số sự kiện bảo mật / F12 / Chuyển tab (Security)", systemLogs.filter(l => l.category === 'sec').length],
+        ["Số sự kiện xác thực & mã PIN (Auth)", systemLogs.filter(l => l.category === 'auth').length],
+        ["Số thao tác điều khiển & hệ thống (System)", systemLogs.filter(l => l.category === 'system').length]
+    ];
+    const wsOverview = XLSX.utils.aoa_to_sheet(overviewData);
+    wsOverview['!cols'] = [{ wch: 38 }, { wch: 45 }];
+    XLSX.utils.book_append_sheet(wb, wsOverview, "Tổng Quan");
+
+    // =============================================================
+    // SHEET 2: TẤT CẢ NHẬT KÝ (All Logs Chronological)
+    // =============================================================
+    const allLogsRows = [
+        [
+            "STT", "Thời Gian", "Ngày", "Phân Loại", "Tiêu Đề", 
+            "Nội Dung Chi Tiết", "Tiền Còn Lại", "Cọc Còn Lại", 
+            "Tổng Tiền Mất", "Cọc Đã Mất", "Cửa 1", "Cửa 2", "Cửa 3", "Cửa 4", "Tổng Cược"
+        ]
+    ];
+
+    systemLogs.forEach((log, idx) => {
+        allLogsRows.push([
+            idx + 1,
+            log.timestamp || '',
+            log.date || '',
+            getCatLabel(log.category),
+            log.title || '',
+            log.message || '',
+            log.remainingMoney !== undefined ? log.remainingMoney : '',
+            log.remainingStacks !== undefined ? log.remainingStacks : '',
+            log.totalLost !== undefined ? log.totalLost : '',
+            log.totalLostStacks !== undefined ? log.totalLostStacks : '',
+            log.b1 !== undefined ? log.b1 : '',
+            log.b2 !== undefined ? log.b2 : '',
+            log.b3 !== undefined ? log.b3 : '',
+            log.b4 !== undefined ? log.b4 : '',
+            log.totalBet !== undefined ? log.totalBet : ''
+        ]);
+    });
+    const wsAll = XLSX.utils.aoa_to_sheet(allLogsRows);
+    wsAll['!cols'] = [
+        { wch: 6 }, { wch: 12 }, { wch: 12 }, { wch: 24 }, { wch: 28 },
+        { wch: 60 }, { wch: 16 }, { wch: 12 }, { wch: 16 }, { wch: 12 },
+        { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 16 }
+    ];
+    XLSX.utils.book_append_sheet(wb, wsAll, "Tất Cả Nhật Ký");
+
+    // =============================================================
+    // SHEET 3: CHI TIẾT ĐẶT TIỀN (Player Bets)
+    // =============================================================
+    const betLogs = systemLogs.filter(l => l.category === 'bet');
+    const betRows = [
+        [
+            "STT", "Thời Gian", "Ngày", "Tiêu Đề", "Chi Tiết Đặt Cược",
+            "Cửa 1 ($A)", "Cọc Cửa 1", "Cửa 2 ($A)", "Cọc Cửa 2",
+            "Cửa 3 ($A)", "Cọc Cửa 3", "Cửa 4 ($A)", "Cọc Cửa 4",
+            "Tổng Cược ($A)", "Tổng Cọc Cược", "Tiền Còn Lại ($A)", "Cọc Còn Lại"
+        ]
+    ];
+    betLogs.forEach((log, idx) => {
+        const b1 = log.b1 || 0;
+        const b2 = log.b2 || 0;
+        const b3 = log.b3 || 0;
+        const b4 = log.b4 || 0;
+        const totalB = (log.totalBet !== undefined) ? log.totalBet : (b1 + b2 + b3 + b4);
+        betRows.push([
+            idx + 1,
+            log.timestamp || '',
+            log.date || '',
+            log.title || '',
+            log.message || '',
+            b1, Math.round(b1 / stackVal),
+            b2, Math.round(b2 / stackVal),
+            b3, Math.round(b3 / stackVal),
+            b4, Math.round(b4 / stackVal),
+            totalB, Math.round(totalB / stackVal),
+            log.remainingMoney !== undefined ? log.remainingMoney : '',
+            log.remainingStacks !== undefined ? log.remainingStacks : ''
+        ]);
+    });
+    const wsBet = XLSX.utils.aoa_to_sheet(betRows);
+    wsBet['!cols'] = [
+        { wch: 6 }, { wch: 12 }, { wch: 12 }, { wch: 22 }, { wch: 55 },
+        { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 10 },
+        { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 10 },
+        { wch: 16 }, { wch: 12 }, { wch: 16 }, { wch: 12 }
+    ];
+    XLSX.utils.book_append_sheet(wb, wsBet, "Chi Tiết Đặt Tiền");
+
+    // =============================================================
+    // SHEET 4: MẤT TIỀN & SẬP HỐ (Lost Money & Trapdoor Drops)
+    // =============================================================
+    const lostLogs = systemLogs.filter(l => l.category === 'lost');
+    const lostRows = [
+        [
+            "STT", "Thời Gian", "Ngày", "Sự Kiện", "Cửa Bị Sập", 
+            "Số Tiền Mất ($A)", "Số Cọc Mất", "Tổng Tiền Mất Lũy Kế ($A)", "Tổng Cọc Mất",
+            "Tiền Còn Lại ($A)", "Cọc Còn Lại", "Chi Tiết"
+        ]
+    ];
+    lostLogs.forEach((log, idx) => {
+        lostRows.push([
+            idx + 1,
+            log.timestamp || '',
+            log.date || '',
+            log.title || '',
+            log.doorId ? `Cửa ${log.doorId}` : 'Phạt / Khác',
+            log.lostBet !== undefined ? log.lostBet : '',
+            log.lostStacks !== undefined ? log.lostStacks : '',
+            log.totalLost !== undefined ? log.totalLost : '',
+            log.totalLostStacks !== undefined ? log.totalLostStacks : '',
+            log.remainingMoney !== undefined ? log.remainingMoney : '',
+            log.remainingStacks !== undefined ? log.remainingStacks : '',
+            log.message || ''
+        ]);
+    });
+    const wsLost = XLSX.utils.aoa_to_sheet(lostRows);
+    wsLost['!cols'] = [
+        { wch: 6 }, { wch: 12 }, { wch: 12 }, { wch: 24 }, { wch: 14 },
+        { wch: 16 }, { wch: 12 }, { wch: 22 }, { wch: 14 },
+        { wch: 16 }, { wch: 12 }, { wch: 55 }
+    ];
+    XLSX.utils.book_append_sheet(wb, wsLost, "Mất Tiền & Sập Hố");
+
+    // =============================================================
+    // SHEET 5: BẢO MẬT & F12 & PIN (Security, DevTools, Auth)
+    // =============================================================
+    const secLogs = systemLogs.filter(l => l.category === 'sec' || l.category === 'auth');
+    const secRows = [
+        [
+            "STT", "Thời Gian", "Ngày", "Phân Loại", "Tiêu Đề Cảnh Báo",
+            "Nội Dung Chi Tiết", "Mã PIN / Phòng", "Trạng Thái Tài Chính"
+        ]
+    ];
+    secLogs.forEach((log, idx) => {
+        secRows.push([
+            idx + 1,
+            log.timestamp || '',
+            log.date || '',
+            getCatLabel(log.category),
+            log.title || '',
+            log.message || '',
+            log.roomid || log.pin || currentPin || '',
+            `Còn lại: ${(log.remainingMoney || 0).toLocaleString('vi-VN')} ${unit}`
+        ]);
+    });
+    const wsSec = XLSX.utils.aoa_to_sheet(secRows);
+    wsSec['!cols'] = [
+        { wch: 6 }, { wch: 12 }, { wch: 12 }, { wch: 24 }, { wch: 28 },
+        { wch: 60 }, { wch: 16 }, { wch: 24 }
+    ];
+    XLSX.utils.book_append_sheet(wb, wsSec, "Bảo Mật & F12 & PIN");
+
+    // =============================================================
+    // SHEET 6: THAO TÁC HỆ THỐNG (System & Control Operations)
+    // =============================================================
+    const sysLogs = systemLogs.filter(l => l.category === 'system');
+    const sysRows = [
+        [
+            "STT", "Thời Gian", "Ngày", "Sự Kiện Điều Khiển", "Nội Dung Thao Tác", "Tiền Còn Lại ($A)", "Cọc Còn Lại"
+        ]
+    ];
+    sysLogs.forEach((log, idx) => {
+        sysRows.push([
+            idx + 1,
+            log.timestamp || '',
+            log.date || '',
+            log.title || '',
+            log.message || '',
+            log.remainingMoney !== undefined ? log.remainingMoney : '',
+            log.remainingStacks !== undefined ? log.remainingStacks : ''
+        ]);
+    });
+    const wsSys = XLSX.utils.aoa_to_sheet(sysRows);
+    wsSys['!cols'] = [
+        { wch: 6 }, { wch: 12 }, { wch: 12 }, { wch: 28 }, { wch: 60 }, { wch: 16 }, { wch: 12 }
+    ];
+    XLSX.utils.book_append_sheet(wb, wsSys, "Thao Tác Hệ Thống");
+
+    // Generate formatted filename
+    const now = new Date();
+    const dateStamp = now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        String(now.getDate()).padStart(2, '0') + '_' +
+        String(now.getHours()).padStart(2, '0') +
+        String(now.getMinutes()).padStart(2, '0');
+    
+    const fileName = `Nhat_Ky_He_Thong_Money_Drop_${dateStamp}.xlsx`;
+
+    // Trigger download
+    XLSX.writeFile(wb, fileName);
+
+    addSystemLog('system', 'XUẤT EXCEL NHẬT KÝ', `Đã xuất toàn bộ nhật ký hệ thống ra file Excel (${fileName}) với 6 sheet chi tiết.`);
+}
+
 function exportSystemLogsText() {
     if (systemLogs.length === 0) {
         alert("Hiện chưa có dữ liệu log để xuất!");
