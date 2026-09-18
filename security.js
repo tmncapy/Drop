@@ -206,7 +206,12 @@
     function initPinProtection(role, roleTitle) {
         if (!role || !roleTitle) return;
         // Player has its own dedicated PIN screen handled by player.js
-        if (role === 'player') return;
+        // Controller is the main admin interface and should not be locked by PIN overlay
+        // Host uses a dedicated secure URL link with auth parameter
+        if (role === 'player' || role === 'controller' || role === 'host') {
+            removeLockOverlay();
+            return;
+        }
 
         // Listen for realtime PIN updates or logout signals
         if (window.GameSyncChannel && !window._pinSyncChannel) {
@@ -261,13 +266,15 @@
         const modal = document.getElementById('pin-lock-modal-overlay');
         if (modal) {
             modal.style.opacity = '0';
-            setTimeout(() => {
-                if (modal.parentNode) modal.parentNode.removeChild(modal);
-            }, 300);
+            if (modal.parentNode) modal.parentNode.removeChild(modal);
         }
     }
 
     function showLockOverlay(role, roleTitle, correctPin) {
+        if (role === 'host' || role === 'player' || role === 'controller' || window.location.pathname.toLowerCase().includes('host')) {
+            removeLockOverlay();
+            return;
+        }
         let modal = document.getElementById('pin-lock-modal-overlay');
         if (!modal) {
             modal = document.createElement('div');

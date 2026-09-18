@@ -636,6 +636,8 @@ function onVolumeSliderChange(val) {
 window.addEventListener('DOMContentLoaded', () => {
     updateQuestionSelector();
     initPinCode();
+    initPlayerLink();
+    initHostLink();
     populateSettingsFormUI();
     updateControllerMoneyLabels();
     updateProgressDataUI();
@@ -660,6 +662,7 @@ function initPinCode() {
     localStorage.setItem('game_pin', currentPin);
     sendCommand('update_pin', { pin: currentPin });
     initPlayerLink();
+    initHostLink();
 }
 
 // ==========================================
@@ -863,6 +866,193 @@ function forceInvalidateAllPlayerLinks() {
     generateNewPlayerLink();
     addSystemLog('auth', 'HỦY KHẨN CẤP TOÀN BỘ LINK', `Đã hủy toàn bộ đường link người chơi và phát lệnh khóa khẩn cấp.`);
 }
+
+// ==========================================
+// HOST DIRECT LINK & AUTH SYSTEM (MC HOST)
+// ==========================================
+const GITHUB_HOST_BASE_URL = 'https://tmncapy.github.io/Drop/host.html';
+let activeHostRoomId = localStorage.getItem('active_host_room_id') || ('HR' + Math.floor(1000 + Math.random() * 9000));
+let activeHostAuth = localStorage.getItem('active_host_auth_token') || ('mchost_' + Math.random().toString(36).substring(2, 8).toLowerCase());
+let hostBaseUrlMode = localStorage.getItem('host_link_base_mode') || 'origin';
+
+function initHostLink() {
+    localStorage.setItem('active_host_room_id', activeHostRoomId);
+    localStorage.setItem('active_host_auth_token', activeHostAuth);
+    localStorage.setItem('host_link_base_mode', hostBaseUrlMode);
+    
+    updateHostLinkUI();
+    
+    // Broadcast active host room auth to channel
+    sendCommand('update_host_room_auth', {
+        roomid: activeHostRoomId,
+        auth: activeHostAuth
+    });
+}
+
+function getHostFullLink() {
+    let baseUrl = GITHUB_HOST_BASE_URL;
+    if (hostBaseUrlMode === 'origin') {
+        const origin = window.location.origin;
+        const path = window.location.pathname.replace(/controller\.html.*$/, 'host.html');
+        baseUrl = `${origin}${path}`;
+    }
+    return `${baseUrl}?roomid=${encodeURIComponent(activeHostRoomId)}&auth=${encodeURIComponent(activeHostAuth)}`;
+}
+
+function updateHostLinkUI() {
+    const fullLink = getHostFullLink();
+    
+    // Update Modal inputs
+    const modalRoomInput = document.getElementById('modal-host-room-id-input');
+    const modalAuthInput = document.getElementById('modal-host-auth-token-input');
+    const modalFullLinkInput = document.getElementById('modal-full-host-link');
+    const modalBaseSelect = document.getElementById('modal-host-base-url-select');
+    const modalQrImg = document.getElementById('modal-host-qr-img');
+
+    if (modalRoomInput) modalRoomInput.value = activeHostRoomId;
+    if (modalAuthInput) modalAuthInput.value = activeHostAuth;
+    if (modalFullLinkInput) modalFullLinkInput.value = fullLink;
+    if (modalBaseSelect) modalBaseSelect.value = hostBaseUrlMode;
+    if (modalQrImg) {
+        modalQrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(fullLink)}`;
+    }
+
+    // Update Role Card inputs
+    const cardRoom = document.getElementById('card-host-roomid');
+    const cardAuth = document.getElementById('card-host-auth');
+    const cardLinkInput = document.getElementById('card-host-link-input');
+
+    if (cardRoom) cardRoom.innerText = activeHostRoomId;
+    if (cardAuth) cardAuth.innerText = activeHostAuth;
+    if (cardLinkInput) cardLinkInput.value = fullLink;
+}
+
+function openHostLinkModal() {
+    updateHostLinkUI();
+    const modal = document.getElementById('host-link-modal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function closeHostLinkModal() {
+    const modal = document.getElementById('host-link-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function generateNewHostLink() {
+    const newRoomId = 'HR' + Math.floor(1000 + Math.random() * 9000);
+    const newAuth = 'mchost_' + Math.random().toString(36).substring(2, 8).toLowerCase();
+
+    activeHostRoomId = newRoomId;
+    activeHostAuth = newAuth;
+
+    localStorage.setItem('active_host_room_id', activeHostRoomId);
+    localStorage.setItem('active_host_auth_token', activeHostAuth);
+
+    sendCommand('update_host_room_auth', {
+        roomid: activeHostRoomId,
+        auth: activeHostAuth,
+        forceInvalidate: true
+    });
+
+    addSystemLog('auth', 'TẠO LINK MC HOST MỚI', `Đã tạo đường link MC Host mới [roomid=${activeHostRoomId} & auth=${activeHostAuth}]. Tất cả link cũ đã bị vô hiệu hóa!`);
+    
+    updateHostLinkUI();
+    
+    const copyStatus = document.getElementById('host-link-copy-status');
+    if (copyStatus) {
+        copyStatus.innerText = '⚡ ĐÃ TẠO LINK HOST MỚI & VÔ HIỆU HÓA LINK CŨ!';
+        copyStatus.style.display = 'inline';
+        setTimeout(() => { if (copyStatus) copyStatus.style.display = 'none'; }, 3500);
+    }
+}
+
+function applyCustomHostLink() {
+    const modalRoomInput = document.getElementById('modal-host-room-id-input');
+    const modalAuthInput = document.getElementById('modal-host-auth-token-input');
+
+    const newRoom = modalRoomInput ? modalRoomInput.value.trim() : '';
+    const newAuth = modalAuthInput ? modalAuthInput.value.trim() : '';
+
+    if (!newRoom || !newAuth) {
+        alert("Vui lòng nhập đầy đủ Mã phòng và Mật khẩu MC Host!");
+        return;
+    }
+
+    activeHostRoomId = newRoom;
+    activeHostAuth = newAuth;
+
+    localStorage.setItem('active_host_room_id', activeHostRoomId);
+    localStorage.setItem('active_host_auth_token', activeHostAuth);
+
+    sendCommand('update_host_room_auth', {
+        roomid: activeHostRoomId,
+        auth: activeHostAuth,
+        forceInvalidate: true
+    });
+
+    addSystemLog('auth', 'ĐỔI MÃ PHÒNG / AUTH MC HOST', `Đã cập nhật mã tùy chọn [roomid=${activeHostRoomId} & auth=${activeHostAuth}]. Đã vô hiệu hóa phiên cũ.`);
+
+    updateHostLinkUI();
+
+    alert(`Đã lưu và kích hoạt đường link MC Host mới!\nPhòng: ${activeHostRoomId}\nMật khẩu: ${activeHostAuth}`);
+}
+
+function copyCurrentHostLink() {
+    const fullLink = getHostFullLink();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullLink).then(() => {
+            showHostLinkCopiedFeedback();
+        }).catch(() => {
+            fallbackCopyText(fullLink);
+        });
+    } else {
+        fallbackCopyText(fullLink);
+    }
+}
+
+function showHostLinkCopiedFeedback() {
+    const copyStatus = document.getElementById('host-link-copy-status');
+    if (copyStatus) {
+        copyStatus.innerText = '✓ Đã sao chép link MC Host vào bộ nhớ tạm!';
+        copyStatus.style.display = 'inline';
+        setTimeout(() => { if (copyStatus) copyStatus.style.display = 'none'; }, 2500);
+    }
+    const cardInput = document.getElementById('card-host-link-input');
+    if (cardInput) {
+        cardInput.style.borderColor = '#00e676';
+        setTimeout(() => { if (cardInput) cardInput.style.borderColor = '#262a36'; }, 1000);
+    }
+}
+
+function changeHostBaseUrlMode(mode) {
+    hostBaseUrlMode = mode;
+    localStorage.setItem('host_link_base_mode', hostBaseUrlMode);
+    updateHostLinkUI();
+}
+
+function openActiveHostLinkTab() {
+    const fullLink = getHostFullLink();
+    window.open(fullLink, '_blank');
+}
+
+// Export link management functions to window
+window.initPlayerLink = initPlayerLink;
+window.openPlayerLinkModal = openPlayerLinkModal;
+window.closePlayerLinkModal = closePlayerLinkModal;
+window.generateNewPlayerLink = generateNewPlayerLink;
+window.applyCustomPlayerLink = applyCustomPlayerLink;
+window.copyCurrentPlayerLink = copyCurrentPlayerLink;
+window.changePlayerBaseUrlMode = changePlayerBaseUrlMode;
+window.openActivePlayerLinkTab = openActivePlayerLinkTab;
+
+window.initHostLink = initHostLink;
+window.openHostLinkModal = openHostLinkModal;
+window.closeHostLinkModal = closeHostLinkModal;
+window.generateNewHostLink = generateNewHostLink;
+window.applyCustomHostLink = applyCustomHostLink;
+window.copyCurrentHostLink = copyCurrentHostLink;
+window.changeHostBaseUrlMode = changeHostBaseUrlMode;
+window.openActiveHostLinkTab = openActiveHostLinkTab;
 
 function updatePinCode() {
     const pinInput = document.getElementById('pin-code-input');

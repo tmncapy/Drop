@@ -626,15 +626,6 @@
                 <!-- Messages rendered dynamically -->
             </div>
 
-            <!-- Quick Script Scenario Chips -->
-            <div class="host-quick-chips">
-                <button class="host-chip-btn" onclick="sendQuickHostMsg('⚡ Sẵn sàng!')">⚡ Sẵn sàng</button>
-                <button class="host-chip-btn" onclick="sendQuickHostMsg('⏳ Xin thêm 30s!')">⏳ Xin thêm 30s</button>
-                <button class="host-chip-btn" onclick="sendQuickHostMsg('🎯 Đã chốt kịch bản!')">🎯 Đã chốt kịch bản</button>
-                <button class="host-chip-btn" onclick="sendQuickHostMsg('💡 Cần gợi ý đáp án!')">💡 Cần gợi ý</button>
-                <button class="host-chip-btn" onclick="sendQuickHostMsg('👥 Đang giao lưu thí sinh!')">👥 Đang giao lưu</button>
-                <button class="host-chip-btn" onclick="sendQuickHostMsg('🔔 Chờ hiệu lệnh phòng máy!')">🔔 Chờ hiệu lệnh</button>
-            </div>
 
             <!-- Message Input Row -->
             <div class="host-chat-input-row">
@@ -647,15 +638,114 @@
     <script src="network_sync.js"></script>
     <script src="security.js"></script>
     <script>
-        if (typeof initPinProtection === 'function') {
-            initPinProtection('host', 'MC Host');
+        // --- HOST SECURE LINK & AUTHENTICATION CHECK ---
+        let currentHostAuthToken = null;
+
+        function checkHostAuthentication() {
+            const params = new URLSearchParams(window.location.search);
+            const urlRoomId = params.get('roomid');
+            const urlAuth = params.get('auth');
+
+            const expectedRoomId = localStorage.getItem('active_host_room_id');
+            const expectedAuth = localStorage.getItem('active_host_auth_token');
+
+            if (expectedAuth) {
+                if (urlAuth === expectedAuth) {
+                    sessionStorage.setItem('host_session_auth', urlAuth);
+                    if (urlRoomId) sessionStorage.setItem('host_session_room', urlRoomId);
+                    currentHostAuthToken = urlAuth;
+                    removeHostAuthOverlay();
+                    return true;
+                }
+
+                const sessionAuth = sessionStorage.getItem('host_session_auth');
+                if (sessionAuth === expectedAuth) {
+                    currentHostAuthToken = sessionAuth;
+                    removeHostAuthOverlay();
+                    return true;
+                }
+
+                showHostAuthOverlay(urlAuth ? 'Mã xác thực Auth không hợp lệ hoặc đã bị thay đổi!' : 'Vui lòng truy cập bằng đường link MC Host chính thức từ Bàn Điều Khiển!');
+                return false;
+            } else {
+                if (urlAuth && urlRoomId) {
+                    localStorage.setItem('active_host_room_id', urlRoomId);
+                    localStorage.setItem('active_host_auth_token', urlAuth);
+                    sessionStorage.setItem('host_session_auth', urlAuth);
+                    sessionStorage.setItem('host_session_room', urlRoomId);
+                    currentHostAuthToken = urlAuth;
+                    removeHostAuthOverlay();
+                    return true;
+                }
+                showHostAuthOverlay('Thiếu tham số xác thực URL! Vui lòng mở link từ Bàn Điều Khiển.');
+                return false;
+            }
         }
+
+        function showHostAuthOverlay(message) {
+            let overlay = document.getElementById('host-auth-lock-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'host-auth-lock-overlay';
+                overlay.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                    background: rgba(8, 6, 16, 0.96); backdrop-filter: blur(12px);
+                    z-index: 999999; display: flex; align-items: center; justify-content: center;
+                    font-family: 'Segoe UI', system-ui, sans-serif; color: #ffffff; text-align: center;
+                `;
+                overlay.innerHTML = `
+                    <div style="background: #140d21; border: 2px solid #7e22ce; border-radius: 16px; padding: 36px; width: 90%; max-width: 460px; box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(192, 132, 252, 0.2);">
+                        <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #7e22ce, #c084fc); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; box-shadow: 0 0 20px rgba(192,132,252,0.4);">
+                            🎙️
+                        </div>
+                        <h2 style="font-size: 20px; font-weight: 800; color: #f3e8ff; margin-bottom: 8px;">TRUY CẬP MC HOST BỊ TỪ CHỐI</h2>
+                        <p id="host-auth-error-msg" style="font-size: 13px; color: #f472b6; margin-bottom: 24px; line-height: 1.5;">${message}</p>
+                        <div style="background: #090510; border: 1px solid #3b0764; border-radius: 8px; padding: 12px; font-size: 11px; color: #d8b4fe; text-align: left; line-height: 1.5;">
+                            💡 <strong>Hướng dẫn dành cho MC:</strong><br>
+                            Yêu cầu kỹ thuật viên gửi lại đường <strong>LINK MC HOST MỚI</strong> được cấp từ Bàn Điều Khiển (Controller) để tiếp tục.
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+            } else {
+                const msgEl = document.getElementById('host-auth-error-msg');
+                if (msgEl) msgEl.innerText = message;
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function removeHostAuthOverlay() {
+            const overlay = document.getElementById('host-auth-lock-overlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        // Run authentication check on load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof removeLockOverlay === 'function') removeLockOverlay();
+            const pinModal = document.getElementById('pin-lock-modal-overlay');
+            if (pinModal && pinModal.parentNode) pinModal.parentNode.removeChild(pinModal);
+            checkHostAuthentication();
+        });
+
         const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
         let currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
         let currentRound = 1;
 
         channel.onmessage = function(event) {
             const { action, data } = event.data;
+
+            if (action === 'update_host_room_auth') {
+                if (data && data.auth) {
+                    localStorage.setItem('active_host_room_id', data.roomid);
+                    localStorage.setItem('active_host_auth_token', data.auth);
+
+                    if (data.forceInvalidate || (currentHostAuthToken && currentHostAuthToken !== data.auth)) {
+                        showHostAuthOverlay('Kỹ thuật viên vừa tạo đường LINK HOST MỚI. Đường link hiện tại đã bị vô hiệu hóa!');
+                    } else if (!currentHostAuthToken) {
+                        checkHostAuthentication();
+                    }
+                }
+            }
 
             if (action === 'show_topics') {
                 document.getElementById('host-topic-A').innerText = data.topicA || "Chủ đề A";
@@ -732,205 +822,13 @@
                     document.getElementById('wrapper-4').style.opacity = '0';
                 }
             }
-            if (action === 'timer_control') {
-                // No audio playback on host.html as per constraints
-            }
             if (action === 'send_explanation_to_host') {
                 document.getElementById('explain-text').innerText = data.explain || "Không có giải thích cho câu này.";
-            }
-            if (action === 'tech_to_host_msg') {
-                const text = (data && (data.text || data.msg)) || (typeof data === 'string' ? data : '');
-                if (text) {
-                    const latestEl = document.getElementById('tech-msg-display');
-                    if (latestEl) latestEl.innerText = text;
-
-                    // Subtle box glow pulse
-                    const box = document.getElementById('host-tech-box');
-                    if (box) {
-                        box.classList.add('chat-glow');
-                        setTimeout(() => box.classList.remove('chat-glow'), 2500);
-                    }
-
-                    // Play audio notification chime
-                    playChatNotificationSound();
-
-                    // Record to persistent chat history
-                    const history = getChatHistory();
-                    const alreadyExists = data.id && history.some(h => h.id === data.id);
-                    if (!alreadyExists) {
-                        const now = new Date();
-                        const timeStr = data.time || now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                        history.push({
-                            id: data.id || Date.now(),
-                            sender: 'tech',
-                            senderName: data.senderName || 'KỸ THUẬT',
-                            text: text,
-                            msg: text,
-                            time: timeStr
-                        });
-                        saveChatHistory(history);
-                    }
-                    renderHostChatList();
-                }
-            }
-            if (action === 'clear_script_chat') {
-                localStorage.removeItem('gameshow_script_chat');
-                renderHostChatList();
             }
             if (action === 'reset_round') {
                 resetAllHostVisuals();
             }
         };
-
-        // --- HOST SCRIPT CHAT LOGIC ---
-        let hostChatSoundEnabled = true;
-
-        function toggleHostChatSound() {
-            hostChatSoundEnabled = !hostChatSoundEnabled;
-            const btn = document.getElementById('btn-toggle-sound');
-            if (btn) {
-                btn.innerText = hostChatSoundEnabled ? '🔔 Chuông' : '🔕 Tắt';
-                btn.style.color = hostChatSoundEnabled ? '#c9d1d9' : '#8b949e';
-            }
-        }
-
-        function playChatNotificationSound() {
-            if (!hostChatSoundEnabled) return;
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
-                const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, now); // D5
-                osc.frequency.setValueAtTime(880.00, now + 0.08); // A5
-                
-                gain.gain.setValueAtTime(0.12, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
-                
-                osc.start(now);
-                osc.stop(now + 0.28);
-            } catch(e) {}
-        }
-
-        function getChatHistory() {
-            try {
-                return JSON.parse(localStorage.getItem('gameshow_script_chat')) || [];
-            } catch (e) {
-                return [];
-            }
-        }
-
-        function saveChatHistory(history) {
-            try {
-                if (history.length > 60) history = history.slice(-60);
-                localStorage.setItem('gameshow_script_chat', JSON.stringify(history));
-            } catch (e) {}
-        }
-
-        function renderHostChatList() {
-            const listEl = document.getElementById('host-chat-list');
-            if (!listEl) return;
-            const history = getChatHistory();
-            if (history.length === 0) {
-                listEl.innerHTML = '<div style="color:#8b949e; text-align:center; font-style:italic; margin:auto; font-size:12px;">Chưa có tin nhắn trao đổi kịch bản nào.</div>';
-                return;
-            }
-
-            listEl.innerHTML = history.map(item => {
-                const isHost = item.sender === 'host';
-                const timeStr = item.time || '';
-                const senderTitle = isHost ? 'MC HOST' : 'KỸ THUẬT';
-                const rowClass = isHost ? 'chat-msg-row host' : 'chat-msg-row tech';
-                const badgeStyle = isHost 
-                    ? 'background:rgba(241,224,90,0.15); color:#f1e05a; border:1px solid rgba(241,224,90,0.4);' 
-                    : 'background:rgba(56,139,253,0.15); color:#58a6ff; border:1px solid rgba(56,139,253,0.4);';
-
-                return `
-                    <div class="${rowClass}">
-                        <div class="chat-msg-meta">
-                            <span style="font-size:9px; padding:1px 5px; border-radius:4px; font-weight:bold; ${badgeStyle}">[${senderTitle}]</span>
-                            <span style="opacity:0.7;">${timeStr}</span>
-                        </div>
-                        <div class="chat-msg-bubble">${escapeHtml(item.text || item.msg || '')}</div>
-                    </div>
-                `;
-            }).join('');
-
-            listEl.scrollTop = listEl.scrollHeight;
-        }
-
-        function sendHostChatMessage() {
-            const input = document.getElementById('host-chat-input');
-            if (!input) return;
-            const text = input.value.trim();
-            if (!text) return;
-
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            const msgObj = {
-                id: Date.now(),
-                sender: 'host',
-                senderName: 'MC HOST',
-                text: text,
-                msg: text,
-                time: timeStr
-            };
-
-            const history = getChatHistory();
-            history.push(msgObj);
-            saveChatHistory(history);
-            renderHostChatList();
-
-            channel.postMessage({
-                action: 'host_to_tech_msg',
-                data: msgObj
-            });
-
-            input.value = '';
-            input.focus();
-        }
-
-        function sendQuickHostMsg(presetText) {
-            const input = document.getElementById('host-chat-input');
-            if (input) input.value = presetText;
-            sendHostChatMessage();
-        }
-
-        function clearHostChatHistory() {
-            if (confirm("Bạn có chắc muốn xóa lịch sử chat trao đổi kịch bản không?")) {
-                localStorage.removeItem('gameshow_script_chat');
-                renderHostChatList();
-                channel.postMessage({ action: 'clear_script_chat' });
-            }
-        }
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;');
-        }
-
-        // Initialize chat history on load
-        window.addEventListener('DOMContentLoaded', () => {
-            renderHostChatList();
-            const history = getChatHistory();
-            if (history.length > 0) {
-                const lastTech = [...history].reverse().find(m => m.sender === 'tech');
-                if (lastTech) {
-                    const latestEl = document.getElementById('tech-msg-display');
-                    if (latestEl) latestEl.innerText = lastTech.text || lastTech.msg;
-                }
-            }
-        });
 
         function resetAllHostVisuals() {
             currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
