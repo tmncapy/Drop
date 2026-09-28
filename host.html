@@ -566,8 +566,8 @@
             <div class="pit-frame" id="pit-1">
                 <div class="pit-bg"></div>
                 <div class="door-image" id="img-door-1"></div>
-                <div class="bet-display" id="money-1">0 $A</div>
-                <div class="dropped-money-text" id="drop-text-1">0 $A đã rơi</div>
+                <div class="bet-display" id="money-1">0 $A (0 cọc)</div>
+                <div class="dropped-money-text" id="drop-text-1">0 $A (0 cọc) đã rơi</div>
             </div>
         </div>
         <div class="door-wrapper" id="wrapper-2">
@@ -575,8 +575,8 @@
             <div class="pit-frame" id="pit-2">
                 <div class="pit-bg"></div>
                 <div class="door-image" id="img-door-2"></div>
-                <div class="bet-display" id="money-2">0 $A</div>
-                <div class="dropped-money-text" id="drop-text-2">0 $A đã rơi</div>
+                <div class="bet-display" id="money-2">0 $A (0 cọc)</div>
+                <div class="dropped-money-text" id="drop-text-2">0 $A (0 cọc) đã rơi</div>
             </div>
         </div>
         <div class="door-wrapper" id="wrapper-3">
@@ -584,8 +584,8 @@
             <div class="pit-frame" id="pit-3">
                 <div class="pit-bg"></div>
                 <div class="door-image" id="img-door-3"></div>
-                <div class="bet-display" id="money-3">0 $A</div>
-                <div class="dropped-money-text" id="drop-text-3">0 $A đã rơi</div>
+                <div class="bet-display" id="money-3">0 $A (0 cọc)</div>
+                <div class="dropped-money-text" id="drop-text-3">0 $A (0 cọc) đã rơi</div>
             </div>
         </div>
         <div class="door-wrapper" id="wrapper-4">
@@ -593,8 +593,8 @@
             <div class="pit-frame" id="pit-4">
                 <div class="pit-bg"></div>
                 <div class="door-image" id="img-door-4"></div>
-                <div class="bet-display" id="money-4">0 $A</div>
-                <div class="dropped-money-text" id="drop-text-4">0 $A đã rơi</div>
+                <div class="bet-display" id="money-4">0 $A (0 cọc)</div>
+                <div class="dropped-money-text" id="drop-text-4">0 $A (0 cọc) đã rơi</div>
             </div>
         </div>
     </div>
@@ -729,6 +729,7 @@
 
         const channel = (typeof GameSyncChannel !== 'undefined') ? new GameSyncChannel('gameshow_money_drop') : new BroadcastChannel('gameshow_money_drop');
         let currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
+        let currentStacks = { s1: 0, s2: 0, s3: 0, s4: 0 };
         let currentRound = 1;
 
         channel.onmessage = function(event) {
@@ -782,19 +783,35 @@
             if (action === 'sync_bets_to_mc') {
                 currentBets.b1 = data.b1 || 0; currentBets.b2 = data.b2 || 0;
                 currentBets.b3 = data.b3 || 0; currentBets.b4 = data.b4 || 0;
+
+                const gameSettings = JSON.parse(localStorage.getItem('game_settings') || '{}');
+                const stackVal = data.stackValue || gameSettings.stackValue || 25000;
+                const currencyUnit = gameSettings.currencyUnit || '$A';
+
+                currentStacks.s1 = (data.s1 !== undefined) ? data.s1 : (stackVal > 0 ? Math.round(currentBets.b1 / stackVal) : 0);
+                currentStacks.s2 = (data.s2 !== undefined) ? data.s2 : (stackVal > 0 ? Math.round(currentBets.b2 / stackVal) : 0);
+                currentStacks.s3 = (data.s3 !== undefined) ? data.s3 : (stackVal > 0 ? Math.round(currentBets.b3 / stackVal) : 0);
+                currentStacks.s4 = (data.s4 !== undefined) ? data.s4 : (stackVal > 0 ? Math.round(currentBets.b4 / stackVal) : 0);
+
                 for(let i = 1; i <= 4; i++) {
-                    document.getElementById(`money-${i}`).innerText = currentBets[`b${i}`].toLocaleString('vi-VN') + " $A";
+                    const betVal = currentBets[`b${i}`];
+                    const stacks = currentStacks[`s${i}`];
+                    document.getElementById(`money-${i}`).innerText = `${betVal.toLocaleString('vi-VN')} ${currencyUnit} (${stacks} cọc)`;
                 }
             }
             if (action === 'open_door') {
                 let doorId = data.doorId;
                 if (doorId) {
                     const betVal = currentBets[`b${doorId}`] || 0;
+                    const stacks = currentStacks[`s${doorId}`] || 0;
+                    const gameSettings = JSON.parse(localStorage.getItem('game_settings') || '{}');
+                    const currencyUnit = gameSettings.currencyUnit || '$A';
+
                     const imgDoor = document.getElementById(`img-door-${doorId}`);
                     if (imgDoor) imgDoor.classList.add('dropped');
                     const txtDrop = document.getElementById(`drop-text-${doorId}`);
                     if (txtDrop) {
-                        txtDrop.innerText = betVal.toLocaleString('vi-VN') + " $A đã rơi";
+                        txtDrop.innerText = `${betVal.toLocaleString('vi-VN')} ${currencyUnit} (${stacks} cọc) đã rơi`;
                         txtDrop.style.display = 'block';
                     }
 
@@ -832,6 +849,7 @@
 
         function resetAllHostVisuals() {
             currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
+            currentStacks = { s1: 0, s2: 0, s3: 0, s4: 0 };
             document.getElementById('explain-text').style.display = 'none';
             document.getElementById('explain-text').innerText = "Chưa có dữ liệu";
             document.getElementById('host-question-text').innerText = "Đang đợi phòng máy nạp câu hỏi...";
@@ -843,7 +861,7 @@
                 label.classList.remove('host-win', 'host-lose');
                 document.getElementById(`img-door-${i}`).classList.remove('dropped');
                 document.getElementById(`drop-text-${i}`).style.display = 'none';
-                document.getElementById(`money-${i}`).innerText = "0 $A";
+                document.getElementById(`money-${i}`).innerText = "0 $A (0 cọc)";
             }
         }
     </script>

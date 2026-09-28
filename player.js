@@ -348,11 +348,20 @@ function syncBetsToController() {
     requestAnimationFrame(() => {
         syncBetsScheduled = false;
         const allStacks = document.querySelectorAll('.money-stack');
+        const door1 = document.getElementById('door-1');
+        const door2 = document.getElementById('door-2');
+        const door3 = document.getElementById('door-3');
+        const door4 = document.getElementById('door-4');
         const betData = {
-            b1: parseInt(document.getElementById('door-1').getAttribute('data-bet')) || 0,
-            b2: parseInt(document.getElementById('door-2').getAttribute('data-bet')) || 0,
-            b3: parseInt(document.getElementById('door-3').getAttribute('data-bet')) || 0,
-            b4: parseInt(document.getElementById('door-4').getAttribute('data-bet')) || 0,
+            b1: parseInt(door1 ? door1.getAttribute('data-bet') : 0) || 0,
+            b2: parseInt(door2 ? door2.getAttribute('data-bet') : 0) || 0,
+            b3: parseInt(door3 ? door3.getAttribute('data-bet') : 0) || 0,
+            b4: parseInt(door4 ? door4.getAttribute('data-bet') : 0) || 0,
+            s1: door1 ? door1.querySelectorAll('.money-stack').length : 0,
+            s2: door2 ? door2.querySelectorAll('.money-stack').length : 0,
+            s3: door3 ? door3.querySelectorAll('.money-stack').length : 0,
+            s4: door4 ? door4.querySelectorAll('.money-stack').length : 0,
+            stackValue: VALUE_PER_STACK,
             totalStacks: allStacks.length,
             totalMoney: allStacks.length * VALUE_PER_STACK
         };
