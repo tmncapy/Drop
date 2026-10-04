@@ -1986,7 +1986,7 @@ function getCurrentRoundNumber() {
 function collectMoneyBack() {
     const r = getCurrentRoundNumber();
     if (r >= 1 && r <= 4) {
-        playSfx('SFX/drop_moneyback2.mp3');
+        playSfx('SFX/drop_moneyback2.wav');
     } else {
         playSfx('SFX/drop_moneyback.mp3');
     }
@@ -2476,10 +2476,14 @@ function playCustomSfx() {
 }
 
 function resetRound() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    timeLeft = getQuestionTimeLimit();
+    updateTimerDisplay();
     stopSfx();
-    stopTimer();
     document.getElementById('time-display').innerText = `THỜI GIAN ĐẶT CƯỢC: --:--`;
     sendCommand('reset_round');
+    addSystemLog('system', 'RESET VÒNG CHƠI', `Đã reset toàn bộ vòng chơi về trạng thái ban đầu.`);
 }
 
 function reloadRole(targetRole) {
