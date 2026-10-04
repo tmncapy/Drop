@@ -929,27 +929,36 @@
                     break;
 
                 case "timer_control":
-                    if (data.status === "start") {
+                    if (data.status === "start" || data.status === "add30") {
                         if (clockHideTimeout) {
                             clearTimeout(clockHideTimeout);
                             clockHideTimeout = null;
                         }
                         stopAllSfxOnProjector();
-                        const sfxFile = (currentRound === 8 || data.round === 8) ? "SFX/drop_timer_q8.mp3" : "SFX/drop_timer.mp3";
+
+                        let sfxFile = data.sfxFile;
+                        if (!sfxFile) {
+                            if (data.status === "add30") {
+                                sfxFile = "SFX/BED_Countdown30sec.mp3";
+                            } else {
+                                const qTime = parseInt(data.time) || 60;
+                                if (qTime === 30) sfxFile = "SFX/BED_Countdown30sec.mp3";
+                                else if (qTime === 45) sfxFile = "SFX/BED_Countdown45sec.mp3";
+                                else if (qTime === 75) sfxFile = "SFX/BED_Countdown75sec.mp3";
+                                else if (qTime === 90) sfxFile = "SFX/BED_Countdown90sec.mp3";
+                                else sfxFile = (currentRound === 8 || data.round === 8) ? "SFX/drop_timer_q8.mp3" : "SFX/drop_timer.mp3";
+                            }
+                        }
+
                         timerAudio.src = sfxFile;
                         timerAudio.volume = globalVolume;
                         timerAudio.currentTime = 0;
                         timerAudio.play().catch(e => console.log("Audio play blocked/failed:", e));
                         document.getElementById("clock-container").classList.add("show");
-                    } else if (data.status === "add30") {
-                        if (clockHideTimeout) {
-                            clearTimeout(clockHideTimeout);
-                            clockHideTimeout = null;
-                        }
-                        document.getElementById("clock-container").classList.add("show");
                     } else if (data.status === "stop") {
                         timerAudio.pause();
                         timerAudio.currentTime = 0;
+                        playSfxOnProjector("SFX/drop_timer_stop.mp3", false, false);
                         if (clockHideTimeout) {
                             clearTimeout(clockHideTimeout);
                         }

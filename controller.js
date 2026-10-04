@@ -2259,6 +2259,24 @@ function handleClearScriptChat(broadcast) {
     }
 }
 
+function getTimerMusicForDuration(duration, roundNum) {
+    const d = parseInt(duration) || 60;
+    const r = parseInt(roundNum) || getCurrentRoundNumber();
+
+    if (d === 30) return 'SFX/BED_Countdown30sec.mp3';
+    if (d === 45) return 'SFX/BED_Countdown45sec.mp3';
+    if (d === 75) return 'SFX/BED_Countdown75sec.mp3';
+    if (d === 90) return 'SFX/BED_Countdown90sec.mp3';
+    if (d === 60) {
+        return (r === 8) ? 'SFX/drop_timer_q8.mp3' : 'SFX/drop_timer.mp3';
+    }
+    if (d <= 35) return 'SFX/BED_Countdown30sec.mp3';
+    if (d <= 50) return 'SFX/BED_Countdown45sec.mp3';
+    if (d <= 70) return (r === 8) ? 'SFX/drop_timer_q8.mp3' : 'SFX/drop_timer.mp3';
+    if (d <= 80) return 'SFX/BED_Countdown75sec.mp3';
+    return 'SFX/BED_Countdown90sec.mp3';
+}
+
 function startTimer() {
     stopSfx();
     clearInterval(timerInterval);
@@ -2266,14 +2284,17 @@ function startTimer() {
     updateTimerDisplay();
 
     const r = getCurrentRoundNumber();
+    const sfxFile = getTimerMusicForDuration(timeLeft, r);
 
     sendCommand("timer_control", {
         status: "start",
         time: timeLeft,
-        round: r
+        totalTime: timeLeft,
+        round: r,
+        sfxFile: sfxFile
     });
 
-    addSystemLog('system', 'BẮT ĐẦU ĐẾM NGƯỢC', `Khởi động đếm ngược ${timeLeft}s cho Vòng ${r}.`);
+    addSystemLog('system', 'BẮT ĐẦU ĐẾM NGƯỢC', `Khởi động đếm ngược ${timeLeft}s cho Vòng ${r} (Nhạc: ${sfxFile}).`);
 
     timerInterval = setInterval(() => {
         timeLeft--;
@@ -2296,18 +2317,25 @@ function startTimer() {
 
 function add30Seconds() {
     clearInterval(timerInterval);
-    timeLeft += 30;
+    timeLeft = (timeLeft <= 0) ? 30 : (timeLeft + 30);
     updateTimerDisplay();
-    playSfx('SFX/drop_30s.wav', false, false);
-    sendCommand('timer_control', { status: 'add30', time: timeLeft });
-    addSystemLog('system', 'CỘNG THÊM +30 GIÂY', `Cộng thêm +30s thời gian đặt cược (Thời gian mới: ${timeLeft}s).`);
+
+    const sfxFile = 'SFX/BED_Countdown30sec.mp3';
+
+    sendCommand('timer_control', { 
+        status: 'add30', 
+        time: timeLeft,
+        sfxFile: sfxFile
+    });
+    addSystemLog('system', 'CỘNG THÊM +30 GIÂY', `Cộng thêm +30s thời gian đặt cược (Thời gian mới: ${timeLeft}s, Nhạc: ${sfxFile}).`);
+
     timerInterval = setInterval(() => {
         timeLeft--;
         updateTimerDisplay();
         sendCommand('timer_tick', { time: timeLeft });
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            sendCommand('timer_control', { status: 'timeout' });
+            sendCommand('timer_control', { status: 'timeout', time: 0 });
             addSystemLog('system', 'HẾT GIỜ ĐẶT CƯỢC', `Đồng hồ đếm ngược đã về 0s.`);
         }
     }, 1000);
@@ -2618,17 +2646,25 @@ function renderSettingsQuestionTimersGrid() {
 
     grid.innerHTML = '';
     const qTimers = gameSettings.questionTimers || [];
+    const validOptions = [30, 45, 60, 75, 90];
 
     for (let i = 0; i < totalQ; i++) {
-        const currentVal = (qTimers[i] !== undefined && qTimers[i] !== null) ? qTimers[i] : defaultTimer;
+        let currentVal = (qTimers[i] !== undefined && qTimers[i] !== null) ? parseInt(qTimers[i]) : defaultTimer;
+        if (!validOptions.includes(currentVal)) {
+            currentVal = validOptions.reduce((prev, curr) => Math.abs(curr - currentVal) < Math.abs(prev - currentVal) ? curr : prev, 60);
+        }
+
         const box = document.createElement('div');
         box.style.cssText = "background: #111317; border: 1px solid #222632; padding: 4px 6px; border-radius: 4px; display: flex; flex-direction: column; gap: 2px;";
         box.innerHTML = `
             <label style="font-size: 9px; color: #38bdf8; margin: 0; font-weight: bold;">CÂU ${i + 1}:</label>
-            <div style="display: flex; align-items: center; gap: 2px;">
-                <input type="number" id="cfg-q-timer-${i}" min="5" max="300" value="${currentVal}" style="padding: 2px 4px; font-size: 11px; text-align: center; width: 100%; border-radius: 3px; background: #181b22; color: #fff; border: 1px solid #323848;" oninput="updateSettingsPreview()">
-                <span style="font-size: 9px; color: #94a3b8;">s</span>
-            </div>
+            <select id="cfg-q-timer-${i}" style="padding: 2px 4px; font-size: 11px; text-align: center; width: 100%; border-radius: 3px; background: #181b22; color: #38bdf8; border: 1px solid #323848; font-weight: bold;" onchange="updateSettingsPreview()">
+                <option value="30" ${currentVal === 30 ? 'selected' : ''}>30s</option>
+                <option value="45" ${currentVal === 45 ? 'selected' : ''}>45s</option>
+                <option value="60" ${currentVal === 60 ? 'selected' : ''}>60s</option>
+                <option value="75" ${currentVal === 75 ? 'selected' : ''}>75s</option>
+                <option value="90" ${currentVal === 90 ? 'selected' : ''}>90s</option>
+            </select>
         `;
         grid.appendChild(box);
     }
@@ -2843,8 +2879,14 @@ function renderQuestionsTabUI() {
                 <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">VÒNG ${q.round || (idx + 1)}</span>
                 <div style="display: flex; align-items: center; gap: 4px; background: #111317; padding: 2px 6px; border-radius: 4px; border: 1px solid #222632;">
                     <label style="font-size: 10px; color: #fbbf24; margin: 0;">Thời gian đếm ngược:</label>
-                    <input type="number" id="qtab-timerSeconds-${idx}" value="${q.timerSeconds || ''}" placeholder="${defaultQTimer}" min="5" max="300" style="width: 55px; padding: 1px 4px; font-size: 11px; text-align: center; border-radius: 3px; background: #181b22; color: #fff; border: 1px solid #323848;">
-                    <span style="font-size: 10px; color: #94a3b8;">giây</span>
+                    <select id="qtab-timerSeconds-${idx}" style="padding: 1px 4px; font-size: 11px; text-align: center; border-radius: 3px; background: #181b22; color: #fbbf24; border: 1px solid #323848; font-weight: bold;">
+                        <option value="" ${!q.timerSeconds ? 'selected' : ''}>Mặc định (${defaultQTimer}s)</option>
+                        <option value="30" ${q.timerSeconds == 30 ? 'selected' : ''}>30 giây</option>
+                        <option value="45" ${q.timerSeconds == 45 ? 'selected' : ''}>45 giây</option>
+                        <option value="60" ${q.timerSeconds == 60 ? 'selected' : ''}>60 giây</option>
+                        <option value="75" ${q.timerSeconds == 75 ? 'selected' : ''}>75 giây</option>
+                        <option value="90" ${q.timerSeconds == 90 ? 'selected' : ''}>90 giây</option>
+                    </select>
                 </div>
             </div>
             <button class="btn-red" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="deleteRoundFromStore(${idx})">Xóa Vòng</button>

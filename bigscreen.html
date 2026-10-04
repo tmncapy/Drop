@@ -191,33 +191,30 @@ channel.onmessage=function(event){
     }
 
     if(action==="timer_control"){
-
-        if(data.status==="start"){
-
-            timerAudio.currentTime=0;
-
-            timerAudio.play();
-
+        if(data.status==="start" || data.status==="add30"){
+            let sfxFile = data.sfxFile;
+            if (!sfxFile) {
+                if (data.status === "add30") sfxFile = "SFX/BED_Countdown30sec.mp3";
+                else if (data.time === 30) sfxFile = "SFX/BED_Countdown30sec.mp3";
+                else if (data.time === 45) sfxFile = "SFX/BED_Countdown45sec.mp3";
+                else if (data.time === 75) sfxFile = "SFX/BED_Countdown75sec.mp3";
+                else if (data.time === 90) sfxFile = "SFX/BED_Countdown90sec.mp3";
+                else sfxFile = (data.round === 8) ? "SFX/drop_timer_q8.mp3" : "SFX/drop_timer.mp3";
+            }
+            timerAudio.src = sfxFile;
+            timerAudio.currentTime = 0;
+            timerAudio.play().catch(e => console.log(e));
             document.getElementById("clock-container").classList.add("show");
-
         }
-
         if(data.status==="stop" || data.status==="timeout"){
-
-       
-
+            isLock=true;
+            timerAudio.pause();
             timerAudio.currentTime=0;
-
-    isLock=true;
-
-    timerAudio.pause();
-    timerAudio.currentTime=0;
-
-    timerStopAudio.currentTime=0;
-    timerStopAudio.play();
-
+            if (data.status === "stop") {
+                timerStopAudio.currentTime=0;
+                timerStopAudio.play().catch(e => console.log(e));
+            }
         }
-
     }
 
 }

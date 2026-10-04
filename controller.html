@@ -944,21 +944,32 @@
                 <button class="btn-blue" onclick="playSfx('SFX/drop_opening.mp3')">Mở Đầu (Opening)</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_welcome_contestants.mp3')">Chào Thí Sinh</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_host_entrance.mp3')">MC Ra Sân Khấu</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_letsplay.mp3')">Let's Play</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_letsplay.mp3')">Let's Play 1</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_letsplay_2.wav')">Let's Play 2</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_letsplay_3.wav')">Let's Play 3</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_category.mp3')">Hiện Chủ Đề</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_chosen_category.mp3')">Chốt Chủ Đề</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_question_bed.mp3')">Nền Câu Hỏi</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_Reveal the Question_2.mp3', false, false)">Hiện Câu Hỏi</button>
-                <button class="btn-blue" onclick="playSfx('SFX/drop_variant_3.wav', false, false)">Variant 3</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_question_and_answer_reveal.mp3', false, false)">Hiện Q &amp; A Reveal</button>
                 <button class="btn-blue" onclick="showAllQuestionAndAnswers()">Hiện Q &amp; A</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_variant.wav', false, false)">Variant WAV</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_variant_2_3_4.mp3', false, false)">Variant 2-3-4</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_variant_2_3_4 - Copy.mp3', false, false)">Variant 2-3-4 Copy</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_variant_3.wav', false, false)">Variant 3</button>
                 <button class="btn-blue" onclick="collectMoneyBack()">Thu Tiền Về</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_moneyback.mp3')">Thu Tiền Về 1</button>
+                <button class="btn-blue" onclick="playSfx('SFX/drop_moneyback2.mp3')">Thu Tiền Về 2 (MP3)</button>
                 <button class="btn-blue" onclick="playSfx('SFX/drop_moneyback2.wav')">Thu Tiền Về 2 (WAV)</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_intrigue.mp3')">Hồi Hộp Đặt Cược</button>
+                <button class="btn-orange" onclick="playSfx('SFX/BED_Countdown30sec.mp3')">Đếm Ngược 30s</button>
+                <button class="btn-orange" onclick="playSfx('SFX/BED_Countdown45sec.mp3')">Đếm Ngược 45s</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer.mp3')">Đếm Ngược 60s</button>
+                <button class="btn-orange" onclick="playSfx('SFX/BED_Countdown75sec.mp3')">Đếm Ngược 75s</button>
+                <button class="btn-orange" onclick="playSfx('SFX/BED_Countdown90sec.mp3')">Đếm Ngược 90s</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer_q8.mp3')">Đếm Ngược Vòng 8</button>
-                <button class="btn-orange" onclick="add30Seconds()">Cộng 30 Giây</button>
+                <button class="btn-orange" onclick="playSfx('SFX/drop_30s.wav', false, false)">Ding +30s (WAV)</button>
+                <button class="btn-orange" onclick="add30Seconds()">+30 Giây (30s Bed)</button>
                 <button class="btn-orange" onclick="playSfx('SFX/drop_timer_stop.mp3')">Dừng Thời Gian</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_1.mp3')">Sập Hố 1</button>
                 <button class="btn-red" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3')">Sập Hố 2</button>
@@ -975,39 +986,44 @@
             <div class="form-group" style="margin-top: auto;">
                 <label>Phát File Âm Thanh Tùy Chọn:</label>
                 <select id="sfx-select-list" onchange="document.getElementById('custom-sfx-input').value = this.value" style="margin-bottom: 3px;">
-                    <option value="SFX/drop_30s.wav">drop_30s.wav</option>
-                    <option value="SFX/drop_category.mp3">drop_category.mp3</option>
-                    <option value="SFX/drop_chosen_category.mp3">drop_chosen_category.mp3</option>
-                    <option value="SFX/drop_closing.mp3">drop_closing.mp3</option>
-                    <option value="SFX/drop_commercial_in.mp3">drop_commercial_in.mp3</option>
-                    <option value="SFX/drop_commercial_out.mp3">drop_commercial_out.mp3</option>
-                    <option value="SFX/drop_host_entrance.mp3">drop_host_entrance.mp3</option>
-                    <option value="SFX/drop_intrigue.mp3">drop_intrigue.mp3</option>
-                    <option value="SFX/drop_letsplay.mp3">drop_letsplay.mp3</option>
-                    <option value="SFX/drop_letsplay_2.wav">drop_letsplay_2.wav</option>
-                    <option value="SFX/drop_letsplay_3.wav">drop_letsplay_3.wav</option>
-                    <option value="SFX/drop_lose.mp3">drop_lose.mp3</option>
-                    <option value="SFX/drop_main.mp3">drop_main.mp3</option>
-                    <option value="SFX/drop_moneyback.mp3">drop_moneyback.mp3</option>
-                    <option value="SFX/drop_moneyback2.mp3">drop_moneyback2.mp3</option>
-                    <option value="SFX/drop_moneyback2.wav">drop_moneyback2.wav</option>
-                    <option value="SFX/drop_opening.mp3">drop_opening.mp3</option>
-                    <option value="SFX/drop_question_and_answer_reveal.mp3">drop_question_and_answer_reveal.mp3</option>
-                    <option value="SFX/drop_question_bed.mp3">drop_question_bed.mp3</option>
-                    <option value="SFX/drop_Reveal the Question_2.mp3">drop_Reveal the Question_2.mp3</option>
-                    <option value="SFX/drop_timer.mp3">drop_timer.mp3</option>
-                    <option value="SFX/drop_timer_q8.mp3">drop_timer_q8.mp3</option>
-                    <option value="SFX/drop_timer_stop.mp3">drop_timer_stop.mp3</option>
-                    <option value="SFX/drop_trapdoor_1.mp3">drop_trapdoor_1.mp3</option>
-                    <option value="SFX/drop_trapdoor_2.mp3.mp3">drop_trapdoor_2.mp3.mp3</option>
-                    <option value="SFX/drop_variant.wav">drop_variant.wav</option>
+                    <option value="SFX/BED_Countdown30sec.mp3">BED_Countdown30sec.mp3 (Đếm ngược 30s)</option>
+                    <option value="SFX/BED_Countdown45sec.mp3">BED_Countdown45sec.mp3 (Đếm ngược 45s)</option>
+                    <option value="SFX/BED_Countdown75sec.mp3">BED_Countdown75sec.mp3 (Đếm ngược 75s)</option>
+                    <option value="SFX/BED_Countdown90sec.mp3">BED_Countdown90sec.mp3 (Đếm ngược 90s)</option>
+                    <option value="SFX/drop_30s.wav">drop_30s.wav (Ding 30s)</option>
+                    <option value="SFX/drop_category.mp3">drop_category.mp3 (Hiện chủ đề)</option>
+                    <option value="SFX/drop_chosen_category.mp3">drop_chosen_category.mp3 (Chốt chủ đề)</option>
+                    <option value="SFX/drop_closing.mp3">drop_closing.mp3 (Kết thúc)</option>
+                    <option value="SFX/drop_commercial_in.mp3">drop_commercial_in.mp3 (Quảng cáo vào)</option>
+                    <option value="SFX/drop_commercial_out.mp3">drop_commercial_out.mp3 (Quảng cáo ra)</option>
+                    <option value="SFX/drop_host_entrance.mp3">drop_host_entrance.mp3 (MC ra)</option>
+                    <option value="SFX/drop_intrigue.mp3">drop_intrigue.mp3 (Hồi hộp đặt cược)</option>
+                    <option value="SFX/drop_letsplay.mp3">drop_letsplay.mp3 (Let's Play 1)</option>
+                    <option value="SFX/drop_letsplay_2.wav">drop_letsplay_2.wav (Let's Play 2)</option>
+                    <option value="SFX/drop_letsplay_3.wav">drop_letsplay_3.wav (Let's Play 3)</option>
+                    <option value="SFX/drop_lose.mp3">drop_lose.mp3 (Thua cuộc)</option>
+                    <option value="SFX/drop_main.mp3">drop_main.mp3 (Nhạc Main)</option>
+                    <option value="SFX/drop_moneyback.mp3">drop_moneyback.mp3 (Thu tiền 1)</option>
+                    <option value="SFX/drop_moneyback2.mp3">drop_moneyback2.mp3 (Thu tiền 2 MP3)</option>
+                    <option value="SFX/drop_moneyback2.wav">drop_moneyback2.wav (Thu tiền 2 WAV)</option>
+                    <option value="SFX/drop_opening.mp3">drop_opening.mp3 (Opening)</option>
+                    <option value="SFX/drop_question_and_answer_reveal.mp3">drop_question_and_answer_reveal.mp3 (Reveal Q&amp;A)</option>
+                    <option value="SFX/drop_question_bed.mp3">drop_question_bed.mp3 (Nền câu hỏi)</option>
+                    <option value="SFX/drop_Reveal the Question_2.mp3">drop_Reveal the Question_2.mp3 (Hiện câu hỏi)</option>
+                    <option value="SFX/drop_timer.mp3">drop_timer.mp3 (Đếm ngược 60s)</option>
+                    <option value="SFX/drop_timer_q8.mp3">drop_timer_q8.mp3 (Đếm ngược Q8)</option>
+                    <option value="SFX/drop_timer_stop.mp3">drop_timer_stop.mp3 (Dừng đếm ngược)</option>
+                    <option value="SFX/drop_trapdoor_1.mp3">drop_trapdoor_1.mp3 (Sập hố 1)</option>
+                    <option value="SFX/drop_trapdoor_2.mp3.mp3">drop_trapdoor_2.mp3.mp3 (Sập hố 2)</option>
+                    <option value="SFX/drop_variant.wav">drop_variant.wav (Variant WAV)</option>
+                    <option value="SFX/drop_variant_2_3_4 - Copy.mp3">drop_variant_2_3_4 - Copy.mp3</option>
                     <option value="SFX/drop_variant_2_3_4.mp3">drop_variant_2_3_4.mp3</option>
                     <option value="SFX/drop_variant_3.wav">drop_variant_3.wav</option>
-                    <option value="SFX/drop_welcome_contestants.mp3">drop_welcome_contestants.mp3</option>
-                    <option value="SFX/drop_win.mp3">drop_win.mp3</option>
+                    <option value="SFX/drop_welcome_contestants.mp3">drop_welcome_contestants.mp3 (Chào thí sinh)</option>
+                    <option value="SFX/drop_win.mp3">drop_win.mp3 (Chiến thắng)</option>
                 </select>
                 <div class="inline-group">
-                    <input type="text" id="custom-sfx-input" placeholder="Tên file SFX..." value="SFX/drop_30s.wav">
+                    <input type="text" id="custom-sfx-input" placeholder="Tên file SFX..." value="SFX/BED_Countdown30sec.mp3">
                     <button class="btn-blue" style="width: 70px; flex-shrink: 0;" onclick="playCustomSfx()">Phát</button>
                     <button class="btn-red" style="width: 60px; flex-shrink: 0;" onclick="stopSfx()">Tắt</button>
                 </div>
@@ -1087,16 +1103,22 @@
 
                     <div class="form-group" style="margin-bottom: 0;">
                         <label for="cfg-timer-seconds" style="font-weight: 600;">Thời gian đếm ngược mặc định (giây):</label>
-                        <input type="number" id="cfg-timer-seconds" min="5" max="300" value="60" oninput="updateSettingsPreview()">
-                        <span style="font-size: 9px; color: #64748b;">Mặc định: 60 giây. Áp dụng khi câu hỏi không cài thời gian riêng.</span>
+                        <select id="cfg-timer-seconds" onchange="renderSettingsQuestionTimersGrid(); updateSettingsPreview();" style="width: 100%; padding: 4px 6px; border-radius: 4px; background: #181b22; color: #fff; border: 1px solid #323848; font-size: 11px;">
+                            <option value="30">30 giây (Nhạc: SFX/BED_Countdown30sec.mp3)</option>
+                            <option value="45">45 giây (Nhạc: SFX/BED_Countdown45sec.mp3)</option>
+                            <option value="60" selected>60 giây (Nhạc: SFX/drop_timer.mp3)</option>
+                            <option value="75">75 giây (Nhạc: SFX/BED_Countdown75sec.mp3)</option>
+                            <option value="90">90 giây (Nhạc: SFX/BED_Countdown90sec.mp3)</option>
+                        </select>
+                        <span style="font-size: 9px; color: #64748b;">Chỉ hỗ trợ các mốc: 30s, 45s, 60s, 75s, 90s kèm loại nhạc tương ứng.</span>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
-                        <label style="font-weight: 600; color: #38bdf8;">THỜI GIAN CỦA TỪNG CÂU HỎI 1 (GIÂY):</label>
+                        <label style="font-weight: 600; color: #38bdf8;">THỜI GIAN CỦA TỪNG CÂU HỎI (GIÂY):</label>
                         <div id="cfg-question-timers-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px;">
                             <!-- Generated dynamically by controller.js -->
                         </div>
-                        <span style="font-size: 9px; color: #64748b;">Giúp cài thời gian đếm ngược riêng biệt cho từng câu hỏi 1 (ví dụ Câu 8 = 30s, các câu còn lại 60s).</span>
+                        <span style="font-size: 9px; color: #64748b;">Chỉ cho phép chọn: 30s, 45s, 60s, 75s, 90s kèm loại nhạc đếm ngược tương ứng.</span>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 0;">
