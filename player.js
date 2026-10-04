@@ -570,6 +570,23 @@ channel.onmessage = function(event) {
             }
             break;
 
+        case 'sync_bets_to_mc':
+            if (data && data.manualAdjust) {
+                for (let i = 1; i <= 4; i++) {
+                    if (data[`b${i}`] !== undefined) {
+                        const doorEl = document.getElementById(`door-${i}`);
+                        if (doorEl) {
+                            doorEl.setAttribute('data-bet', data[`b${i}`]);
+                        }
+                        const betLabel = document.getElementById(`bet-${i}`);
+                        if (betLabel) {
+                            betLabel.innerText = `${Number(data[`b${i}`]).toLocaleString('vi-VN')} ${CURRENCY_UNIT}`;
+                        }
+                    }
+                }
+            }
+            break;
+
         case 'add_player_stacks':
             addPlayerStacks(data ? (parseInt(data.count) || 1) : 1);
             break;

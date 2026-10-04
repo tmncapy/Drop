@@ -282,12 +282,68 @@
             background: #111317;
             border: 1px solid #222632;
             border-radius: 4px;
-            padding: 2px 4px;
+            padding: 3px 5px;
             text-align: center;
+        }
+        .bet-box-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+            gap: 4px;
         }
         .bet-box .title {
             font-size: 10px;
             color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+            flex: 1;
+        }
+        .bet-adjust-btns {
+            display: flex;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .btn-bet-adjust {
+            width: 19px;
+            height: 17px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #f8fafc;
+            line-height: 1;
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+        .btn-bet-adjust:hover {
+            transform: scale(1.1);
+        }
+        .btn-bet-plus {
+            background: #065f46;
+            border-color: #059669;
+            color: #a7f3d0;
+        }
+        .btn-bet-plus:hover {
+            background: #059669;
+            color: #ffffff;
+        }
+        .btn-bet-minus {
+            background: #7f1d1d;
+            border-color: #dc2626;
+            color: #fecaca;
+        }
+        .btn-bet-minus:hover {
+            background: #dc2626;
+            color: #ffffff;
         }
         .bet-display {
             font-size: 12px;
@@ -840,10 +896,46 @@
             <div class="form-group">
                 <label>Theo Dõi Tiền Đặt Cược Trực Tuyến</label>
                 <div class="bet-grid">
-                    <div class="bet-box"><div class="title" id="mc-bet-title-1">Cửa 1</div><div class="bet-display" id="mc-bet-1">0 $A (0 cọc)</div></div>
-                    <div class="bet-box"><div class="title" id="mc-bet-title-2">Cửa 2</div><div class="bet-display" id="mc-bet-2">0 $A (0 cọc)</div></div>
-                    <div class="bet-box"><div class="title" id="mc-bet-title-3">Cửa 3</div><div class="bet-display" id="mc-bet-3">0 $A (0 cọc)</div></div>
-                    <div class="bet-box"><div class="title" id="mc-bet-title-4">Cửa 4</div><div class="bet-display" id="mc-bet-4">0 $A (0 cọc)</div></div>
+                    <div class="bet-box">
+                        <div class="bet-box-header">
+                            <span class="title" id="mc-bet-title-1">Cửa 1</span>
+                            <div class="bet-adjust-btns">
+                                <button type="button" class="btn-bet-adjust btn-bet-minus" onclick="adjustDoorBetMC(1, -1, event)" title="Bớt 1 cọc (-25k). Giữ Shift để bớt 4 cọc (-100k)">−</button>
+                                <button type="button" class="btn-bet-adjust btn-bet-plus" onclick="adjustDoorBetMC(1, 1, event)" title="Thêm 1 cọc (+25k). Giữ Shift để thêm 4 cọc (+100k)">+</button>
+                            </div>
+                        </div>
+                        <div class="bet-display" id="mc-bet-1">0 $A (0 cọc)</div>
+                    </div>
+                    <div class="bet-box">
+                        <div class="bet-box-header">
+                            <span class="title" id="mc-bet-title-2">Cửa 2</span>
+                            <div class="bet-adjust-btns">
+                                <button type="button" class="btn-bet-adjust btn-bet-minus" onclick="adjustDoorBetMC(2, -1, event)" title="Bớt 1 cọc (-25k). Giữ Shift để bớt 4 cọc (-100k)">−</button>
+                                <button type="button" class="btn-bet-adjust btn-bet-plus" onclick="adjustDoorBetMC(2, 1, event)" title="Thêm 1 cọc (+25k). Giữ Shift để thêm 4 cọc (+100k)">+</button>
+                            </div>
+                        </div>
+                        <div class="bet-display" id="mc-bet-2">0 $A (0 cọc)</div>
+                    </div>
+                    <div class="bet-box">
+                        <div class="bet-box-header">
+                            <span class="title" id="mc-bet-title-3">Cửa 3</span>
+                            <div class="bet-adjust-btns">
+                                <button type="button" class="btn-bet-adjust btn-bet-minus" onclick="adjustDoorBetMC(3, -1, event)" title="Bớt 1 cọc (-25k). Giữ Shift để bớt 4 cọc (-100k)">−</button>
+                                <button type="button" class="btn-bet-adjust btn-bet-plus" onclick="adjustDoorBetMC(3, 1, event)" title="Thêm 1 cọc (+25k). Giữ Shift để thêm 4 cọc (+100k)">+</button>
+                            </div>
+                        </div>
+                        <div class="bet-display" id="mc-bet-3">0 $A (0 cọc)</div>
+                    </div>
+                    <div class="bet-box">
+                        <div class="bet-box-header">
+                            <span class="title" id="mc-bet-title-4">Cửa 4</span>
+                            <div class="bet-adjust-btns">
+                                <button type="button" class="btn-bet-adjust btn-bet-minus" onclick="adjustDoorBetMC(4, -1, event)" title="Bớt 1 cọc (-25k). Giữ Shift để bớt 4 cọc (-100k)">−</button>
+                                <button type="button" class="btn-bet-adjust btn-bet-plus" onclick="adjustDoorBetMC(4, 1, event)" title="Thêm 1 cọc (+25k). Giữ Shift để thêm 4 cọc (+100k)">+</button>
+                            </div>
+                        </div>
+                        <div class="bet-display" id="mc-bet-4">0 $A (0 cọc)</div>
+                    </div>
                 </div>
             </div>
 

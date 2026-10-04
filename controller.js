@@ -2482,6 +2482,11 @@ function resetRound() {
     updateTimerDisplay();
     stopSfx();
     document.getElementById('time-display').innerText = `THỜI GIAN ĐẶT CƯỢC: --:--`;
+    lastMcBetsData.b1 = 0;
+    lastMcBetsData.b2 = 0;
+    lastMcBetsData.b3 = 0;
+    lastMcBetsData.b4 = 0;
+    updateControllerMoneyLabels();
     sendCommand('reset_round');
     addSystemLog('system', 'RESET VÒNG CHƠI', `Đã reset toàn bộ vòng chơi về trạng thái ban đầu.`);
 }
@@ -2858,6 +2863,57 @@ function updateControllerMoneyLabels() {
     if (progressMoneyEl) {
         progressMoneyEl.innerText = `${currentMoneyAmount.toLocaleString('vi-VN')} ${unit}`;
     }
+}
+
+function adjustDoorBetMC(doorId, deltaStacks, event) {
+    if (doorId < 1 || doorId > 4) return;
+
+    let multiplier = 1;
+    if (event && event.shiftKey) {
+        multiplier = 4;
+    }
+    const stackVal = gameSettings.stackValue || 25000;
+    const changeAmount = deltaStacks * multiplier * stackVal;
+
+    const key = `b${doorId}`;
+    const currentBet = lastMcBetsData[key] || 0;
+    const newBet = Math.max(0, currentBet + changeAmount);
+
+    if (newBet === currentBet) return;
+
+    lastMcBetsData[key] = newBet;
+
+    // 1. Update controller labels
+    updateControllerMoneyLabels();
+
+    // 2. Broadcast updated bets to MC Host, Answer / Moneydoor screens, and Player screen
+    const unit = gameSettings.currencyUnit || '$A';
+    const totalBet = (lastMcBetsData.b1 || 0) + (lastMcBetsData.b2 || 0) + (lastMcBetsData.b3 || 0) + (lastMcBetsData.b4 || 0);
+    const betData = {
+        b1: lastMcBetsData.b1 || 0,
+        b2: lastMcBetsData.b2 || 0,
+        b3: lastMcBetsData.b3 || 0,
+        b4: lastMcBetsData.b4 || 0,
+        s1: Math.round((lastMcBetsData.b1 || 0) / (stackVal || 1)),
+        s2: Math.round((lastMcBetsData.b2 || 0) / (stackVal || 1)),
+        s3: Math.round((lastMcBetsData.b3 || 0) / (stackVal || 1)),
+        s4: Math.round((lastMcBetsData.b4 || 0) / (stackVal || 1)),
+        totalMoney: currentMoneyAmount,
+        totalStacks: (lastMcBetsData.totalStacks !== null && lastMcBetsData.totalStacks !== undefined) 
+            ? lastMcBetsData.totalStacks 
+            : Math.round(currentMoneyAmount / (stackVal || 1)),
+        stackValue: stackVal,
+        manualAdjust: true,
+        adjustedDoor: doorId
+    };
+
+    sendCommand('sync_bets_to_mc', betData);
+
+    const stacksCount = deltaStacks * multiplier;
+    const actionText = stacksCount > 0 
+        ? `+${stacksCount} cọc (+${(changeAmount).toLocaleString('vi-VN')} ${unit})` 
+        : `${stacksCount} cọc (${(changeAmount).toLocaleString('vi-VN')} ${unit})`;
+    addSystemLog('bet', `ĐIỀU CHỈNH CỬA ${doorId}`, `Chỉnh tay số tiền Cửa ${doorId}: ${actionText}. Tiền trên cửa hiện tại: ${newBet.toLocaleString('vi-VN')} ${unit}.`);
 }
 
 // --- QUESTION DATA TAB FUNCTIONS ---
