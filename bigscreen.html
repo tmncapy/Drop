@@ -192,6 +192,12 @@ channel.onmessage=function(event){
 
     if(action==="timer_control"){
         if(data.status==="start" || data.status==="add30"){
+            const tVal = (data.time !== undefined && data.time !== null) ? parseInt(data.time) : 60;
+            let m=Math.floor(tVal/60);
+            let s=tVal%60;
+            const clockEl = document.getElementById("clock-time");
+            if (clockEl) clockEl.innerText = m+":"+s.toString().padStart(2,"0");
+
             let sfxFile = data.sfxFile;
             if (!sfxFile) {
                 if (data.status === "add30") sfxFile = "SFX/BED_Countdown30sec.mp3";
@@ -205,6 +211,15 @@ channel.onmessage=function(event){
             timerAudio.currentTime = 0;
             timerAudio.play().catch(e => console.log(e));
             document.getElementById("clock-container").classList.add("show");
+        }
+        if(data.status==="reset"){
+            const tVal = (data.time !== undefined && data.time !== null) ? parseInt(data.time) : 60;
+            let m=Math.floor(tVal/60);
+            let s=tVal%60;
+            const clockEl = document.getElementById("clock-time");
+            if (clockEl) clockEl.innerText = m+":"+s.toString().padStart(2,"0");
+            timerAudio.pause();
+            timerAudio.currentTime=0;
         }
         if(data.status==="stop" || data.status==="timeout"){
             isLock=true;

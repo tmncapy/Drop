@@ -735,6 +735,11 @@ channel.onmessage = function(event) {
                 isLock=true;
             }
 
+            if(data.status==="reset"){
+                isLock=true;
+                document.getElementById("table-guide").innerText="SẴN SÀNG";
+            }
+
             formatTimer(data.time);
             break;
 
@@ -830,6 +835,38 @@ function formatTimer(timeLeft) {
 
 window.addEventListener('DOMContentLoaded', () => {
     checkInitialAuth();
+
+    function sendPlayerPresencePing() {
+        channel.postMessage({
+            action: 'player_heartbeat',
+            senderId: playerTabId,
+            roomid: urlRoomId,
+            viaLink: isUrlLinkMode
+        });
+        try {
+            fetch('/api/player-presence/ping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ senderId: playerTabId, roomid: urlRoomId, viaLink: isUrlLinkMode })
+            }).then(r => r.json()).then(res => {
+                if (res && res.allowed === false) {
+                    showLinkInvalidatedScreen(urlRoomId || 'Player', res.reason);
+                }
+            }).catch(() => {});
+        } catch(e) {}
+    }
+    sendPlayerPresencePing();
+    setInterval(sendPlayerPresencePing, 3500);
+
+    window.addEventListener('beforeunload', () => {
+        try {
+            channel.postMessage({ action: 'player_disconnect', senderId: playerTabId });
+            if (navigator.sendBeacon) {
+                const blob = new Blob([JSON.stringify({ senderId: playerTabId })], { type: 'application/json' });
+                navigator.sendBeacon('/api/player-presence/disconnect', blob);
+            }
+        } catch(e) {}
+    });
 
     const pinInput = document.getElementById('pin-input');
     if (pinInput) {

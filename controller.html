@@ -1273,6 +1273,19 @@
                         <span style="font-size: 9px; color: #64748b;">Cho phép bật/tắt hiển thị 2 lớp khung màn hình main1.png và outlinescreen.png trên Projector.</span>
                     </div>
                 </div>
+
+                <!-- Group 5: Max Connected Players Limit -->
+                <div style="background: #181b22; border: 1px solid #7c3aed; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 11px; color: #c084fc; border-bottom: 1px solid #262a36; padding-bottom: 4px; font-weight: bold;">
+                        5. GIỚI HẠN SỐ LƯỢNG MÁY PLAYER KẾT NỐI
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="cfg-max-players" style="font-weight: 600;">Số lượng máy Player tối đa được phép kết nối:</label>
+                        <input type="number" id="cfg-max-players" min="1" max="50" value="1" oninput="updateSettingsPreview()">
+                        <span style="font-size: 9px; color: #64748b;">Mặc định: 1 máy. Khi đạt giới hạn này, các máy người chơi khác truy cập sẽ bị từ chối và thông báo liên hệ MC/Kỹ thuật.</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Preview Panel -->
@@ -1280,7 +1293,7 @@
                 <div style="font-size: 10px; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; font-weight: bold;">
                     XEM TRƯỚC TỔNG QUAN CẤU HÌNH
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center;">
+                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; text-align: center;">
                     <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
                         <div style="font-size: 9px; color: #94a3b8;">THỜI GIAN / CÂU</div>
                         <div id="preview-cfg-time" style="font-size: 14px; color: #f59e0b; margin-top: 2px;">60 giây</div>
@@ -1300,6 +1313,10 @@
                     <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
                         <div style="font-size: 9px; color: #94a3b8;">KHUNG MÀN HÌNH</div>
                         <div id="preview-cfg-frames" style="font-size: 14px; color: #a7f3d0; margin-top: 2px;">Hiển thị</div>
+                    </div>
+                    <div style="background: #181b22; padding: 6px; border-radius: 4px; border: 1px solid #222632;">
+                        <div style="font-size: 9px; color: #c084fc;">GIỚI HẠN PLAYER</div>
+                        <div id="preview-cfg-players" style="font-size: 14px; color: #e9d5ff; margin-top: 2px;">1 máy</div>
                     </div>
                 </div>
             </div>
@@ -1407,9 +1424,14 @@
                             <div style="font-size: 13px; font-weight: bold; color: #c084fc;">MÀN HÌNH NGƯỜI CHƠI (PLAYER)</div>
                             <div style="font-size: 10px; color: #64748b;">File: player.html | Vào trực tiếp qua Link</div>
                         </div>
-                        <span id="role-player-link-badge" style="font-size: 9px; background: rgba(34,197,94,0.2); color: #4ade80; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(74,222,128,0.4);">Link Hợp Lệ</span>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <span id="card-player-connections-badge" style="font-size: 9px; background: rgba(147,51,234,0.25); color: #c084fc; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(192,132,252,0.4); font-weight: bold;">
+                                Máy kết nối: <span id="card-player-connected-count">0</span>/<span id="card-player-max-count">1</span>
+                            </span>
+                            <span id="role-player-link-badge" style="font-size: 9px; background: rgba(34,197,94,0.2); color: #4ade80; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(74,222,128,0.4);">Link Hợp Lệ</span>
+                        </div>
                     </div>
-                    <p style="font-size: 10px; color: #94a3b8; margin: 0;">Giao diện chia cọc tiền cược cho thí sinh. Sử dụng link có sẵn mã phòng &amp; auth để vào thẳng game.</p>
+                    <p style="font-size: 10px; color: #94a3b8; margin: 0;">Giao diện chia cọc tiền cược cho thí sinh. Giới hạn số lượng máy kết nối được cài đặt trong Cấu Hình.</p>
                     
                     <!-- Link preview in card -->
                     <div style="background: #111317; border: 1px solid #3b1d6e; border-radius: 4px; padding: 6px; display: flex; flex-direction: column; gap: 4px;">
@@ -1418,6 +1440,10 @@
                             <span style="color: #94a3b8;">Auth: <strong id="card-player-auth" style="color: #34d399;">drop88</strong></span>
                         </div>
                         <input type="text" id="card-player-link-input" readonly style="font-size: 10px; font-family: monospace; padding: 3px 6px; background: #0c0e14; border: 1px solid #262a36; color: #a7f3d0; border-radius: 3px;" value="https://tmncapy.github.io/Drop/player.html?roomid=R1234&amp;auth=drop88" onclick="this.select()">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #94a3b8; margin-top: 2px;">
+                            <span>Đang kết nối: <strong id="player-active-count-text" style="color: #4ade80;">0</strong> / <strong id="player-max-limit-text" style="color: #c084fc;">1 máy</strong></span>
+                            <button class="btn-gray" style="padding: 2px 6px; font-size: 9px; border-radius: 3px;" onclick="resetPlayerPresenceList()">Reset DS Máy</button>
+                        </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">

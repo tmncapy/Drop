@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS = {
     totalQuestions: 8,
     betDelaySeconds: 0.125,
     showScreenFrames: true,
+    maxConnectedPlayers: 1,
     questionTimers: [60, 60, 60, 60, 60, 60, 60, 60]
 };
 
@@ -557,10 +558,14 @@ function getQuestionTimeLimit(rNum) {
     return gameSettings.timerSeconds || 60;
 }
 
-function updateTimerForCurrentQuestion() {
+function updateTimerForCurrentQuestion(broadcast = true) {
     if (!timerInterval) {
         timeLeft = getQuestionTimeLimit();
         updateTimerDisplay();
+        if (broadcast) {
+            sendCommand("timer_tick", { time: timeLeft });
+            sendCommand("timer_control", { status: "reset", time: timeLeft });
+        }
     }
 }
 
@@ -636,14 +641,14 @@ function onVolumeSliderChange(val) {
 window.addEventListener('DOMContentLoaded', () => {
     updateQuestionSelector();
     initPinCode();
-    initPlayerLink();
-    initHostLink();
+    initPlayerLink(false);
+    initHostLink(false);
     populateSettingsFormUI();
     updateControllerMoneyLabels();
     updateProgressDataUI();
     setGlobalVolume(currentGlobalVolume);
     updateDynamicControllerButtonLabels();
-    updateTimerForCurrentQuestion();
+    updateTimerForCurrentQuestion(false);
     renderSystemLogsUI();
     updateLogStatsSummaryUI();
     renderControllerChatHistory();
@@ -652,6 +657,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (badge && excelDataStore) {
         badge.innerText = `Đã nạp ${excelDataStore.length} vòng`;
     }
+
+    syncControllerRuntimeState();
+    setInterval(updateConnectedPlayersUI, 3000);
 });
 
 function initPinCode() {
@@ -660,31 +668,211 @@ function initPinCode() {
         pinInput.value = currentPin;
     }
     localStorage.setItem('game_pin', currentPin);
-    sendCommand('update_pin', { pin: currentPin });
-    initPlayerLink();
-    initHostLink();
 }
 
 // ==========================================
 // PLAYER DIRECT LINK & AUTH INVALIDATION SYSTEM
 // ==========================================
 const GITHUB_PLAYER_BASE_URL = 'https://tmncapy.github.io/Drop/player.html';
+const controllerInstanceId = 'ctrl_' + Math.random().toString(36).substring(2, 9);
+const connectedPlayerDevices = new Map();
+
+function getActiveConnectedPlayerCount() {
+    const now = Date.now();
+    for (const [id, p] of connectedPlayerDevices.entries()) {
+        if (now - p.lastSeen > 12000) {
+            connectedPlayerDevices.delete(id);
+        }
+    }
+    return connectedPlayerDevices.size;
+}
+
+function updateConnectedPlayersUI() {
+    const count = getActiveConnectedPlayerCount();
+    const max = gameSettings.maxConnectedPlayers || 1;
+
+    const badgeCount = document.getElementById('card-player-connected-count');
+    const badgeMax = document.getElementById('card-player-max-count');
+    const activeText = document.getElementById('player-active-count-text');
+    const maxText = document.getElementById('player-max-limit-text');
+
+    if (badgeCount) badgeCount.innerText = count;
+    if (badgeMax) badgeMax.innerText = max;
+    if (activeText) activeText.innerText = count;
+    if (maxText) maxText.innerText = `${max} máy`;
+}
+
+function resetPlayerPresenceList() {
+    connectedPlayerDevices.clear();
+    updateConnectedPlayersUI();
+    try {
+        fetch('/api/player-presence/reset', { method: 'POST' }).catch(() => {});
+    } catch(e) {}
+    addSystemLog('auth', 'RESET DANH SÁCH MÁY PLAYER', 'Đã đặt lại danh sách máy kết nối người chơi.');
+}
+window.resetPlayerPresenceList = resetPlayerPresenceList;
+
+function saveServerGameState(extra = {}) {
+    try {
+        fetch('/api/game-state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                activePlayerRoomId,
+                activePlayerAuth,
+                playerBaseUrlMode,
+                activeHostRoomId,
+                activeHostAuth,
+                hostBaseUrlMode,
+                currentPin,
+                gameSettings,
+                lastMcBetsData,
+                currentRound: getCurrentRoundNumber(),
+                ...extra
+            })
+        }).catch(() => {});
+    } catch(e) {}
+}
+
+async function syncControllerRuntimeState() {
+    try {
+        const res = await fetch('/api/game-state');
+        if (res.ok) {
+            const serverState = await res.json();
+            if (serverState) {
+                if (serverState.activePlayerRoomId) {
+                    activePlayerRoomId = serverState.activePlayerRoomId;
+                    localStorage.setItem('active_player_room_id', activePlayerRoomId);
+                }
+                if (serverState.activePlayerAuth) {
+                    activePlayerAuth = serverState.activePlayerAuth;
+                    localStorage.setItem('active_player_auth_token', activePlayerAuth);
+                }
+                if (serverState.playerBaseUrlMode) {
+                    playerBaseUrlMode = serverState.playerBaseUrlMode;
+                    localStorage.setItem('player_link_base_mode', playerBaseUrlMode);
+                }
+                if (serverState.activeHostRoomId) {
+                    activeHostRoomId = serverState.activeHostRoomId;
+                    localStorage.setItem('active_host_room_id', activeHostRoomId);
+                }
+                if (serverState.activeHostAuth) {
+                    activeHostAuth = serverState.activeHostAuth;
+                    localStorage.setItem('active_host_auth_token', activeHostAuth);
+                }
+                if (serverState.hostBaseUrlMode) {
+                    hostBaseUrlMode = serverState.hostBaseUrlMode;
+                    localStorage.setItem('host_link_base_mode', hostBaseUrlMode);
+                }
+                if (serverState.currentPin) {
+                    currentPin = serverState.currentPin;
+                    localStorage.setItem('game_pin', currentPin);
+                    const pinInput = document.getElementById('pin-code-input');
+                    if (pinInput) pinInput.value = currentPin;
+                }
+                if (serverState.gameSettings) {
+                    gameSettings = { ...DEFAULT_SETTINGS, ...serverState.gameSettings };
+                    localStorage.setItem('game_settings', JSON.stringify(gameSettings));
+                    populateSettingsFormUI();
+                }
+                if (serverState.lastMcBetsData) {
+                    lastMcBetsData = { ...lastMcBetsData, ...serverState.lastMcBetsData };
+                    updateControllerMoneyLabels();
+                }
+                if (serverState.connectedPlayers && Array.isArray(serverState.connectedPlayers)) {
+                    serverState.connectedPlayers.forEach(p => {
+                        connectedPlayerDevices.set(p.id, {
+                            id: p.id,
+                            lastSeen: p.lastSeen || Date.now(),
+                            viaLink: !!p.viaLink,
+                            roomid: p.roomid
+                        });
+                    });
+                }
+                updatePlayerLinkUI();
+                updateHostLinkUI();
+                updateConnectedPlayersUI();
+            }
+        }
+    } catch(e) {}
+
+    // Ask peer active controller on channel
+    sendCommand('request_active_controller_state', { senderId: controllerInstanceId });
+}
+
+function applySynchronizedState(data) {
+    if (!data) return;
+    if (data.activePlayerRoomId) {
+        activePlayerRoomId = data.activePlayerRoomId;
+        localStorage.setItem('active_player_room_id', activePlayerRoomId);
+    }
+    if (data.activePlayerAuth) {
+        activePlayerAuth = data.activePlayerAuth;
+        localStorage.setItem('active_player_auth_token', activePlayerAuth);
+    }
+    if (data.playerBaseUrlMode) {
+        playerBaseUrlMode = data.playerBaseUrlMode;
+        localStorage.setItem('player_link_base_mode', playerBaseUrlMode);
+    }
+    if (data.activeHostRoomId) {
+        activeHostRoomId = data.activeHostRoomId;
+        localStorage.setItem('active_host_room_id', activeHostRoomId);
+    }
+    if (data.activeHostAuth) {
+        activeHostAuth = data.activeHostAuth;
+        localStorage.setItem('active_host_auth_token', activeHostAuth);
+    }
+    if (data.hostBaseUrlMode) {
+        hostBaseUrlMode = data.hostBaseUrlMode;
+        localStorage.setItem('host_link_base_mode', hostBaseUrlMode);
+    }
+    if (data.currentPin) {
+        currentPin = data.currentPin;
+        localStorage.setItem('game_pin', currentPin);
+        const pinInput = document.getElementById('pin-code-input');
+        if (pinInput) pinInput.value = currentPin;
+    }
+    if (data.gameSettings) {
+        gameSettings = { ...DEFAULT_SETTINGS, ...data.gameSettings };
+        localStorage.setItem('game_settings', JSON.stringify(gameSettings));
+        populateSettingsFormUI();
+    }
+    if (data.lastMcBetsData) {
+        lastMcBetsData = { ...lastMcBetsData, ...data.lastMcBetsData };
+        updateControllerMoneyLabels();
+    }
+    if (data.currentMoneyAmount !== undefined) {
+        currentMoneyAmount = data.currentMoneyAmount;
+    }
+    if (data.currentRound !== undefined) {
+        const roundSelect = document.getElementById('select-round');
+        if (roundSelect && roundSelect.value != data.currentRound) {
+            roundSelect.value = data.currentRound;
+            updateDynamicControllerButtonLabels();
+        }
+    }
+    updatePlayerLinkUI();
+    updateHostLinkUI();
+    updateConnectedPlayersUI();
+}
+
 let activePlayerRoomId = localStorage.getItem('active_player_room_id') || ('R' + Math.floor(1000 + Math.random() * 9000));
 let activePlayerAuth = localStorage.getItem('active_player_auth_token') || (Math.random().toString(36).substring(2, 8).toLowerCase());
 let playerBaseUrlMode = localStorage.getItem('player_link_base_mode') || 'github';
 
-function initPlayerLink() {
+function initPlayerLink(broadcast = false) {
     localStorage.setItem('active_player_room_id', activePlayerRoomId);
     localStorage.setItem('active_player_auth_token', activePlayerAuth);
     localStorage.setItem('player_link_base_mode', playerBaseUrlMode);
     
     updatePlayerLinkUI();
     
-    // Broadcast active room auth to channel
-    sendCommand('update_player_room_auth', {
-        roomid: activePlayerRoomId,
-        auth: activePlayerAuth
-    });
+    if (broadcast) {
+        sendCommand('update_player_room_auth', {
+            roomid: activePlayerRoomId,
+            auth: activePlayerAuth
+        });
+    }
 }
 
 function getPlayerFullLink() {
@@ -875,18 +1063,19 @@ let activeHostRoomId = localStorage.getItem('active_host_room_id') || ('HR' + Ma
 let activeHostAuth = localStorage.getItem('active_host_auth_token') || ('mchost_' + Math.random().toString(36).substring(2, 8).toLowerCase());
 let hostBaseUrlMode = localStorage.getItem('host_link_base_mode') || 'origin';
 
-function initHostLink() {
+function initHostLink(broadcast = false) {
     localStorage.setItem('active_host_room_id', activeHostRoomId);
     localStorage.setItem('active_host_auth_token', activeHostAuth);
     localStorage.setItem('host_link_base_mode', hostBaseUrlMode);
     
     updateHostLinkUI();
     
-    // Broadcast active host room auth to channel
-    sendCommand('update_host_room_auth', {
-        roomid: activeHostRoomId,
-        auth: activeHostAuth
-    });
+    if (broadcast) {
+        sendCommand('update_host_room_auth', {
+            roomid: activeHostRoomId,
+            auth: activeHostAuth
+        });
+    }
 }
 
 function getHostFullLink() {
@@ -1095,12 +1284,84 @@ channel.onmessage = function(event) {
     if (action === 'clear_script_chat') {
         handleClearScriptChat(false);
     }
+    // Peer controller state sync
+    if (action === 'request_active_controller_state' && data && data.senderId !== controllerInstanceId) {
+        sendCommand('active_controller_state_response', {
+            targetSenderId: data.senderId,
+            activePlayerRoomId,
+            activePlayerAuth,
+            playerBaseUrlMode,
+            activeHostRoomId,
+            activeHostAuth,
+            hostBaseUrlMode,
+            currentPin,
+            gameSettings,
+            lastMcBetsData,
+            currentRound: getCurrentRoundNumber(),
+            currentMoneyAmount,
+            timeLeft
+        });
+    }
+    if (action === 'active_controller_state_response' && data && data.targetSenderId === controllerInstanceId) {
+        applySynchronizedState(data);
+    }
+
+    if (action === 'player_heartbeat' && data && data.senderId) {
+        const maxAllowed = gameSettings.maxConnectedPlayers || 1;
+        const currentCount = getActiveConnectedPlayerCount();
+        const isAlreadyConnected = connectedPlayerDevices.has(data.senderId);
+
+        if (!isAlreadyConnected && currentCount >= maxAllowed) {
+            sendCommand('player_auth_failed', {
+                targetSenderId: data.senderId,
+                reason: `Số lượng máy Người Chơi kết nối đã đạt giới hạn tối đa (${maxAllowed} máy).`
+            });
+            return;
+        }
+
+        connectedPlayerDevices.set(data.senderId, {
+            id: data.senderId,
+            lastSeen: Date.now(),
+            viaLink: !!data.viaLink,
+            roomid: data.roomid || activePlayerRoomId
+        });
+        updateConnectedPlayersUI();
+    }
+    if (action === 'player_disconnect' && data && data.senderId) {
+        connectedPlayerDevices.delete(data.senderId);
+        updateConnectedPlayersUI();
+    }
+
     if (action === 'mqtt_connected' || action === 'request_pin') {
         sendCommand('update_pin', { pin: currentPin });
         sendCommand('update_player_room_auth', { roomid: activePlayerRoomId, auth: activePlayerAuth });
         sendCommand('set_volume', { volume: currentGlobalVolume });
     }
     if (action === 'request_active_room_auth') {
+        // Enforce player connection limits
+        if (data && data.senderId) {
+            const maxAllowed = gameSettings.maxConnectedPlayers || 1;
+            const currentCount = getActiveConnectedPlayerCount();
+            const isAlreadyConnected = connectedPlayerDevices.has(data.senderId);
+
+            if (!isAlreadyConnected && currentCount >= maxAllowed) {
+                sendCommand('player_auth_failed', {
+                    targetSenderId: data.senderId,
+                    reason: `Số lượng máy Người Chơi kết nối đã đạt giới hạn tối đa (${maxAllowed} máy) do Bàn Điều Khiển quy định! Vui lòng liên hệ MC/Kỹ thuật để mở rộng số lượng hoặc thử lại sau.`
+                });
+                addSystemLog('auth', 'TỪ CHỐI KẾT NỐI PLAYER (ĐỦ SỐ LƯỢNG)', `Từ chối thiết bị [${data.senderId}] do đã đạt giới hạn tối đa ${maxAllowed}/${maxAllowed} máy.`);
+                return;
+            }
+
+            connectedPlayerDevices.set(data.senderId, {
+                id: data.senderId,
+                lastSeen: Date.now(),
+                viaLink: true,
+                roomid: data.urlRoomId || activePlayerRoomId
+            });
+            updateConnectedPlayersUI();
+        }
+
         // Send current valid room credentials
         sendCommand('update_player_room_auth', {
             roomid: activePlayerRoomId,
@@ -1124,6 +1385,27 @@ channel.onmessage = function(event) {
         }
     }
     if (action === 'player_authenticated') {
+        if (data && data.senderId) {
+            const maxAllowed = gameSettings.maxConnectedPlayers || 1;
+            const currentCount = getActiveConnectedPlayerCount();
+            const isAlreadyConnected = connectedPlayerDevices.has(data.senderId);
+
+            if (!isAlreadyConnected && currentCount >= maxAllowed) {
+                sendCommand('player_auth_failed', {
+                    targetSenderId: data.senderId,
+                    reason: `Số lượng máy Người Chơi kết nối đã đạt giới hạn tối đa (${maxAllowed} máy).`
+                });
+                return;
+            }
+
+            connectedPlayerDevices.set(data.senderId, {
+                id: data.senderId,
+                lastSeen: Date.now(),
+                viaLink: !!data.viaLink,
+                roomid: data.roomid || activePlayerRoomId
+            });
+            updateConnectedPlayersUI();
+        }
         const info = data && data.viaLink ? `qua Đường Link Trực Tiếp [Phòng: ${data.roomid || activePlayerRoomId}]` : `nhập mã PIN [${data.pin || currentPin}]`;
         addSystemLog('auth', 'PLAYER XÁC THỰC THÀNH CÔNG', `Màn hình Player đã xác thực thành công ${info}.`);
     }
@@ -2280,6 +2562,7 @@ function getTimerMusicForDuration(duration, roundNum) {
 function startTimer() {
     stopSfx();
     clearInterval(timerInterval);
+    timerInterval = null;
     timeLeft = getQuestionTimeLimit();
     updateTimerDisplay();
 
@@ -2294,6 +2577,11 @@ function startTimer() {
         sfxFile: sfxFile
     });
 
+    // Send immediate timer_tick so all clients (projector, bigscreen, MC host, player) display starting time (e.g. 1:00 or 60s) instantly
+    sendCommand("timer_tick", {
+        time: timeLeft
+    });
+
     addSystemLog('system', 'BẮT ĐẦU ĐẾM NGƯỢC', `Khởi động đếm ngược ${timeLeft}s cho Vòng ${r} (Nhạc: ${sfxFile}).`);
 
     timerInterval = setInterval(() => {
@@ -2306,6 +2594,7 @@ function startTimer() {
 
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
+            timerInterval = null;
             sendCommand("timer_control", {
                 status: "timeout",
                 time: 0
@@ -2317,6 +2606,7 @@ function startTimer() {
 
 function add30Seconds() {
     clearInterval(timerInterval);
+    timerInterval = null;
     timeLeft = (timeLeft <= 0) ? 30 : (timeLeft + 30);
     updateTimerDisplay();
 
@@ -2327,6 +2617,7 @@ function add30Seconds() {
         time: timeLeft,
         sfxFile: sfxFile
     });
+    sendCommand('timer_tick', { time: timeLeft });
     addSystemLog('system', 'CỘNG THÊM +30 GIÂY', `Cộng thêm +30s thời gian đặt cược (Thời gian mới: ${timeLeft}s, Nhạc: ${sfxFile}).`);
 
     timerInterval = setInterval(() => {
@@ -2335,6 +2626,7 @@ function add30Seconds() {
         sendCommand('timer_tick', { time: timeLeft });
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
+            timerInterval = null;
             sendCommand('timer_control', { status: 'timeout', time: 0 });
             addSystemLog('system', 'HẾT GIỜ ĐẶT CƯỢC', `Đồng hồ đếm ngược đã về 0s.`);
         }
@@ -2343,6 +2635,7 @@ function add30Seconds() {
 
 function stopTimer() {     
     clearInterval(timerInterval);
+    timerInterval = null;
     sendCommand("timer_control", {
         status: "stop",
         time: timeLeft
@@ -2687,6 +2980,7 @@ function populateSettingsFormUI() {
     const totalQEl = document.getElementById('cfg-total-questions');
     const betDelayEl = document.getElementById('cfg-bet-delay-seconds');
     const showFramesEl = document.getElementById('cfg-show-screen-frames');
+    const maxPlayersEl = document.getElementById('cfg-max-players');
 
     if (timeSecEl) timeSecEl.value = gameSettings.timerSeconds;
     if (initStacksEl) initStacksEl.value = gameSettings.initialStacks;
@@ -2695,6 +2989,7 @@ function populateSettingsFormUI() {
     if (totalQEl) totalQEl.value = gameSettings.totalQuestions;
     if (betDelayEl) betDelayEl.value = (gameSettings.betDelaySeconds !== undefined) ? gameSettings.betDelaySeconds : 0.125;
     if (showFramesEl) showFramesEl.value = (gameSettings.showScreenFrames !== false) ? "true" : "false";
+    if (maxPlayersEl) maxPlayersEl.value = gameSettings.maxConnectedPlayers || 1;
 
     renderSettingsQuestionTimersGrid();
     updateSettingsPreview();
@@ -2708,6 +3003,7 @@ function updateSettingsPreview() {
     const totalQ = parseInt(document.getElementById('cfg-total-questions')?.value) || 8;
     const rawDelay = parseFloat(document.getElementById('cfg-bet-delay-seconds')?.value);
     const betDelay = isNaN(rawDelay) ? 0.125 : rawDelay;
+    const maxPlayers = parseInt(document.getElementById('cfg-max-players')?.value) || gameSettings.maxConnectedPlayers || 1;
 
     const totalInitMoney = initStacks * stackVal;
 
@@ -2716,6 +3012,7 @@ function updateSettingsPreview() {
     const prevQ = document.getElementById('preview-cfg-questions');
     const prevDelay = document.getElementById('preview-cfg-delay');
     const prevFrames = document.getElementById('preview-cfg-frames');
+    const prevPlayers = document.getElementById('preview-cfg-players');
 
     const showFramesVal = (document.getElementById('cfg-show-screen-frames')?.value !== "false");
 
@@ -2740,6 +3037,7 @@ function updateSettingsPreview() {
     if (prevQ) prevQ.innerText = `${totalQ} câu`;
     if (prevDelay) prevDelay.innerText = `${betDelay}s (${Math.round(betDelay * 1000)}ms)`;
     if (prevFrames) prevFrames.innerText = showFramesVal ? "Hiển thị" : "Ẩn";
+    if (prevPlayers) prevPlayers.innerText = `${maxPlayers} máy`;
 }
 
 function saveGameSettings() {
@@ -2750,6 +3048,7 @@ function saveGameSettings() {
     const totalQ = Math.max(1, parseInt(document.getElementById('cfg-total-questions')?.value) || 8);
     const rawDelay = parseFloat(document.getElementById('cfg-bet-delay-seconds')?.value);
     const betDelay = Math.max(0, isNaN(rawDelay) ? 0.125 : rawDelay);
+    const maxPlayers = Math.max(1, parseInt(document.getElementById('cfg-max-players')?.value) || 1);
 
     const qTimers = [];
     for (let i = 0; i < totalQ; i++) {
@@ -2767,10 +3066,13 @@ function saveGameSettings() {
         totalQuestions: totalQ,
         betDelaySeconds: betDelay,
         showScreenFrames: showFramesVal,
+        maxConnectedPlayers: maxPlayers,
         questionTimers: qTimers
     };
 
     localStorage.setItem('game_settings', JSON.stringify(gameSettings));
+    saveServerGameState({ gameSettings });
+    updateConnectedPlayersUI();
 
     // Update internal state
     totalQuestionsCount = totalQ;

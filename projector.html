@@ -936,6 +936,12 @@
                         }
                         stopAllSfxOnProjector();
 
+                        const tVal = (data.time !== undefined && data.time !== null) ? parseInt(data.time) : 60;
+                        let m = Math.floor(tVal / 60);
+                        let s = tVal % 60;
+                        const clockEl = document.getElementById("clock-time");
+                        if (clockEl) clockEl.innerText = m + ":" + s.toString().padStart(2, "0");
+
                         let sfxFile = data.sfxFile;
                         if (!sfxFile) {
                             if (data.status === "add30") {
@@ -955,6 +961,18 @@
                         timerAudio.currentTime = 0;
                         timerAudio.play().catch(e => console.log("Audio play blocked/failed:", e));
                         document.getElementById("clock-container").classList.add("show");
+                    } else if (data.status === "reset") {
+                        if (clockHideTimeout) {
+                            clearTimeout(clockHideTimeout);
+                            clockHideTimeout = null;
+                        }
+                        const tVal = (data.time !== undefined && data.time !== null) ? parseInt(data.time) : 60;
+                        let m = Math.floor(tVal / 60);
+                        let s = tVal % 60;
+                        const clockEl = document.getElementById("clock-time");
+                        if (clockEl) clockEl.innerText = m + ":" + s.toString().padStart(2, "0");
+                        timerAudio.pause();
+                        timerAudio.currentTime = 0;
                     } else if (data.status === "stop") {
                         timerAudio.pause();
                         timerAudio.currentTime = 0;

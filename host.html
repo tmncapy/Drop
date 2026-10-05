@@ -979,6 +979,14 @@
             if (action === 'timer_tick') {
                 document.getElementById('host-timer').innerText = data.time;
             }
+            if (action === 'timer_control') {
+                if (data.status === 'start' || data.status === 'add30' || data.status === 'reset') {
+                    const hostTimer = document.getElementById('host-timer');
+                    if (hostTimer && data.time !== undefined) {
+                        hostTimer.innerText = data.time;
+                    }
+                }
+            }
             if (action === 'sync_bets_to_mc') {
                 currentBets.b1 = data.b1 || 0; currentBets.b2 = data.b2 || 0;
                 currentBets.b3 = data.b3 || 0; currentBets.b4 = data.b4 || 0;
