@@ -206,7 +206,7 @@
         /* Buttons - Minimal Color Palette */
         button {
             width: 100%;
-            padding: 4px 6px;
+            padding: 5px 8px;
             background: #222630;
             color: #e2e8f0;
             border: 1px solid #323848;
@@ -214,8 +214,8 @@
             font-weight: bold;
             font-family: 'Myriad Pro', Arial, sans-serif;
             cursor: pointer;
-            font-size: 11px;
-            line-height: 1.2;
+            font-size: 11.5px;
+            line-height: 1.25;
             transition: all 0.12s ease;
             display: inline-flex;
             align-items: center;
@@ -224,6 +224,105 @@
         }
         button:hover { background: #2c3240; border-color: #434c62; color: #ffffff; }
         button:active { transform: translateY(1px); }
+
+        /* Specific sizing for Panel 1 (Nạp Dữ Liệu & Nội Dung) and Panel 2 (Thời Gian & Hố Sập) */
+        .dashboard-container .panel:nth-child(1) button,
+        .dashboard-container .panel:nth-child(2) button {
+            padding: 6px 9px;
+            font-size: 12px;
+            min-height: 31px;
+            letter-spacing: 0.2px;
+        }
+
+        .dashboard-container .panel:nth-child(1) .inline-group,
+        .dashboard-container .panel:nth-child(2) .inline-group {
+            display: flex;
+            gap: 5px;
+            margin-top: 3px;
+        }
+
+        .dashboard-container .panel:nth-child(1) .inline-group button,
+        .dashboard-container .panel:nth-child(2) .inline-group button {
+            min-height: 34px;
+            font-size: 12.5px;
+            padding: 6px 10px;
+        }
+
+        /* Top timer countdown buttons in column 2 */
+        #btn-start-timer,
+        .dashboard-container .panel:nth-child(2) .inline-group .btn-orange,
+        .dashboard-container .panel:nth-child(2) .inline-group .btn-red {
+            min-height: 38px !important;
+            font-size: 13.5px !important;
+            font-weight: bold;
+            padding: 6px 12px !important;
+        }
+
+        /* Reveal answer main button */
+        .dashboard-container .panel:nth-child(1) button[onclick*="drop_question_bed"] {
+            min-height: 36px !important;
+            font-size: 13px !important;
+            letter-spacing: 0.3px;
+        }
+
+        /* Individual door reveal rows */
+        .ans-row {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-top: 3px;
+        }
+        .ans-row input {
+            flex: 1;
+            padding: 5px 8px;
+            font-size: 12px;
+            height: 32px;
+        }
+        .ans-row button {
+            width: 90px;
+            min-height: 32px;
+            font-size: 12px;
+            flex-shrink: 0;
+            padding: 5px 8px;
+        }
+
+        /* Trapdoor grid buttons in column 2 */
+        .dashboard-container .panel:nth-child(2) [id^="btn-trap-door-"] {
+            min-height: 32px !important;
+            padding: 6px 6px !important;
+            font-size: 11.5px !important;
+        }
+
+        /* Bet +/- adjust buttons */
+        .btn-bet-adjust {
+            width: 25px !important;
+            height: 23px !important;
+            font-size: 15px !important;
+            font-weight: bold;
+            border-radius: 4px;
+            line-height: 1;
+        }
+        .bet-display {
+            font-size: 13px;
+            font-weight: bold;
+            color: #38bdf8;
+            font-family: 'Myriad Pro', Arial, sans-serif;
+            margin-top: 2px;
+        }
+
+        /* Money buttons in panel 2 */
+        .dashboard-container .panel:nth-child(2) div[style*="grid-template-columns: 1fr 1fr"] button {
+            min-height: 33px;
+            font-size: 12px;
+            padding: 6px 8px;
+        }
+
+        /* Bottom round management buttons */
+        .dashboard-container .panel:nth-child(2) .form-group:last-child button {
+            min-height: 36px;
+            font-size: 12.5px;
+            padding: 8px 12px;
+        }
 
         /* Primary Action (Blue) */
         .btn-blue {
@@ -837,14 +936,14 @@
                 <div style="background: #111317; border: 1px solid #222632; padding: 4px 6px; border-radius: 4px; margin-bottom: 6px;">
                     <label style="color: #c084fc; font-size: 10px; margin-bottom: 2px;">THÔNG TIN MEDIA (HÌNH ÁNH / VIDEO)</label>
                     <div style="display: flex; gap: 4px; margin-bottom: 2px;">
-                        <select id="main-media-type" style="width: 95px;" onchange="syncMainMediaToStore()">
+                        <select id="main-media-type" style="width: 95px; height: 30px;" onchange="syncMainMediaToStore()">
                             <option value="none">Không có</option>
                             <option value="image">Hình ảnh</option>
                             <option value="video">Video</option>
                         </select>
-                        <input type="text" id="main-media-url" placeholder="URL hoặc chọn file..." style="flex: 1;" onchange="handleManualMediaUrlInput(this)" oninput="handleManualMediaUrlInput(this)">
+                        <input type="text" id="main-media-url" placeholder="URL hoặc chọn file..." style="flex: 1; height: 30px; font-size: 12px;" onchange="handleManualMediaUrlInput(this)" oninput="handleManualMediaUrlInput(this)">
                         <input type="file" id="main-media-file-input" accept="image/*,video/*" style="display: none;" onchange="handleMainMediaFileUpload(event)">
-                        <button class="btn-purple" style="width: auto; padding: 2px 8px; font-size: 10px;" onclick="document.getElementById('main-media-file-input').click()">Chọn File</button>
+                        <button class="btn-purple" style="width: auto; padding: 4px 10px; font-size: 11px; height: 30px;" onclick="document.getElementById('main-media-file-input').click()">Chọn File</button>
                     </div>
                 </div>
 
@@ -885,7 +984,7 @@
             <div class="panel-title">2. THỜI GIAN & HỐ SẬP</div>
             
             <div class="form-group">
-                <label id="time-display" style="font-size: 11px; text-align: center; color: #38bdf8;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
+                <label id="time-display" style="font-size: 11.5px; text-align: center; color: #38bdf8;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
                 <div class="inline-group">
                     <button id="btn-start-timer" onclick="startTimer()">Bắt Đầu (60s)</button>
                     <button class="btn-orange" onclick="add30Seconds()">+30 Giây</button>
@@ -941,12 +1040,12 @@
 
             <div class="form-group">
                 <label style="color: #38bdf8;">TĂNG GIẢM CỌC TIỀN NGUỜI CHƠI</label>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #181b22; padding: 3px 6px; border-radius: 3px; margin-bottom: 4px; border: 1px solid #222632;">
-                    <span style="font-size: 10px; color: #94a3b8;">Tổng tiền còn lại:</span>
-                    <span id="mc-total-money" style="font-size: 11px; color: #38bdf8;">1.000.000 $A (40 cọc)</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #181b22; padding: 4px 6px; border-radius: 3px; margin-bottom: 4px; border: 1px solid #222632;">
+                    <span style="font-size: 10.5px; color: #94a3b8;">Tổng tiền còn lại:</span>
+                    <span id="mc-total-money" style="font-size: 11.5px; color: #38bdf8;">1.000.000 $A (40 cọc)</span>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-bottom: 4px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 4px;">
                     <button class="btn-blue" onclick="addPlayerStacksMC(1)">Thêm 1 Cọc (+25k)</button>
                     <button class="btn-blue" onclick="addPlayerStacksMC(4)">Thêm 4 Cọc (+100k)</button>
                     <button class="btn-orange" onclick="removePlayerStacksMC(1)">Bớt 1 Cọc (-25k)</button>
@@ -954,55 +1053,55 @@
                 </div>
 
                 <div style="display: flex; gap: 4px; align-items: center;">
-                    <input type="number" id="custom-stacks-input" placeholder="Số cọc" value="40" min="0" max="100" style="width: 60px; text-align: center; padding: 2px;">
-                    <button class="btn-purple" style="flex: 1;" onclick="setCustomStacksMC()">Đổi Số Cọc</button>
-                    <button class="btn-red" style="width: auto; padding: 2px 6px;" onclick="setPlayerStacksMC(40)" title="Khôi phục 40 cọc (1 triệu)">40 Cọc</button>
+                    <input type="number" id="custom-stacks-input" placeholder="Số cọc" value="40" min="0" max="100" style="width: 65px; height: 32px; font-size: 12px; text-align: center; padding: 3px;">
+                    <button class="btn-purple" style="flex: 1; min-height: 32px; font-size: 12px;" onclick="setCustomStacksMC()">Đổi Số Cọc</button>
+                    <button class="btn-red" style="width: auto; min-height: 32px; padding: 4px 10px; font-size: 12px;" onclick="setPlayerStacksMC(40)" title="Khôi phục 40 cọc (1 triệu)">40 Cọc</button>
                 </div>
             </div>
 
             <div class="form-group">
                 <label style="color: #f87171;">KÍCH HOẠT SẬP HỐ VẬT LÝ</label>
-                <button class="btn-orange" style="margin-bottom: 4px;" onclick="playSfx('SFX/drop_intrigue.mp3')">Kích Hoạt (Nhạc Hồi Hộp)</button>
+                <button class="btn-orange" style="margin-bottom: 4px; min-height: 34px; font-size: 12.5px;" onclick="playSfx('SFX/drop_intrigue.mp3')">Kích Hoạt (Nhạc Hồi Hộp)</button>
                 
                 <div style="background: #181b22; border: 1px solid #222632; padding: 4px; border-radius: 4px; margin-bottom: 4px;">
                     <div style="font-size: 10px; color: #fbbf24; margin-bottom: 3px;">CHỌN CÁC CỬA SAI ĐỂ SẬP CÙNG LÚC:</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 4px;">
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
-                            <input type="checkbox" id="chk-door-1" class="door-chk" value="1" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 5px 7px; border-radius: 3px; font-size: 11.5px; border: 1px solid #222632; user-select: none;">
+                            <input type="checkbox" id="chk-door-1" class="door-chk" value="1" style="width: 15px; height: 15px; accent-color: #ef4444; cursor: pointer;">
                             <span id="chk-label-1">Cửa 1</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
-                            <input type="checkbox" id="chk-door-2" class="door-chk" value="2" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 5px 7px; border-radius: 3px; font-size: 11.5px; border: 1px solid #222632; user-select: none;">
+                            <input type="checkbox" id="chk-door-2" class="door-chk" value="2" style="width: 15px; height: 15px; accent-color: #ef4444; cursor: pointer;">
                             <span id="chk-label-2">Cửa 2</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
-                            <input type="checkbox" id="chk-door-3" class="door-chk" value="3" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 5px 7px; border-radius: 3px; font-size: 11.5px; border: 1px solid #222632; user-select: none;">
+                            <input type="checkbox" id="chk-door-3" class="door-chk" value="3" style="width: 15px; height: 15px; accent-color: #ef4444; cursor: pointer;">
                             <span id="chk-label-3">Cửa 3</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 4px 6px; border-radius: 3px; font-size: 11px; border: 1px solid #222632; user-select: none;">
-                            <input type="checkbox" id="chk-door-4" class="door-chk" value="4" style="width: 14px; height: 14px; accent-color: #ef4444; cursor: pointer;">
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #ffffff; background: #111317; padding: 5px 7px; border-radius: 3px; font-size: 11.5px; border: 1px solid #222632; user-select: none;">
+                            <input type="checkbox" id="chk-door-4" class="door-chk" value="4" style="width: 15px; height: 15px; accent-color: #ef4444; cursor: pointer;">
                             <span id="chk-label-4">Cửa 4</span>
                         </label>
                     </div>
 
-                    <div style="display: flex; gap: 3px;">
-                        <button class="btn-red" style="flex: 1; padding: 4px;" onclick="openSelectedDoors()">
+                    <div style="display: flex; gap: 4px;">
+                        <button class="btn-red" style="flex: 1; padding: 7px 8px; min-height: 34px; font-size: 12.5px; font-weight: bold;" onclick="openSelectedDoors()">
                             SẬP CÁC CỬA ĐÃ CHỌN
                         </button>
-                        <button class="btn-purple" style="width: auto; padding: 2px 6px; font-size: 10px;" onclick="selectAllDoors(true)" title="Chọn tất cả 4 cửa">Tất cả</button>
-                        <button style="width: auto; padding: 2px 6px; font-size: 10px; background: #222630; color: #fff; border: 1px solid #323848;" onclick="selectAllDoors(false)" title="Bỏ chọn">Bỏ chọn</button>
+                        <button class="btn-purple" style="width: auto; padding: 4px 10px; font-size: 11px; min-height: 34px;" onclick="selectAllDoors(true)" title="Chọn tất cả 4 cửa">Tất cả</button>
+                        <button style="width: auto; padding: 4px 10px; font-size: 11px; min-height: 34px; background: #222630; color: #fff; border: 1px solid #323848;" onclick="selectAllDoors(false)" title="Bỏ chọn">Bỏ chọn</button>
                     </div>
                 </div>
 
                 <div style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">Sập từng cửa riêng lẻ:</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-bottom: 4px;">
-                    <button class="btn-red" id="btn-trap-door-1" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
-                    <button class="btn-red" id="btn-trap-door-2" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
-                    <button class="btn-red" id="btn-trap-door-3" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
-                    <button class="btn-red" id="btn-trap-door-4" style="padding: 3px 4px; font-size: 10px;" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 4px;">
+                    <button class="btn-red" id="btn-trap-door-1" style="padding: 5px 6px; font-size: 11.5px; min-height: 32px;" onclick="openDoor(1)">SẬP HỐ LỖI 1</button>
+                    <button class="btn-red" id="btn-trap-door-2" style="padding: 5px 6px; font-size: 11.5px; min-height: 32px;" onclick="openDoor(2)">SẬP HỐ LỖI 2</button>
+                    <button class="btn-red" id="btn-trap-door-3" style="padding: 5px 6px; font-size: 11.5px; min-height: 32px;" onclick="openDoor(3)">SẬP HỐ LỖI 3</button>
+                    <button class="btn-red" id="btn-trap-door-4" style="padding: 5px 6px; font-size: 11.5px; min-height: 32px;" onclick="openDoor(4)">SẬP HỐ LỖI 4</button>
                 </div>
 
-                <button class="btn-red" style="font-size: 11px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">SẬP (Tiếng Sập Hố 2)</button>
+                <button class="btn-red" style="font-size: 12px; min-height: 32px; padding: 6px 8px;" onclick="playSfx('SFX/drop_trapdoor_2.mp3.mp3', false, false)">SẬP (Tiếng Sập Hố 2)</button>
             </div>
 
 
