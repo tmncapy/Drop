@@ -1,9 +1,13 @@
 import express from 'express';
 import path from 'path';
+import compression from 'compression';
 import { createServer as createViteServer } from 'vite';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+// Enable Gzip compression for high performance
+app.use(compression());
 
 // JSON and URLencoded parsers
 app.use(express.json({ limit: '50mb' }));
@@ -183,9 +187,9 @@ app.get('/api/player-presence/list', (_req, res) => {
   });
 });
 
-// Serve static assets directory
-app.use('/SFX', express.static(path.join(process.cwd(), 'SFX')));
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+// Serve static assets directory with caching
+app.use('/SFX', express.static(path.join(process.cwd(), 'SFX'), { maxAge: '1d' }));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'), { maxAge: '1d' }));
 
 // ==========================================
 // VITE MIDDLEWARE / PRODUCTION STATIC SERVER

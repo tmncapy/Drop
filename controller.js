@@ -688,6 +688,7 @@ function getActiveConnectedPlayerCount() {
 }
 
 function updateConnectedPlayersUI() {
+    if (document.hidden) return;
     const count = getActiveConnectedPlayerCount();
     const max = gameSettings.maxConnectedPlayers || 1;
 

@@ -837,6 +837,7 @@ window.addEventListener('DOMContentLoaded', () => {
     checkInitialAuth();
 
     function sendPlayerPresencePing() {
+        if (document.hidden) return;
         channel.postMessage({
             action: 'player_heartbeat',
             senderId: playerTabId,

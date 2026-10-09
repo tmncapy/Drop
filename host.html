@@ -617,7 +617,7 @@
                     <span style="font-size: 10px; background: rgba(46, 160, 67, 0.2); color: #3fb950; padding: 1px 6px; border-radius: 10px; border: 1px solid rgba(63, 185, 80, 0.4);">● Trực tiếp</span>
                 </div>
                 <div class="tech-box-actions">
-                    <button class="tech-header-btn" id="btn-toggle-sound" onclick="toggleHostChatSound()" title="Bật/Tắt chuông báo tin nhắn">🔔 Chuông</button>
+                    <!-- Nút chuông đã được bỏ theo yêu cầu -->
                     <button class="tech-header-btn" onclick="clearHostChatHistory()" title="Xóa lịch sử chat">🗑️ Xóa</button>
                 </div>
             </div>
@@ -735,48 +735,6 @@
         }
 
         // --- HOST CHAT & SCRIPT EXCHANGE SYSTEM ---
-        let hostChatSoundEnabled = localStorage.getItem('host_chat_sound') !== 'false';
-
-        function toggleHostChatSound() {
-            hostChatSoundEnabled = !hostChatSoundEnabled;
-            localStorage.setItem('host_chat_sound', hostChatSoundEnabled ? 'true' : 'false');
-            updateHostChatSoundButton();
-        }
-
-        function updateHostChatSoundButton() {
-            const btn = document.getElementById('btn-toggle-sound');
-            if (btn) {
-                if (hostChatSoundEnabled) {
-                    btn.innerHTML = '🔔 Chuông';
-                    btn.style.color = '#58a6ff';
-                    btn.style.borderColor = '#1f6feb';
-                } else {
-                    btn.innerHTML = '🔕 Tắt';
-                    btn.style.color = '#8b949e';
-                    btn.style.borderColor = '#30363d';
-                }
-            }
-        }
-
-        function playHostChatChime() {
-            if (!hostChatSoundEnabled) return;
-            try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                const ctx = new AudioCtx();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(659.25, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.28);
-            } catch(e) {}
-        }
 
         function getHostChatHistory() {
             try {
@@ -890,7 +848,6 @@
             const pinModal = document.getElementById('pin-lock-modal-overlay');
             if (pinModal && pinModal.parentNode) pinModal.parentNode.removeChild(pinModal);
             checkHostAuthentication();
-            updateHostChatSoundButton();
             renderHostChatHistory();
         });
 
@@ -918,7 +875,6 @@
                         });
                         saveHostChatHistory(history);
                     }
-                    playHostChatChime();
                     renderHostChatHistory();
 
                     const box = document.getElementById('host-tech-box');
