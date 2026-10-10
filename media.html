@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUẢN LÝ MEDIA & VIDEO CÂU HỎI - ĐỪNG ĐỂ TIỀN RƠI</title>
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --card-bg: #131c2e;
+            --border: #23334d;
+            --primary: #f59e0b;
+            --primary-hover: #d97706;
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            padding: 24px 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: #cbd5e1; }
+        .btn-outline:hover { background: #1e293b; color: #fff; }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: #f87171; }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
+        .btn-purple { background: var(--purple); color: #fff; }
+        .btn-purple:hover { background: #7c3aed; }
+
+        /* Configuration Panel for Custom PHP Domain */
+        .config-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .config-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 280px;
+        }
+        .config-input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: #0b111e;
+            border: 1px solid var(--border);
+            color: #fff;
+            font-size: 13px;
+        }
+
+        /* Upload Area */
+        .upload-zone {
+            background: #111a2c;
+            border: 2px dashed #334767;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-bottom: 28px;
+            position: relative;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: #162238;
+        }
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .upload-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .upload-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        .progress-bar-container {
+            width: 100%;
+            max-width: 400px;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 16px auto 0;
+            display: none;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f59e0b, #eab308);
+            transition: width 0.2s;
+        }
+
+        /* Tabs and Filter */
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+        }
+        .tab-btn {
+            background: #131c2e;
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            background: #1e2d4a;
+            color: #fff;
+            border-color: #3b82f6;
+        }
+
+        /* Gallery Grid */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 20px;
+        }
+        .media-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .media-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-color: #3b82f6;
+        }
+        .preview-box {
+            width: 100%;
+            height: 190px;
+            background: #070a10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .preview-box img, .preview-box video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .type-pill {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.75);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+        }
+        .type-pill.video { color: #f59e0b; border-color: #f59e0b; }
+        .type-pill.image { color: #38bdf8; border-color: #38bdf8; }
+
+        .card-body {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            justify-content: space-between;
+        }
+        .card-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #fff;
+            word-break: break-all;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .card-meta {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            border-top: 1px solid #1e2d4a;
+            padding-top: 12px;
+            flex-wrap: wrap;
+        }
+        .card-actions .btn {
+            flex: 1;
+            font-size: 12px;
+            padding: 6px 8px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #10b981;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 10000;
+        }
+        .empty-state {
+            grid-column: 1 / -1;
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>🎬 QUẢN LÝ MEDIA & VIDEO CÂU HỎI</h1>
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                    Tải lên hình ảnh / video MP4 để hiển thị phóng to và phát trên Màn hình Máy chiếu (Projector)
+                </p>
+            </div>
+            <div class="header-actions">
+                <a href="controller.html" class="btn btn-outline">⬅️ Bàn Điều Khiển</a>
+                <a href="projector.html" target="_blank" class="btn btn-purple">🖥️ Xem Máy Chiếu</a>
+                <a href="upload.php" target="_blank" class="btn btn-primary" title="Mở trang upload PHP trực tiếp">⚙️ File upload.php</a>
+            </div>
+        </header>
+
+        <!-- Configuration for Backend Server / Custom PHP Domain -->
+        <div class="config-box">
+            <div>
+                <strong style="font-size: 14px; color: #fff;">🌐 Cấu hình Nơi Tải Lên (Backend Endpoint):</strong>
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                    Mặc định lưu vào server hiện tại (<code>/api/upload-media</code>). Hoặc nhập domain PHP riêng của bạn có chứa file <code>upload.php</code>.
+                </p>
+            </div>
+            <div class="config-input-group">
+                <input type="text" id="custom-domain-input" placeholder="Ví dụ: https://my-domain.com/upload.php hoặc để trống" />
+                <button class="btn btn-outline" onclick="saveDomainConfig()">Lưu Cấu Hình</button>
+            </div>
+        </div>
+
+        <!-- Drag & Drop Upload Zone -->
+        <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-picker').click()">
+            <input type="file" id="file-picker" accept="image/*,video/mp4,video/webm" style="display:none;" onchange="handleFileSelected(event)">
+            <span class="upload-icon">📤</span>
+            <div class="upload-title">Kéo & Thả hoặc Bấm vào đây để Tải Ảnh / Video MP4</div>
+            <div class="upload-subtitle">Hỗ trợ ảnh JPG, PNG, WEBP, GIF và Video MP4, WEBM (Tối đa 200MB)</div>
+            <button type="button" class="btn btn-primary" style="pointer-events: none;">Chọn File từ Máy Tính</button>
+            <div class="progress-bar-container" id="upload-progress-box">
+                <div class="progress-bar-fill" id="upload-progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="setFilter('all', this)">Tất cả (<span id="count-all">0</span>)</button>
+                <button class="tab-btn" onclick="setFilter('image', this)">Hình ảnh (<span id="count-image">0</span>)</button>
+                <button class="tab-btn" onclick="setFilter('video', this)">Video MP4 (<span id="count-video">0</span>)</button>
+            </div>
+            <button class="btn btn-outline" onclick="loadMediaList()" style="font-size: 12px;">🔄 Tải lại danh sách</button>
+        </div>
+
+        <!-- Media Grid -->
+        <div class="media-grid" id="media-grid">
+            <div class="empty-state">Đang tải danh sách media...</div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast-msg">Đã sao chép link thành công!</div>
+
+    <script>
+        let currentFilter = 'all';
+        let mediaItems = [];
+
+        function getUploadEndpoint() {
+            const saved = localStorage.getItem('gameshow_media_php_url');
+            if (saved && saved.trim() !== '') {
+                return saved.trim();
+            }
+            return '/api/upload-media';
+        }
+
+        function getListEndpoint() {
+            const saved = localStorage.getItem('gameshow_media_php_url');
+            if (saved && saved.trim() !== '') {
+                return saved.trim() + (saved.includes('?') ? '&' : '?') + 'action=list';
+            }
+            return '/api/media-list';
+        }
+
+        function getDeleteEndpoint() {
+            const saved = localStorage.getItem('gameshow_media_php_url');
+            if (saved && saved.trim() !== '') {
+                return saved.trim() + (saved.includes('?') ? '&' : '?') + 'action=delete';
+            }
+            return '/api/delete-media';
+        }
+
+        function saveDomainConfig() {
+            const val = document.getElementById('custom-domain-input').value.trim();
+            if (val) {
+                localStorage.setItem('gameshow_media_php_url', val);
+                showToast("Đã lưu URL domain PHP tùy chỉnh!");
+            } else {
+                localStorage.removeItem('gameshow_media_php_url');
+                showToast("Đã chuyển về Backend Server cục bộ!");
+            }
+            loadMediaList();
+        }
+
+        // Initialize domain input
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('gameshow_media_php_url');
+            if (saved) {
+                document.getElementById('custom-domain-input').value = saved;
+            }
+            loadMediaList();
+            setupDragAndDrop();
+        });
+
+        function setupDragAndDrop() {
+            const zone = document.getElementById('drop-zone');
+            ['dragenter', 'dragover'].forEach(eventName => {
+                zone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    zone.classList.add('dragover');
+                }, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                zone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    zone.classList.remove('dragover');
+                }, false);
+            });
+            zone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    uploadFile(files[0]);
+                }
+            }, false);
+        }
+
+        function handleFileSelected(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFile(file);
+            }
+        }
+
+        function uploadFile(file) {
+            const endpoint = getUploadEndpoint();
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const progressBox = document.getElementById('upload-progress-box');
+            const progressFill = document.getElementById('upload-progress-fill');
+            progressBox.style.display = 'block';
+            progressFill.style.width = '10%';
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', endpoint, true);
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 90);
+                    progressFill.style.width = percent + '%';
+                }
+            };
+
+            xhr.onload = () => {
+                progressFill.style.width = '100%';
+                setTimeout(() => {
+                    progressBox.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 600);
+
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        if (res.status === 'success') {
+                            showToast(`Tải lên thành công: ${file.name}`);
+                            loadMediaList();
+                        } else {
+                            alert("Lỗi tải lên: " + (res.message || "Không xác định"));
+                        }
+                    } catch (err) {
+                        alert("Lỗi phân tích phản hồi server.");
+                    }
+                } else {
+                    alert("Không thể tải file lên server. Mã lỗi: " + xhr.status);
+                }
+            };
+
+            xhr.onerror = () => {
+                progressBox.style.display = 'none';
+                alert("Lỗi kết nối khi tải file lên máy chủ!");
+            };
+
+            xhr.send(formData);
+        }
+
+        async function loadMediaList() {
+            const listUrl = getListEndpoint();
+            const grid = document.getElementById('media-grid');
+            try {
+                const res = await fetch(listUrl);
+                const data = await res.json();
+                if (data.status === 'success' && Array.isArray(data.files)) {
+                    mediaItems = data.files;
+                    renderMediaGrid();
+                } else {
+                    grid.innerHTML = '<div class="empty-state">Không tải được danh sách media.</div>';
+                }
+            } catch (err) {
+                console.warn("Failed to load media list:", err);
+                grid.innerHTML = '<div class="empty-state">Chưa kết nối được danh sách media hoặc thư mục uploads trống.</div>';
+            }
+        }
+
+        function setFilter(type, btn) {
+            currentFilter = type;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderMediaGrid();
+        }
+
+        function renderMediaGrid() {
+            const grid = document.getElementById('media-grid');
+            let filtered = mediaItems;
+            if (currentFilter !== 'all') {
+                filtered = mediaItems.filter(item => item.type === currentFilter);
+            }
+
+            document.getElementById('count-all').innerText = mediaItems.length;
+            document.getElementById('count-image').innerText = mediaItems.filter(i => i.type === 'image').length;
+            document.getElementById('count-video').innerText = mediaItems.filter(i => i.type === 'video').length;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="empty-state">Chưa có ảnh/video nào trong mục này. Kéo thả file lên trên để tải lên!</div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => {
+                const isVideo = item.type === 'video';
+                const sizeMb = (item.size / (1024 * 1024)).toFixed(2);
+                const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : '';
+                const fullUrl = item.url.startsWith('http') ? item.url : (window.location.origin + item.url);
+
+                return `
+                    <div class="media-card">
+                        <div class="preview-box">
+                            <span class="type-pill ${isVideo ? 'video' : 'image'}">
+                                ${isVideo ? '🎬 VIDEO MP4' : '🖼️ HÌNH ẢNH'}
+                            </span>
+                            ${isVideo ? 
+                                `<video src="${item.url}" controls preload="metadata"></video>` : 
+                                `<img src="${item.url}" alt="${item.filename}" loading="lazy">`
+                            }
+                        </div>
+                        <div class="card-body">
+                            <div>
+                                <div class="card-title" title="${item.filename}">${item.filename}</div>
+                                <div class="card-meta">Dung lượng: <strong>${sizeMb} MB</strong> ${dateStr ? `• ${dateStr}` : ''}</div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-outline" onclick="copyLink('${fullUrl}')" title="Sao chép đường dẫn">
+                                    📋 Copy Link
+                                </button>
+                                <button class="btn btn-purple" onclick="applyToCurrentQuestion('${item.url}', '${item.type}')" title="Gán vào câu hỏi MC hiện tại">
+                                    🎯 Gán Vào MC
+                                </button>
+                                <button class="btn btn-danger" onclick="deleteMediaFile('${item.filename}')" title="Xóa file khỏi máy chủ">
+                                    🗑️ Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function deleteMediaFile(filename) {
+            if (!confirm(`Bạn có chắc chắn muốn XÓA vĩnh viễn file "${filename}" không? Hành động này không thể hoàn tác!`)) {
+                return;
+            }
+            const delUrl = getDeleteEndpoint();
+            try {
+                let res;
+                if (delUrl.includes('upload.php')) {
+                    const fd = new FormData();
+                    fd.append('action', 'delete');
+                    fd.append('filename', filename);
+                    res = await fetch(delUrl, { method: 'POST', body: fd });
+                } else {
+                    res = await fetch(delUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ filename: filename })
+                    });
+                }
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast(`Đã xóa file ${filename} thành công!`);
+                    loadMediaList();
+                } else {
+                    alert("Lỗi khi xóa file: " + (data.message || 'Không xác định'));
+                }
+            } catch (err) {
+                alert("Không thể kết nối máy chủ để xóa file.");
+            }
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast("Đã sao chép đường link vào bộ nhớ tạm!");
+            }).catch(() => {
+                prompt("Sao chép đường dẫn dưới đây:", url);
+            });
+        }
+
+        function applyToCurrentQuestion(url, type) {
+            // Save to localStorage so controller can pick it up
+            localStorage.setItem('gameshow_selected_media', JSON.stringify({ url: url, type: type, time: Date.now() }));
+            
+            // Broadcast via BroadcastChannel
+            try {
+                const bc = new BroadcastChannel('gameshow_money_drop');
+                bc.postMessage({
+                    action: 'assign_question_media',
+                    data: { url: url, type: type }
+                });
+            } catch (e){}
+
+            showToast(`Đã gán thành công vào Câu hỏi MC! (${type === 'video' ? 'Video MP4' : 'Hình ảnh'})`);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast-msg');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 2500);
+        }
+    </script>
+</body>
+</html>

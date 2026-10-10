@@ -89,13 +89,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             padding: 0;
             box-sizing: border-box;
-            border: none;
-            background: transparent;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            background: rgba(10, 15, 26, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.9);
             opacity: 0;
             transform: translate(-50%, -50%) scale(0);
             pointer-events: none;
@@ -110,26 +110,26 @@
         #media-container.mode-center {
             top: 505px;
             left: 50%;
-            width: 260px;
-            height: 260px;
+            width: 760px;
+            height: 440px;
             transform: translate(-50%, -50%) scale(1);
         }
 
         /* Phase 2: Shifted to Left */
         #media-container.mode-left {
-            top: 505px;
-            left: calc(50% - 320px);
-            width: 210px;
-            height: 210px;
+            top: 485px;
+            left: calc(50% - 360px);
+            width: 360px;
+            height: 260px;
             transform: translate(-50%, -50%) scale(1);
         }
 
         /* Phase 3: Shifted to Left Compact */
         #media-container.mode-left-compact {
-            top: 505px;
-            left: calc(50% - 340px);
-            width: 180px;
-            height: 180px;
+            top: 460px;
+            left: calc(50% - 380px);
+            width: 320px;
+            height: 220px;
             transform: translate(-50%, -50%) scale(1);
         }
 
@@ -137,9 +137,23 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            border-radius: 6px;
+            border-radius: 10px;
             max-width: 100%;
             max-height: 100%;
+            display: block;
+        }
+
+        #media-error-badge {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #ef4444;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 20px;
+            text-align: center;
         }
 
         #answers-container { position: absolute; top: var(--ans-container-top); left: 50%; transform: translateX(-50%) scale(0); width: 100%; display: flex; justify-content: center; gap: 20px; z-index: 5; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
@@ -376,7 +390,11 @@
         <!-- Media Container for Image & Video Questions -->
         <div id="media-container" class="mode-center">
             <img id="media-img" src="" style="display:none;" alt="Media Question">
-            <video id="media-video" style="display:none;" playsinline></video>
+            <video id="media-video" style="display:none;" playsinline preload="auto"></video>
+            <div id="media-error-badge">
+                <span style="font-size: 32px;">⚠️</span>
+                <span id="media-error-text">Không thể tải media câu hỏi</span>
+            </div>
         </div>
 
         <div id="answers-container">
@@ -407,6 +425,25 @@
         const timerAudio = new Audio("SFX/drop_timer.mp3");
         timerAudio.loop = false;
         timerAudio.volume = globalVolume;
+
+        const audioCache = {};
+        function getAudio(filePath) {
+            if (!audioCache[filePath]) {
+                const audio = new Audio(filePath);
+                audio.preload = 'auto';
+                audio.load();
+                audioCache[filePath] = audio;
+            }
+            const audio = audioCache[filePath];
+            audio.pause();
+            audio.currentTime = 0;
+            return audio;
+        }
+
+        // Preload common SFX files on startup for instant playback
+        ['SFX/drop_variant.wav', 'SFX/drop_variant_2_3_4.mp3', 'SFX/drop_trapdoor_1.mp3', 'SFX/drop_Reveal the Question_2.mp3', 'SFX/drop_category.mp3', 'SFX/drop_moneyback.mp3', 'SFX/drop_moneyback2.wav', 'SFX/drop_trapdoor_2.mp3.mp3'].forEach(file => {
+            getAudio(file);
+        });
 
         let activeSfxAudio = null;
         let clickCount = 0; 
@@ -445,7 +482,7 @@
                 activeSfxAudio.pause();
                 activeSfxAudio.currentTime = 0;
             }
-            const audio = new Audio(filePath);
+            const audio = getAudio(filePath);
             audio.volume = globalVolume;
             audio.loop = loop;
             if (stopPrevious) {
@@ -516,13 +553,22 @@
             if (!container || !img || !video) return;
 
             // If URL was trimmed over network to '[Local File Base64]' or starts with idb://, resolve real content from IndexedDB / Cache
-            let targetUrl = currentMediaState ? currentMediaState.url : '';
+            let targetUrl = currentMediaState ? (currentMediaState.url || '').trim() : '';
             if ((!targetUrl || targetUrl === '[Local File Base64]' || targetUrl.startsWith('idb://')) && window.GameMediaCache) {
                 const searchKey = (currentMediaState && currentMediaState.mediaKey) ? currentMediaState.mediaKey : 'active_main_media';
                 const cachedUrl = await window.GameMediaCache.get(searchKey);
                 if (cachedUrl) {
                     targetUrl = cachedUrl;
                     currentMediaState.url = cachedUrl;
+                }
+            }
+
+            // Normalize URL for relative filenames
+            if (targetUrl && !targetUrl.startsWith('http://') && !targetUrl.startsWith('https://') && !targetUrl.startsWith('data:') && !targetUrl.startsWith('blob:') && !targetUrl.startsWith('/')) {
+                if (targetUrl.startsWith('uploads/')) {
+                    targetUrl = '/' + targetUrl;
+                } else {
+                    targetUrl = '/uploads/' + targetUrl;
                 }
             }
 
@@ -536,23 +582,50 @@
             }
 
             currentMediaStage = stage;
+            const errorBadge = document.getElementById('media-error-badge');
+            if (errorBadge) errorBadge.style.display = 'none';
 
             if (currentMediaState.type === 'image') {
+                video.style.display = 'none';
+                if (!video.paused) video.pause();
+
+                // Robust image loading & broken-image protection
+                img.onerror = function() {
+                    console.warn("Projector image load failed for:", targetUrl);
+                    if (!img.src.includes('/uploads/') && !targetUrl.startsWith('http') && !targetUrl.startsWith('data:')) {
+                        const cleanName = targetUrl.split('/').pop();
+                        img.src = '/uploads/' + cleanName;
+                        return;
+                    }
+                    img.style.display = 'none';
+                    if (errorBadge) {
+                        errorBadge.style.display = 'flex';
+                        const errTxt = document.getElementById('media-error-text');
+                        if (errTxt) errTxt.innerText = 'Không thể tải ảnh: ' + (targetUrl.split('/').pop() || targetUrl);
+                    }
+                };
+
+                img.onload = function() {
+                    img.style.display = 'block';
+                    if (errorBadge) errorBadge.style.display = 'none';
+                };
+
                 if (img.getAttribute('data-loaded-src') !== targetUrl) {
                     img.setAttribute('data-loaded-src', targetUrl);
                     img.src = targetUrl;
+                } else {
+                    img.style.display = 'block';
                 }
-                img.style.display = 'block';
-                video.style.display = 'none';
-                if (!video.paused) video.pause();
             } else if (currentMediaState.type === 'video') {
-                video.style.display = 'block';
                 img.style.display = 'none';
+                video.style.display = 'block';
+                if (errorBadge) errorBadge.style.display = 'none';
                 
                 video.loop = true;
                 video.playsInline = true;
                 video.volume = globalVolume;
 
+                // set video src bằng link mp4 / hình ảnh
                 if (video.getAttribute('data-loaded-src') !== targetUrl) {
                     video.setAttribute('data-loaded-src', targetUrl);
                     video.src = targetUrl;
@@ -563,24 +636,29 @@
                     try { video.currentTime = 0; } catch(e){}
                 }
 
+                // video src.play()
                 const attemptPlay = () => {
-                    // Try playing with sound first, fallback to muted if autoplay policy blocks sound
                     video.muted = !isAudioUnlocked;
                     const playPromise = video.play();
                     if (playPromise !== undefined) {
                         playPromise.then(() => {
                             console.log("Projector video playing successfully.");
                         }).catch(err => {
-                            console.warn("Projector video play restricted, forcing muted autoplay:", err);
+                            console.warn("Projector video autoplay restricted, forcing muted playback:", err);
                             video.muted = true;
-                            video.play().catch(e => console.error("Projector muted video play error:", e));
+                            video.play().catch(e => {
+                                console.error("Projector video play error:", e);
+                                if (errorBadge) {
+                                    errorBadge.style.display = 'flex';
+                                    const errTxt = document.getElementById('media-error-text');
+                                    if (errTxt) errTxt.innerText = 'Không thể phát video MP4: ' + (targetUrl.split('/').pop() || targetUrl);
+                                }
+                            });
                         });
                     }
                 };
 
-                if (video.paused || stage === 'center') {
-                    attemptPlay();
-                }
+                attemptPlay();
             }
 
             container.classList.remove('mode-center', 'mode-left', 'mode-left-compact');

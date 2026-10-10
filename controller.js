@@ -2011,74 +2011,109 @@ async function compressVideoTo480p(videoFile, onProgress = () => {}) {
     });
 }
 
+function openMediaManagerWindow() {
+    window.open('media.html', 'MediaManager', 'width=1150,height=800,scrollbars=yes,resizable=yes');
+}
+
+// Listen for media assigned from media.html
+if (typeof BroadcastChannel !== 'undefined') {
+    const mediaChannel = new BroadcastChannel('gameshow_money_drop');
+    mediaChannel.addEventListener('message', (event) => {
+        const { action, data } = event.data || {};
+        if (action === 'assign_question_media' && data) {
+            const typeSelect = document.getElementById('main-media-type');
+            if (typeSelect) typeSelect.value = data.type || 'image';
+            setMediaUrlInput(data.url, data.url.split('/').pop());
+            syncMainMediaToStore();
+            console.log("Media assigned from media manager:", data);
+        }
+    });
+}
+
 function handleMainMediaFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const typeSelect = document.getElementById('main-media-type');
-    const fileName = file.name ? `📁 ${file.name}` : `📁 [File đính kèm]`;
+    const isVideo = file.type.startsWith('video/') || file.name.endsWith('.mp4') || file.name.endsWith('.webm');
+    const mediaType = isVideo ? 'video' : 'image';
+    if (typeSelect) typeSelect.value = mediaType;
 
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                const maxDim = 1280;
-                if (width > maxDim || height > maxDim) {
-                    if (width > height) {
-                        height = Math.round((height * maxDim) / width);
-                        width = maxDim;
-                    } else {
-                        width = Math.round((width * maxDim) / height);
-                        height = maxDim;
-                    }
-                }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                const compressedUrl = canvas.toDataURL('image/jpeg', 0.82);
+    const uploadUrl = localStorage.getItem('gameshow_media_php_url') || '/api/upload-media';
+    const formData = new FormData();
+    formData.append('file', file);
 
-                if (typeSelect) typeSelect.value = 'image';
-                setMediaUrlInput(compressedUrl, fileName);
-                if (window.GameMediaCache) {
-                    window.GameMediaCache.set('active_main_media', compressedUrl);
-                }
-                syncMainMediaToStore();
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    } else if (file.type.startsWith('video/')) {
-        showVideoCompressingModal(file.name);
-        compressVideoTo480p(file, (percent) => {
-            updateVideoCompressingProgress(percent);
-        }).then(compressedVideoDataUrl => {
-            hideVideoCompressingModal();
-            if (typeSelect) typeSelect.value = 'video';
-            setMediaUrlInput(compressedVideoDataUrl, `${fileName} (480p)`);
+    const statusEl = document.getElementById('main-media-url');
+    if (statusEl) statusEl.value = `⏳ Đang tải file ${file.name} lên server...`;
+
+    // Try direct server upload first
+    fetch(uploadUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success' && data.url) {
+            setMediaUrlInput(data.url, file.name);
             if (window.GameMediaCache) {
-                window.GameMediaCache.set('active_main_media', compressedVideoDataUrl);
+                window.GameMediaCache.set('active_main_media', data.url);
             }
             syncMainMediaToStore();
-        }).catch(err => {
-            console.error("Video compression failed, using original file:", err);
-            hideVideoCompressingModal();
+            console.log("Uploaded media successfully:", data.url);
+        } else {
+            throw new Error(data.message || "Upload server failed");
+        }
+    })
+    .catch(err => {
+        console.warn("Server upload failed, falling back to local processing:", err);
+        // Fallback to local file processing
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1280;
+                    if (width > maxDim || height > maxDim) {
+                        if (width > height) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        } else {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const compressedUrl = canvas.toDataURL('image/jpeg', 0.82);
+
+                    if (typeSelect) typeSelect.value = 'image';
+                    setMediaUrlInput(compressedUrl, file.name);
+                    if (window.GameMediaCache) {
+                        window.GameMediaCache.set('active_main_media', compressedUrl);
+                    }
+                    syncMainMediaToStore();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
             const reader = new FileReader();
             reader.onload = function(e) {
                 if (typeSelect) typeSelect.value = 'video';
-                setMediaUrlInput(e.target.result, fileName);
+                setMediaUrlInput(e.target.result, file.name);
                 if (window.GameMediaCache) {
                     window.GameMediaCache.set('active_main_media', e.target.result);
                 }
                 syncMainMediaToStore();
             };
             reader.readAsDataURL(file);
-        });
-    }
+        }
+    });
 }
 
 function sendMedia() {

@@ -941,9 +941,10 @@
                             <option value="image">Hình ảnh</option>
                             <option value="video">Video</option>
                         </select>
-                        <input type="text" id="main-media-url" placeholder="URL hoặc chọn file..." style="flex: 1; height: 30px; font-size: 12px;" onchange="handleManualMediaUrlInput(this)" oninput="handleManualMediaUrlInput(this)">
+                        <input type="text" id="main-media-url" placeholder="URL hình ảnh/video hoặc /uploads/..." style="flex: 1; height: 30px; font-size: 12px;" onchange="handleManualMediaUrlInput(this)" oninput="handleManualMediaUrlInput(this)">
                         <input type="file" id="main-media-file-input" accept="image/*,video/*" style="display: none;" onchange="handleMainMediaFileUpload(event)">
-                        <button class="btn-purple" style="width: auto; padding: 4px 10px; font-size: 11px; height: 30px;" onclick="document.getElementById('main-media-file-input').click()">Chọn File</button>
+                        <button class="btn-purple" style="width: auto; padding: 4px 8px; font-size: 11px; height: 30px;" onclick="document.getElementById('main-media-file-input').click()" title="Tải file trực tiếp lên server">⬆️ Tải File</button>
+                        <button class="btn-orange" style="width: auto; padding: 4px 8px; font-size: 11px; height: 30px;" onclick="openMediaManagerWindow()" title="Mở trang Quản lý Media (Upload, Xóa, PHP)">📁 Quản Lý Media</button>
                     </div>
                 </div>
 

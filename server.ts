@@ -1,10 +1,48 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import compression from 'compression';
+import multer from 'multer';
 import { createServer as createViteServer } from 'vite';
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+// Enable CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Configure upload directory and multer
+const uploadDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const cleanBase = path.basename(file.originalname, ext)
+      .replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1EA0-\u1EF9-]/g, '_')
+      .substring(0, 50);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e4);
+    cb(null, `${uniqueSuffix}-${cleanBase}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 200 * 1024 * 1024 } // 200MB limit for high quality media/video
+});
 
 // Enable Gzip compression for high performance
 app.use(compression());
@@ -185,6 +223,76 @@ app.get('/api/player-presence/list', (_req, res) => {
     maxAllowed: gameState.gameSettings.maxConnectedPlayers || 1,
     players: Array.from(activeConnectedPlayers.values())
   });
+});
+
+// ==========================================
+// MEDIA UPLOAD, LIST & DELETE API
+// ==========================================
+app.post('/api/upload-media', upload.single('file'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ status: 'error', message: 'Vui lòng chọn file để tải lên.' });
+  }
+  const ext = path.extname(req.file.filename).toLowerCase();
+  const isVideo = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext) || req.file.mimetype.startsWith('video/');
+  const mediaType = isVideo ? 'video' : 'image';
+  const fileUrl = `/uploads/${req.file.filename}`;
+
+  return res.json({
+    status: 'success',
+    url: fileUrl,
+    filename: req.file.filename,
+    originalName: req.file.originalname,
+    type: mediaType,
+    size: req.file.size
+  });
+});
+
+app.get('/api/media-list', (_req, res) => {
+  try {
+    if (!fs.existsSync(uploadDir)) {
+      return res.json({ status: 'success', files: [] });
+    }
+    const files = fs.readdirSync(uploadDir);
+    const mediaFiles = files
+      .filter(f => !f.startsWith('.') && fs.statSync(path.join(uploadDir, f)).isFile())
+      .map(filename => {
+        const filePath = path.join(uploadDir, filename);
+        const stats = fs.statSync(filePath);
+        const ext = path.extname(filename).toLowerCase();
+        const isVideo = ['.mp4', '.webm', '.ogg', '.mov'].includes(ext);
+        return {
+          filename,
+          url: `/uploads/${filename}`,
+          type: isVideo ? 'video' : 'image',
+          size: stats.size,
+          createdAt: stats.mtimeMs
+        };
+      })
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    return res.json({ status: 'success', files: mediaFiles });
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: 'Không thể đọc danh sách file.' });
+  }
+});
+
+app.post('/api/delete-media', (req, res) => {
+  try {
+    const { filename } = req.body || {};
+    if (!filename) {
+      return res.status(400).json({ status: 'error', message: 'Thiếu tên file cần xóa.' });
+    }
+    const safeName = path.basename(filename);
+    const targetPath = path.join(uploadDir, safeName);
+    if (fs.existsSync(targetPath)) {
+      fs.unlinkSync(targetPath);
+      return res.json({ status: 'success', message: `Đã xóa file ${safeName} thành công.` });
+    } else {
+      return res.status(404).json({ status: 'error', message: 'File không tồn tại trên hệ thống.' });
+    }
+  } catch (err) {
+    return res.status(500).json({ status: 'error', message: 'Lỗi khi xóa file: ' + (err as Error).message });
+  }
 });
 
 // Serve static assets directory with caching

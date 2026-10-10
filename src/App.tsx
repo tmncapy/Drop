@@ -8,7 +8,8 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Volume2, 
-  Table 
+  Table,
+  Film
 } from 'lucide-react';
 
 export default function App() {
@@ -61,6 +62,15 @@ export default function App() {
       color: "border-rose-500/20 hover:border-rose-500/50 bg-rose-950/10",
       btnText: "Mở Màn Hình Đáp Án",
       badge: "Drop Doors"
+    },
+    {
+      title: "6. Quản Lý Media & Video (Upload/Xóa PHP)",
+      filename: "media.html",
+      icon: <Film className="w-8 h-8 text-cyan-400" />,
+      desc: "Tải lên ảnh và video MP4 cho câu hỏi, hỗ trợ xóa file, sao chép link và tích hợp script upload.php cho domain PHP riêng.",
+      color: "border-cyan-500/20 hover:border-cyan-500/50 bg-cyan-950/10",
+      btnText: "Mở Quản Lý Media",
+      badge: "Media / PHP Upload"
     }
   ];
 
