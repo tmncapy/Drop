@@ -8,7 +8,9 @@
     <style>
         @font-face {
             font-family: 'LHF_Mono';
-            src: url('LHF_Mono.otf') format('opentype'), url('LHF Mono.otf') format('opentype');
+            src: url('LHF_Mono.otf') format('opentype'), url('/LHF_Mono.otf') format('opentype'), url('LHF Mono.otf') format('opentype'), url('/LHF Mono.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
         }
 
         @font-face {
@@ -985,7 +987,7 @@
             <div class="panel-title">2. THỜI GIAN & HỐ SẬP</div>
             
             <div class="form-group">
-                <label id="time-display" style="font-size: 11.5px; text-align: center; color: #38bdf8;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
+                <label id="time-display" style="font-size: 13px; text-align: center; color: #38bdf8; font-family: 'LHF_Mono', monospace, sans-serif; letter-spacing: 1px;">THỜI GIAN ĐẶT CƯỢC: --:--</label>
                 <div class="inline-group">
                     <button id="btn-start-timer" onclick="startTimer()">Bắt Đầu (60s)</button>
                     <button class="btn-orange" onclick="add30Seconds()">+30 Giây</button>

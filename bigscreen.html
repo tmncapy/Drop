@@ -36,6 +36,13 @@
         .ans-img { width: 100%; height: 100%; }
         .ans-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 24px; font-weight: bold; width: 100%; text-align: center; display: flex; justify-content: center; align-items: center; padding: 0 10px; box-sizing: border-box; }
 
+        @font-face {
+            font-family: 'LHF_Mono';
+            src: url('LHF_Mono.otf') format('opentype'), url('/LHF_Mono.otf') format('opentype'), url('LHF Mono.otf') format('opentype'), url('/LHF Mono.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         /* --- CLOCK STYLES --- */
         #clock-container {
             position: absolute; top: var(--clock-top); left: 50%; transform: translateX(-50%) scale(0.75);
@@ -43,7 +50,7 @@
         }
         #clock-container.show { transform: translateX(-50%) scale(0.75); opacity: 1; }
         #clock-bg { width: 100%; height: 100%; }
-        #clock-time { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 40px; font-weight: bold; }
+        #clock-time { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 42px; font-weight: normal; font-family: 'LHF_Mono', monospace, sans-serif; letter-spacing: 1px; }
     </style>
 </head>
 <body>
