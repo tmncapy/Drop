@@ -182,6 +182,27 @@ timerStopAudio.preload = "auto";
 
 timerAudio.loop=true;
 
+const clock1Img = new Image();
+clock1Img.src = "clock1.png";
+const clock2Img = new Image();
+clock2Img.src = "clock2.png";
+
+function updateClockGraphic(seconds) {
+    const clockBg = document.getElementById("clock-bg");
+    if (!clockBg) return;
+    const sec = parseInt(seconds);
+    if (isNaN(sec)) return;
+    if (sec <= 9) {
+        if (!clockBg.src.endsWith("clock2.png")) {
+            clockBg.src = "clock2.png";
+        }
+    } else {
+        if (!clockBg.src.endsWith("clock1.png")) {
+            clockBg.src = "clock1.png";
+        }
+    }
+}
+
 channel.onmessage=function(event){
 
     const {action,data}=event.data;
@@ -194,6 +215,7 @@ channel.onmessage=function(event){
 
         document.getElementById("clock-time").innerText=
         m+":"+s.toString().padStart(2,"0");
+        updateClockGraphic(data.time);
 
     }
 
@@ -204,6 +226,7 @@ channel.onmessage=function(event){
             let s=tVal%60;
             const clockEl = document.getElementById("clock-time");
             if (clockEl) clockEl.innerText = m+":"+s.toString().padStart(2,"0");
+            updateClockGraphic(tVal);
 
             let sfxFile = data.sfxFile;
             if (!sfxFile) {
@@ -225,6 +248,7 @@ channel.onmessage=function(event){
             let s=tVal%60;
             const clockEl = document.getElementById("clock-time");
             if (clockEl) clockEl.innerText = m+":"+s.toString().padStart(2,"0");
+            updateClockGraphic(tVal);
             timerAudio.pause();
             timerAudio.currentTime=0;
         }
