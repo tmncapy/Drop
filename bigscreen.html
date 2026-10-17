@@ -69,7 +69,7 @@
 
         <div id="clock-container">
             <img src="clock1.png" id="clock-bg">
-            <div id="clock-time">1:00</div>
+            <div id="clock-time">01:00</div>
         </div>
 
         <div class="strap-wrapper" style="top: 400px;" id="item-a" data-state="0" onclick="processClick(this)">
@@ -208,24 +208,20 @@ channel.onmessage=function(event){
     const {action,data}=event.data;
 
     if(action==="timer_tick"){
-
-        let m=Math.floor(data.time/60);
-
-        let s=data.time%60;
-
-        document.getElementById("clock-time").innerText=
-        m+":"+s.toString().padStart(2,"0");
-        updateClockGraphic(data.time);
-
+        let tickVal = Math.max(0, parseInt(data.time) || 0);
+        let m=Math.floor(tickVal/60);
+        let s=tickVal%60;
+        document.getElementById("clock-time").innerText = m.toString().padStart(2, "0") + ":" + s.toString().padStart(2, "0");
+        updateClockGraphic(tickVal);
     }
 
     if(action==="timer_control"){
         if(data.status==="start" || data.status==="add30"){
-            const tVal = (data.time !== undefined && data.time !== null) ? parseInt(data.time) : 60;
+            const tVal = (data.time !== undefined && data.time !== null) ? Math.max(0, parseInt(data.time)) : 60;
             let m=Math.floor(tVal/60);
             let s=tVal%60;
             const clockEl = document.getElementById("clock-time");
-            if (clockEl) clockEl.innerText = m+":"+s.toString().padStart(2,"0");
+            if (clockEl) clockEl.innerText = m.toString().padStart(2, "0") + ":" + s.toString().padStart(2, "0");
             updateClockGraphic(tVal);
 
             let sfxFile = data.sfxFile;
@@ -243,11 +239,11 @@ channel.onmessage=function(event){
             document.getElementById("clock-container").classList.add("show");
         }
         if(data.status==="reset"){
-            const tVal = (data.time !== undefined && data.time !== null) ? parseInt(data.time) : 60;
+            const tVal = (data.time !== undefined && data.time !== null) ? Math.max(0, parseInt(data.time)) : 60;
             let m=Math.floor(tVal/60);
             let s=tVal%60;
             const clockEl = document.getElementById("clock-time");
-            if (clockEl) clockEl.innerText = m+":"+s.toString().padStart(2,"0");
+            if (clockEl) clockEl.innerText = m.toString().padStart(2, "0") + ":" + s.toString().padStart(2, "0");
             updateClockGraphic(tVal);
             timerAudio.pause();
             timerAudio.currentTime=0;
@@ -256,6 +252,11 @@ channel.onmessage=function(event){
             isLock=true;
             timerAudio.pause();
             timerAudio.currentTime=0;
+            if (data.status === "timeout") {
+                const clockEl = document.getElementById("clock-time");
+                if (clockEl) clockEl.innerText = "00:00";
+                updateClockGraphic(0);
+            }
             if (data.status === "stop") {
                 timerStopAudio.currentTime=0;
                 timerStopAudio.play().catch(e => console.log(e));
