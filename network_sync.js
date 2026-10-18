@@ -1,4 +1,4 @@
-/* network_sync.js - Cross-Device Realtime Network Synchronization for GitHub Pages & Web Hosting */
+/* network_sync.js - Centralized Native Backend Realtime WebSockets & Multi-Device Sync */
 
 (function () {
     // Global IndexedDB Media Cache Helper for large media files (Videos / Images)
@@ -65,29 +65,44 @@
 
     class GameSyncChannel {
         constructor(channelName) {
-            // Read optional custom channel/room from URL query string, e.g. ?room=mygame
             const urlParams = new URLSearchParams(window.location.search);
             const customRoom = urlParams.get('room') || urlParams.get('channel');
             
             this.baseChannelName = channelName || 'gameshow_money_drop';
-            // All pages in the app MUST connect to the same topic to communicate!
             this.topicName = customRoom ? `${this.baseChannelName}_${customRoom}` : `${this.baseChannelName}_main_channel_v2`;
             
             this.localChannel = new BroadcastChannel(this.baseChannelName);
             this.onmessageHandler = null;
             this.instanceId = 'client_' + Math.random().toString(36).substring(2, 9);
-            this.mqttClient = null;
             this.isConnected = false;
             this.pendingQueue = [];
             this.processedMsgIds = new Map();
+            this.backendWs = null;
+            this.reconnectTimer = null;
+            this.heartbeatTimer = null;
+            this.mqttClient = null;
 
-            // Helper to prevent duplicate handling from BroadcastChannel + MQTT
+            // Detect current role
+            let detectedRole = window.CURRENT_ROLE;
+            if (!detectedRole) {
+                const path = (window.location.pathname || '').toLowerCase();
+                const file = path.split('/').pop() || '';
+                if (file.includes('projector')) detectedRole = 'projector';
+                else if (file.includes('answer')) detectedRole = 'answer';
+                else if (file.includes('player')) detectedRole = 'player';
+                else if (file.includes('host')) detectedRole = 'host';
+                else if (file.includes('controller')) detectedRole = 'controller';
+                else detectedRole = 'unknown';
+            }
+            this.currentRole = detectedRole;
+
+            // Helper to prevent duplicate handling across BroadcastChannel & Backend WebSocket
             this.isDuplicateAndRecord = (payload) => {
                 if (!payload || !payload._msgId) return false;
                 const now = Date.now();
-                if (this.processedMsgIds.size > 200) {
+                if (this.processedMsgIds.size > 300) {
                     for (const [id, time] of this.processedMsgIds.entries()) {
-                        if (now - time > 10000) {
+                        if (now - time > 12000) {
                             this.processedMsgIds.delete(id);
                         }
                     }
@@ -104,21 +119,8 @@
                 const action = payload.action || payload.type;
                 if (action === 'reload_role') {
                     const targetRole = (payload.data && payload.data.targetRole) || payload.targetRole || 'all';
-                    let currentRole = window.CURRENT_ROLE;
-                    if (!currentRole) {
-                        const path = (window.location.pathname || '').toLowerCase();
-                        const file = path.split('/').pop() || '';
-                        if (file.includes('projector')) currentRole = 'projector';
-                        else if (file.includes('answer')) currentRole = 'answer';
-                        else if (file.includes('player')) currentRole = 'player';
-                        else if (file.includes('host')) currentRole = 'host';
-                        else if (file.includes('server')) currentRole = 'server';
-                        else if (file.includes('controller')) currentRole = 'controller';
-                        else currentRole = 'unknown';
-                    }
-
-                    if (targetRole === 'all' || targetRole === currentRole) {
-                        console.warn(`🔄 Receiving remote reload signal for targetRole=${targetRole} (Current: ${currentRole}). Reloading...`);
+                    if (targetRole === 'all' || targetRole === this.currentRole) {
+                        console.warn(`🔄 Receiving remote reload signal for targetRole=${targetRole} (Current: ${this.currentRole}). Reloading...`);
                         setTimeout(() => {
                             window.location.reload();
                         }, 100);
@@ -126,7 +128,7 @@
                 }
             };
 
-            // 1. Listen to BroadcastChannel for local tabs on same device
+            // 1. Listen to BroadcastChannel for local tabs on the same browser window
             this.localChannel.onmessage = (event) => {
                 if (event.data && event.data._senderId !== this.instanceId) {
                     if (!this.isDuplicateAndRecord(event.data)) {
@@ -138,8 +140,8 @@
                 }
             };
 
-            // 2. Load MQTT Library for Cross-Device WebSockets
-            this.initMqtt();
+            // 2. Connect to the Central Authoritative Backend WebSocket Server
+            this.initBackendWebSocket();
         }
 
         get onmessage() {
@@ -148,6 +150,294 @@
 
         set onmessage(handler) {
             this.onmessageHandler = handler;
+        }
+
+        initBackendWebSocket() {
+            let wsUrl = '';
+            if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+                const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                wsUrl = `${wsProto}//${window.location.host}/ws?role=${this.currentRole}&instance=${this.instanceId}`;
+            } else {
+                const customServer = localStorage.getItem('gameshow_server_url');
+                if (customServer) {
+                    const clean = customServer.replace(/^http/, 'ws').replace(/\/$/, '');
+                    wsUrl = `${clean}/ws?role=${this.currentRole}&instance=${this.instanceId}`;
+                }
+            }
+
+            if (!wsUrl) {
+                console.warn('⚠️ No backend server URL found (running offline/file). Falling back to MQTT...');
+                this.initMqtt();
+                return;
+            }
+
+            this.connectBackendWs(wsUrl);
+        }
+
+        connectBackendWs(wsUrl) {
+            if (this.reconnectTimer) {
+                clearTimeout(this.reconnectTimer);
+                this.reconnectTimer = null;
+            }
+
+            console.log(`🔌 [WS SYNC] Connecting to Backend WebSocket: ${wsUrl} (Role: ${this.currentRole})`);
+            try {
+                this.backendWs = new WebSocket(wsUrl);
+
+                this.backendWs.onopen = () => {
+                    this.isConnected = true;
+                    console.log(`🟢 [BACKEND WS CONNECTED] Synced with server for role: ${this.currentRole}`);
+                    this.notifyConnectionStatus(true, '🟢 Trực tuyến (Backend Server WebSockets Connected)');
+
+                    // Register this role with the backend server
+                    this.backendWs.send(JSON.stringify({
+                        action: 'register_role',
+                        data: {
+                            role: this.currentRole,
+                            instanceId: this.instanceId,
+                            url: window.location.href
+                        },
+                        _senderId: this.instanceId
+                    }));
+
+                    // Flush any pending queue
+                    this.flushQueue();
+
+                    // Start periodic keep-alive ping
+                    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+                    this.heartbeatTimer = setInterval(() => {
+                        if (this.backendWs && this.backendWs.readyState === WebSocket.OPEN) {
+                            try {
+                                this.backendWs.send(JSON.stringify({ action: 'ping', timestamp: Date.now() }));
+                            } catch(e) {}
+                        }
+                    }, 15000);
+                };
+
+                this.backendWs.onmessage = (event) => {
+                    try {
+                        const payload = JSON.parse(event.data);
+                        if (!payload) return;
+
+                        if (payload.action === 'pong') return;
+
+                        // Handshake Snapshot Sync from server when this role opens/reconnects
+                        if (payload.action === 'sync_full_state') {
+                            console.log(`📦 [STATE SYNC RECEIVED] Full game state received from backend server:`, payload.data);
+                            this.replayServerStateToLocalRole(payload.data && payload.data.state);
+                            if (typeof this.onmessageHandler === 'function') {
+                                this.onmessageHandler({ data: payload });
+                            }
+                            return;
+                        }
+
+                        // Roles presence counter update
+                        if (payload.action === 'roles_presence_update') {
+                            this.updateRolesPresenceInUI(payload.data && payload.data.roles);
+                            if (typeof this.onmessageHandler === 'function') {
+                                this.onmessageHandler({ data: payload });
+                            }
+                            return;
+                        }
+
+                        // Standard game action
+                        if (payload._senderId !== this.instanceId) {
+                            if (!this.isDuplicateAndRecord(payload)) {
+                                this.handleRemoteReload(payload);
+                                if (typeof this.onmessageHandler === 'function') {
+                                    this.onmessageHandler({ data: payload });
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Backend WS message parse error:', e);
+                    }
+                };
+
+                this.backendWs.onclose = (event) => {
+                    this.isConnected = false;
+                    console.warn(`⚠️ [BACKEND WS CLOSED] Code: ${event.code}. Reconnecting in 2s...`);
+                    this.notifyConnectionStatus(false, '🔴 Ngoại tuyến (Đang kết nối lại Backend Server...)');
+                    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
+                    this.reconnectTimer = setTimeout(() => this.connectBackendWs(wsUrl), 2000);
+                };
+
+                this.backendWs.onerror = (err) => {
+                    console.warn('⚠️ [BACKEND WS ERROR]', err);
+                    this.isConnected = false;
+                };
+
+            } catch (err) {
+                console.error('WebSocket creation error:', err);
+                this.reconnectTimer = setTimeout(() => this.connectBackendWs(wsUrl), 3000);
+            }
+        }
+
+        // Automatic state recovery when a screen (e.g. Projector on 2nd device) connects late or reconnects
+        replayServerStateToLocalRole(state) {
+            if (!state || typeof this.onmessageHandler !== 'function') return;
+
+            console.log(`🔄 Replaying authoritative server state for role: ${this.currentRole}`);
+
+            // 1. Replay Round
+            if (state.currentRound) {
+                this.onmessageHandler({
+                    data: {
+                        action: 'change_round',
+                        data: { round: state.doorRule || 4, roundNum: state.currentRound },
+                        _senderId: 'server_replay'
+                    }
+                });
+            }
+
+            // 2. Replay Topics if active
+            if (state.topics && state.topics.active) {
+                this.onmessageHandler({
+                    data: {
+                        action: 'show_topics',
+                        data: { topicA: state.topics.topicA, topicB: state.topics.topicB },
+                        _senderId: 'server_replay'
+                    }
+                });
+                if (state.topics.selected) {
+                    this.onmessageHandler({
+                        data: {
+                            action: 'lock_topic',
+                            data: { type: state.topics.selected },
+                            _senderId: 'server_replay'
+                        }
+                    });
+                }
+            }
+
+            // 3. Replay Question & Media if active
+            if (state.question && (state.question.text || (state.question.mediaType && state.question.mediaType !== 'none'))) {
+                this.onmessageHandler({
+                    data: {
+                        action: 'update_content',
+                        data: {
+                            question: state.question.text,
+                            mediaType: state.question.mediaType,
+                            mediaUrl: state.question.mediaUrl,
+                            mediaKey: state.question.mediaKey
+                        },
+                        _senderId: 'server_replay'
+                    }
+                });
+
+                if (state.mediaStage === 'center') {
+                    this.onmessageHandler({
+                        data: {
+                            action: 'show_media',
+                            data: {
+                                mediaType: state.question.mediaType,
+                                mediaUrl: state.question.mediaUrl,
+                                mediaKey: state.question.mediaKey
+                            },
+                            _senderId: 'server_replay'
+                        }
+                    });
+                }
+            }
+
+            // 4. Replay Answers if present
+            if (state.answers) {
+                for (let i = 1; i <= 4; i++) {
+                    const ansText = state.answers[String(i)];
+                    if (ansText !== undefined) {
+                        this.onmessageHandler({
+                            data: {
+                                action: 'update_single_answer',
+                                data: { id: i, text: ansText },
+                                _senderId: 'server_replay'
+                            }
+                        });
+                    }
+                }
+            }
+
+            // 5. Replay Revealed Q&A
+            if (state.answersRevealed) {
+                this.onmessageHandler({
+                    data: {
+                        action: 'show_all_q_and_a',
+                        data: {},
+                        _senderId: 'server_replay'
+                    }
+                });
+            }
+
+            // 6. Replay Trapdoors
+            if (state.trapdoors) {
+                for (let i = 1; i <= 4; i++) {
+                    if (state.trapdoors[String(i)]) {
+                        this.onmessageHandler({
+                            data: {
+                                action: 'open_door',
+                                data: { doorId: i },
+                                _senderId: 'server_replay'
+                            }
+                        });
+                    }
+                }
+            }
+
+            // 7. Replay Clock Timer
+            if (state.clock && state.clock.status && state.clock.status !== 'reset') {
+                this.onmessageHandler({
+                    data: {
+                        action: 'timer_control',
+                        data: {
+                            status: state.clock.status,
+                            time: state.clock.time,
+                            sfxFile: state.clock.sfxFile
+                        },
+                        _senderId: 'server_replay'
+                    }
+                });
+            }
+
+            // 8. Replay Winning Money
+            if (state.winningMoney && state.winningMoney.shown) {
+                this.onmessageHandler({
+                    data: {
+                        action: 'show_winning_money',
+                        data: { amount: state.winningMoney.amount },
+                        _senderId: 'server_replay'
+                    }
+                });
+            }
+
+            // 9. Replay Progress HUD
+            if (state.progressOverlay && state.progressOverlay.shown) {
+                this.onmessageHandler({
+                    data: {
+                        action: 'show_progress',
+                        data: {
+                            remaining: state.progressOverlay.remaining,
+                            money: state.progressOverlay.money
+                        },
+                        _senderId: 'server_replay'
+                    }
+                });
+            }
+        }
+
+        updateRolesPresenceInUI(rolesSummary) {
+            if (!rolesSummary) return;
+            const projBadge = document.getElementById('roles-projector-online-badge');
+            if (projBadge) {
+                const count = rolesSummary.projector || 0;
+                projBadge.innerText = count > 0 ? `🟢 Online (${count})` : `⚪ Offline`;
+                projBadge.style.color = count > 0 ? '#34d399' : '#94a3b8';
+            }
+
+            const hostBadge = document.getElementById('roles-host-online-badge');
+            if (hostBadge) {
+                const count = rolesSummary.host || 0;
+                hostBadge.innerText = count > 0 ? `🟢 Online (${count})` : `⚪ Offline`;
+                hostBadge.style.color = count > 0 ? '#34d399' : '#94a3b8';
+            }
         }
 
         initMqtt() {
@@ -171,7 +461,7 @@
                 const s = document.createElement('script');
                 s.src = cdns[idx++];
                 s.onload = () => {
-                    console.log('✅ MQTT Library loaded successfully.');
+                    console.log('✅ MQTT Library loaded successfully as static fallback.');
                     this.connectBrokers();
                 };
                 s.onerror = () => loadScript();
@@ -194,7 +484,6 @@
             const tryConnect = () => {
                 if (currentBrokerIdx >= brokers.length) return;
                 const brokerUrl = brokers[currentBrokerIdx];
-                console.log(`🌐 Connecting to MQTT broker: ${brokerUrl} (Topic: ${this.topicName})`);
 
                 try {
                     this.mqttClient = window.mqtt.connect(brokerUrl, {
@@ -207,16 +496,11 @@
 
                     this.mqttClient.on('connect', () => {
                         this.isConnected = true;
-                        console.log(`🟢 [MQTT ONLINE] Connected to ${brokerUrl} on topic: ${this.topicName}`);
+                        this.notifyConnectionStatus(true, '🟢 Trực tuyến (MQTT Connected)');
                         
                         this.mqttClient.subscribe(this.topicName, { qos: 0 }, (err) => {
                             if (!err) {
                                 this.flushQueue();
-                                this.notifyConnectionStatus(true);
-                                // Trigger initial handshake broadcast upon connection
-                                if (typeof this.onmessageHandler === 'function') {
-                                    this.onmessageHandler({ data: { action: 'mqtt_connected' } });
-                                }
                             }
                         });
                     });
@@ -232,22 +516,16 @@
                                     }
                                 }
                             }
-                        } catch (e) {
-                            console.error('MQTT message parse error:', e);
-                        }
+                        } catch (e) {}
                     });
 
-                    this.mqttClient.on('error', (err) => {
-                        console.warn(`⚠️ Broker error on ${brokerUrl}:`, err);
-                        this.isConnected = false;
-                        this.notifyConnectionStatus(false);
-                        try { this.mqttClient.end(true); } catch(e){}
+                    this.mqttClient.on('error', () => {
+                        this.mqttClient.end(true);
                         currentBrokerIdx++;
                         setTimeout(tryConnect, 1000);
                     });
 
                 } catch (e) {
-                    console.warn(`⚠️ Broker init exception on ${brokerUrl}:`, e);
                     currentBrokerIdx++;
                     setTimeout(tryConnect, 1000);
                 }
@@ -257,24 +535,31 @@
         }
 
         flushQueue() {
-            if (!this.mqttClient || !this.mqttClient.connected) return;
+            if (this.pendingQueue.length === 0) return;
+
             while (this.pendingQueue.length > 0) {
                 const msg = this.pendingQueue.shift();
-                try {
-                    this.mqttClient.publish(this.topicName, JSON.stringify(msg), { qos: 0 });
-                } catch (e) {}
+                if (this.backendWs && this.backendWs.readyState === WebSocket.OPEN) {
+                    try {
+                        this.backendWs.send(JSON.stringify(msg));
+                    } catch(e) {}
+                } else if (this.mqttClient && this.mqttClient.connected) {
+                    try {
+                        this.mqttClient.publish(this.topicName, JSON.stringify(msg), { qos: 0 });
+                    } catch(e) {}
+                }
             }
         }
 
-        notifyConnectionStatus(online) {
+        notifyConnectionStatus(online, customText) {
             const statusEls = document.querySelectorAll('.network-status-badge');
             statusEls.forEach(el => {
                 if (online) {
                     el.style.color = '#00e676';
-                    el.innerText = '🟢 Trực tuyến (WebSockets Connected)';
+                    el.innerText = customText || '🟢 Trực tuyến (WebSockets Connected)';
                 } else {
                     el.style.color = '#ff5252';
-                    el.innerText = '🔴 Ngoại tuyến (Đang kết nối lại...)';
+                    el.innerText = customText || '🔴 Ngoại tuyến (Đang kết nối lại...)';
                 }
             });
         }
@@ -282,38 +567,52 @@
         postMessage(msg) {
             if (!msg) return;
             const msgId = msg._msgId || (this.instanceId + '_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
-            const payload = Object.assign({}, msg, { _senderId: this.instanceId, _timestamp: Date.now(), _msgId: msgId });
+            const payload = Object.assign({}, msg, {
+                _senderId: this.instanceId,
+                _role: this.currentRole,
+                _timestamp: Date.now(),
+                _msgId: msgId
+            });
 
-            // 1. Send via local BroadcastChannel (same browser tab/window) - instant local sync
+            // 1. Instant local BroadcastChannel (same browser tab/window)
             try {
                 this.localChannel.postMessage(payload);
             } catch (e) {}
 
-            // 2. Send via MQTT WebSocket (cross-device)
+            // 2. Authoritative Native Backend WebSocket Server (instant cross-device, all roles)
+            let sentOverWs = false;
+            if (this.backendWs && this.backendWs.readyState === WebSocket.OPEN) {
+                try {
+                    const str = JSON.stringify(payload);
+                    this.backendWs.send(str);
+                    sentOverWs = true;
+                } catch (e) {
+                    console.warn('WS postMessage send failed, falling back to HTTP:', e);
+                }
+            }
+
+            // 3. Fallback: HTTP /api/realtime/broadcast endpoint if WebSocket is currently connecting
+            if (!sentOverWs && window.location.protocol.startsWith('http')) {
+                fetch('/api/realtime/broadcast', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(() => {
+                    if (this.pendingQueue.length < 30) this.pendingQueue.push(payload);
+                });
+            } else if (!sentOverWs) {
+                if (this.pendingQueue.length < 30) this.pendingQueue.push(payload);
+                else this.pendingQueue.shift();
+            }
+
+            // 4. MQTT fallback if connected (for pure GitHub Pages static hosting)
             if (this.mqttClient && this.mqttClient.connected) {
                 try {
                     const str = JSON.stringify(payload);
-                    // Public MQTT brokers drop/choke on messages > 200KB
                     if (str.length < 204800) {
                         this.mqttClient.publish(this.topicName, str, { qos: 0 });
-                    } else {
-                        // Lighten payload for MQTT cross-device transfer if mediaUrl is a large Base64 string
-                        const copy = JSON.parse(str);
-                        if (copy.data && copy.data.mediaUrl && copy.data.mediaUrl.length > 50000) {
-                            copy.data.mediaUrlOmitted = true;
-                            // Keep relative URLs intact, only trim base64 data URIs over network
-                            if (copy.data.mediaUrl.startsWith('data:')) {
-                                copy.data.mediaUrl = '[Local File Base64]';
-                            }
-                        }
-                        this.mqttClient.publish(this.topicName, JSON.stringify(copy), { qos: 0 });
                     }
-                } catch (e) {
-                    if (this.pendingQueue.length < 20) this.pendingQueue.push(payload);
-                }
-            } else {
-                if (this.pendingQueue.length < 20) this.pendingQueue.push(payload);
-                else this.pendingQueue.shift();
+                } catch (e) {}
             }
         }
     }

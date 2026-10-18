@@ -31,10 +31,33 @@
         .bg-outline { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 90; pointer-events: none; }
 
         :root {
+            /* --- VỊ TRÍ CÂU HỎI & ĐÁP ÁN --- */
             --q-center-top: 540px;
             --q-moved-top: 412px; /* Căn giữa giữa mép trên khung màn hình và mép trên 4 đáp án */
             --ans-container-top: 480px;
+
+            /* --- VỊ TRÍ CLOCK ĐỒNG HỒ --- */
             --clock-top: 612px;   /* THÔNG SỐ VỊ TRÍ CLOCK */
+
+            /* --- THÔNG SỐ KÍCH THƯỚC & VỊ TRÍ ẢNH / VIDEO CÂU HỎI --- */
+            --media-max-width: 307px;  /* Chiều rộng tối đa (chuẩn 2.13" PPT 1280x720 quy đổi sang 1920x1080) */
+            --media-max-height: 260px; /* Chiều cao tối đa */
+
+            /* Giai đoạn 1: Khi vừa xuất hiện (giữa màn hình) hoặc câu hỏi CHỈ CÓ HÌNH ẢNH */
+            --media-center-top: 540px; /* Căn chính giữa trục dọc màn hình 1080px (1080 / 2 = 540px) */
+            --media-center-left: 50%;   /* Căn chính giữa trục ngang màn hình 1920px (1920 / 2 = 960px) */
+
+            /* Giai đoạn 2: Khi hiện câu hỏi chữ (media dạt sang trái, câu hỏi bên phải) */
+            --media-left-top: 485px;
+            --media-left-pos: calc(50% - 360px);
+
+            /* Giai đoạn 3: Khi hiện 4 đáp án */
+            /* 3A. Câu hỏi chỉ có hình ảnh: căn giữa phía trên 4 đáp án */
+            --media-center-compact-top: 380px;
+            /* 3B. Câu hỏi có cả hình ảnh và chữ: thu nhỏ dạt sang trái */
+            --media-compact-top: 460px;
+            --media-compact-left: calc(50% - 380px);
+            --media-compact-max-height: 220px;
         }
 
         /* Performance Optimization: GPU Compositing for Smooth Rendering */
@@ -86,6 +109,8 @@
         /* --- MEDIA CONTAINER STYLES --- */
         #media-container {
             position: absolute;
+            top: var(--media-center-top);
+            left: var(--media-center-left);
             z-index: 10;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
@@ -101,6 +126,8 @@
             opacity: 0;
             transform: translate(-50%, -50%) scale(0);
             pointer-events: none;
+            max-width: var(--media-max-width);
+            max-height: var(--media-max-height);
         }
 
         #media-container.show {
@@ -108,41 +135,65 @@
             transform: translate(-50%, -50%) scale(1);
         }
 
-        /* Phase 1: Center Zoomed */
+        /* Giai đoạn 1 & Khi chỉ có hình ảnh: Căn chính giữa màn hình */
         #media-container.mode-center {
-            top: 505px;
-            left: 50%;
-            width: 760px;
-            height: 440px;
-            transform: translate(-50%, -50%) scale(1);
+            top: var(--media-center-top) !important;
+            left: var(--media-center-left) !important;
+            width: fit-content;
+            height: fit-content;
+            max-width: var(--media-max-width);
+            max-height: var(--media-max-height);
+            transform: translate(-50%, -50%) scale(1) !important;
         }
 
-        /* Phase 2: Shifted to Left */
+        /* Khi chỉ có hình ảnh và hiện 4 đáp án: Căn giữa phía trên 4 đáp án */
+        #media-container.mode-center-compact {
+            top: var(--media-center-compact-top) !important;
+            left: 50% !important;
+            width: fit-content;
+            height: fit-content;
+            max-width: var(--media-max-width);
+            max-height: var(--media-compact-max-height);
+            transform: translate(-50%, -50%) scale(1) !important;
+        }
+
+        /* Giai đoạn 2: Khi có câu hỏi chữ: Media dạt sang trái, câu hỏi chữ bên phải */
         #media-container.mode-left {
-            top: 485px;
-            left: calc(50% - 360px);
-            width: 360px;
-            height: 260px;
-            transform: translate(-50%, -50%) scale(1);
+            top: var(--media-left-top) !important;
+            left: var(--media-left-pos) !important;
+            width: fit-content;
+            height: fit-content;
+            max-width: var(--media-max-width);
+            max-height: var(--media-max-height);
+            transform: translate(-50%, -50%) scale(1) !important;
         }
 
-        /* Phase 3: Shifted to Left Compact */
+        /* Giai đoạn 3: Khi có câu hỏi chữ và hiện 4 đáp án: Media thu nhỏ dạt sang trái */
         #media-container.mode-left-compact {
-            top: 460px;
-            left: calc(50% - 380px);
-            width: 320px;
-            height: 220px;
-            transform: translate(-50%, -50%) scale(1);
+            top: var(--media-compact-top) !important;
+            left: var(--media-compact-left) !important;
+            width: fit-content;
+            height: fit-content;
+            max-width: var(--media-max-width);
+            max-height: var(--media-compact-max-height);
+            transform: translate(-50%, -50%) scale(1) !important;
         }
 
         #media-img, #media-video {
-            width: 100%;
-            height: 100%;
+            width: auto;
+            height: auto;
+            max-width: var(--media-max-width);
+            max-height: var(--media-max-height);
             object-fit: contain;
             border-radius: 10px;
-            max-width: 100%;
-            max-height: 100%;
             display: block;
+        }
+
+        #media-container.mode-left-compact #media-img,
+        #media-container.mode-left-compact #media-video,
+        #media-container.mode-center-compact #media-img,
+        #media-container.mode-center-compact #media-video {
+            max-height: var(--media-compact-max-height);
         }
 
         #media-error-badge {
@@ -598,7 +649,7 @@
             }
 
             if (!currentMediaState || currentMediaState.type === 'none' || !targetUrl || targetUrl === '[Local File Base64]') {
-                container.classList.remove('show', 'mode-center', 'mode-left', 'mode-left-compact');
+                container.classList.remove('show', 'mode-center', 'mode-center-compact', 'mode-left', 'mode-left-compact');
                 box.classList.remove('media-q-mode', 'media-qa-mode');
                 ans.classList.remove('media-mode');
                 video.pause();
@@ -686,7 +737,7 @@
                 attemptPlay();
             }
 
-            container.classList.remove('mode-center', 'mode-left', 'mode-left-compact');
+            container.classList.remove('mode-center', 'mode-center-compact', 'mode-left', 'mode-left-compact');
             box.classList.remove('media-q-mode', 'media-qa-mode');
             ans.classList.remove('media-mode');
 
@@ -694,6 +745,10 @@
                 container.classList.add('mode-center', 'show');
                 box.classList.remove('show');
                 ans.classList.remove('show');
+            } else if (stage === 'center-compact') {
+                container.classList.add('mode-center-compact', 'show');
+                box.classList.remove('show');
+                ans.classList.add('show');
             } else if (stage === 'left') {
                 container.classList.add('mode-left', 'show');
                 box.classList.add('show', 'media-q-mode');
@@ -966,8 +1021,6 @@
                     break;
 
                 case "show_media":
-                    const bgMainMedia = document.querySelector('.bg-main');
-                    if (bgMainMedia) bgMainMedia.classList.add("hide");
                     document.getElementById("item-a").classList.add("zoom-out");
                     document.getElementById("item-b").classList.add("zoom-out");
                     updateProjectorMediaStage('center', data);
@@ -975,19 +1028,31 @@
 
                 case "update_content":
                     if (data.type === 'question') {
+                        const bgMainQ = document.querySelector('.bg-main');
+                        if (bgMainQ) bgMainQ.classList.remove("hide");
+
                         document.getElementById("item-a").classList.add("zoom-out");
                         document.getElementById("item-b").classList.add("zoom-out");
                         
-                        document.getElementById("central-box").innerText = data.data.question;
+                        const qRawText = (data.data && data.data.question) ? data.data.question : '';
+                        const qText = qRawText.trim();
+                        document.getElementById("central-box").innerText = qRawText;
                         
                         const mType = data.mediaType || (data.data && data.data.mediaType) || 'none';
                         const mUrl = data.mediaUrl || (data.data && data.data.mediaUrl) || '';
                         const mKey = data.mediaKey || (data.data && data.data.mediaKey) || 'active_main_media';
 
-                        if (mType !== 'none' && (mUrl || mKey)) {
-                            updateProjectorMediaStage('left', { mediaType: mType, mediaUrl: mUrl, mediaKey: mKey });
-                        } else if (currentMediaState && currentMediaState.type !== 'none' && currentMediaState.url) {
-                            updateProjectorMediaStage('left');
+                        const hasMedia = (mType !== 'none' && (mUrl || mKey)) || (currentMediaState && currentMediaState.type !== 'none' && currentMediaState.url);
+
+                        if (hasMedia) {
+                            const mediaPayload = (mType !== 'none') ? { mediaType: mType, mediaUrl: mUrl, mediaKey: mKey } : undefined;
+                            if (!qText) {
+                                // Khi câu hỏi CHỈ CÓ HÌNH ẢNH: luôn ở chính giữa trung tâm màn hình!
+                                updateProjectorMediaStage('center', mediaPayload);
+                            } else {
+                                // Khi câu hỏi có cả chữ và ảnh: media dạt sang trái, chữ bên phải
+                                updateProjectorMediaStage('left', mediaPayload);
+                            }
                         } else {
                             setTimeout(() => {
                                 document.getElementById("central-box").classList.add("show");
@@ -1018,7 +1083,14 @@
                     document.getElementById("item-b").classList.add("zoom-out");
                     
                     if (currentMediaState && currentMediaState.type !== 'none' && currentMediaState.url) {
-                        updateProjectorMediaStage('left-compact');
+                        const box = document.getElementById('central-box');
+                        const hasQText = box && box.innerText && box.innerText.trim().length > 0;
+                        if (!hasQText) {
+                            // Khi câu hỏi chỉ có hình ảnh: căn giữa bên trên 4 đáp án
+                            updateProjectorMediaStage('center-compact');
+                        } else {
+                            updateProjectorMediaStage('left-compact');
+                        }
                     } else {
                         const box = document.getElementById('central-box');
                         const ans = document.getElementById('answers-container');
