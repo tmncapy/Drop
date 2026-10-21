@@ -210,6 +210,8 @@ channel.onmessage = function(event) {
             const bgLayer = document.getElementById(`bg-layer-${doorId}`);
             if (bgLayer) bgLayer.classList.remove('bg-moneydoor');
             const insideText = document.getElementById(`inside-txt-${doorId}`);
+            const doorFrameEl = document.querySelector(`#ans-wrap-${doorId} .door-frame`);
+            if (doorFrameEl) doorFrameEl.classList.add('collapsed-frame');
 
             const vSplit = document.getElementById(`v-split-${doorId}`);
 
@@ -274,6 +276,8 @@ channel.onmessage = function(event) {
                     bgLyr.classList.remove('collapsed-bg');
                     bgLyr.classList.remove('bg-moneydoor');
                 }
+                const doorFrameReset = document.querySelector(`#ans-wrap-${i} .door-frame`);
+                if (doorFrameReset) doorFrameReset.classList.remove('collapsed-frame');
                 
                 const insideReset = document.getElementById(`inside-txt-${i}`);
                 if (insideReset) {
