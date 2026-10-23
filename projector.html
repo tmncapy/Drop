@@ -70,9 +70,17 @@
         .strap-wrapper { 
             position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; width: 1000px; 
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; pointer-events: none; 
-            overflow: hidden; border-radius: 12px;
         }
-        .strap-wrapper::after {
+        .strap-inner {
+            position: relative;
+            width: 100%;
+            border-radius: 9999px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .strap-inner::after {
             content: '';
             position: absolute;
             top: -50%;
@@ -82,14 +90,14 @@
             background: linear-gradient(
                 to right,
                 rgba(255, 255, 255, 0) 0%,
-                rgba(255, 255, 255, 0.85) 50%,
+                rgba(255, 255, 255, 0.9) 50%,
                 rgba(255, 255, 255, 0) 100%
             );
             transform: rotate(25deg);
             opacity: 0;
             pointer-events: none;
         }
-        .strap-wrapper.is-active::after {
+        .strap-wrapper.is-active .strap-inner::after {
             animation: glintFlare 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
         @keyframes glintFlare {
@@ -281,10 +289,14 @@
 
         /* --- CLOCK STYLES --- */
         #clock-container {
-            position: absolute; top: var(--clock-top); left: 50%; transform: translateX(-50%) scale(1);
+            position: absolute; top: calc(var(--clock-top) + 50px); left: 50%; transform: translateX(-50%);
             width: 300px; height: 100px; z-index: 5; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0;
         }
-        #clock-container.show { transform: translateX(-50%) scale(0.9); opacity: 1; }
+        #clock-container.show { 
+            top: var(--clock-top); 
+            transform: translateX(-50%); 
+            opacity: 1; 
+        }
         #clock-bg { width: 100%; height: 100%; }
         #clock-time { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.25); color: white; font-size: 42px; font-weight: normal; font-family: 'LHF_Mono', monospace, sans-serif; letter-spacing: 1px; }
 
@@ -417,7 +429,7 @@
         /* --- WINNING MONEY OVERLAY (CENTER SCREEN) --- */
         #winning-money-overlay {
             position: absolute;
-            top: 46%;
+            top: 47.5%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.8);
             z-index: 85;
@@ -439,7 +451,7 @@
             font-weight: bold;
             color: #ffffff;
             letter-spacing: 2px;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.9), 0 0 12px rgba(0, 0, 0, 0.9), 0 5px 25px rgba(0, 0, 0, 1), 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000;
+            text-shadow: 0 0 0px rgba(255, 255, 255, 0.9), 0 0 12px rgba(0, 0, 0, 0.9), 0 5px 25px rgba(0, 0, 0, 1), 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000;
             white-space: nowrap;
             text-align: center;
         }
@@ -493,10 +505,14 @@
         </div>
 
         <div class="strap-wrapper" style="top: 400px; display: none;" id="item-a" data-state="0">
-            <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ A</div>
+            <div class="strap-inner">
+                <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ A</div>
+            </div>
         </div>
         <div class="strap-wrapper" style="top: 550px; display: none;" id="item-b" data-state="0">
-            <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ B</div>
+            <div class="strap-inner">
+                <img src="categorystrap.png" class="category-strap"><div class="strap-text">CHỦ ĐỀ B</div>
+            </div>
         </div>
     </div>
 
@@ -959,19 +975,51 @@
                     if (bgMainShow) bgMainShow.classList.add('hide');
 
                     const centralBoxWin = document.getElementById('central-box');
-                    if (centralBoxWin) centralBoxWin.classList.remove('show');
+                    if (centralBoxWin) {
+                        centralBoxWin.classList.remove('show', 'move-up', 'media-q-mode', 'media-qa-mode');
+                    }
                     const ansWin = document.getElementById('answers-container');
-                    if (ansWin) ansWin.style.display = 'none';
+                    if (ansWin) {
+                        ansWin.style.display = '';
+                        ansWin.classList.remove('show', 'media-mode');
+                    }
+                    const mediaWin = document.getElementById('media-container');
+                    if (mediaWin) mediaWin.classList.remove('show');
+                    const clockWin = document.getElementById('clock-container');
+                    if (clockWin) clockWin.classList.remove('show');
                     break;
 
                 case "hide_winning_money":
-                case "collect_winning":
                     const winOverlayHide = document.getElementById('winning-money-overlay');
                     if (winOverlayHide) winOverlayHide.classList.remove('show');
                     const bgMainHide = document.querySelector('.bg-main');
                     if (bgMainHide) bgMainHide.classList.remove('hide');
-                    const ansRestore = document.getElementById('answers-container');
-                    if (ansRestore) ansRestore.style.display = 'flex';
+                    break;
+
+                case "collect_winning":
+                    const winOverlayCollect = document.getElementById('winning-money-overlay');
+                    if (winOverlayCollect) winOverlayCollect.classList.remove('show');
+                    const bgMainCollect = document.querySelector('.bg-main');
+                    if (bgMainCollect) bgMainCollect.classList.remove('hide');
+
+                    // Khi bấm thu tiền về bàn: ẩn cả câu hỏi lẫn 4 đáp án với hiệu ứng thu nhỏ mờ dần (như nút reset toàn bộ vòng chơi)
+                    const centralBoxCollect = document.getElementById('central-box');
+                    if (centralBoxCollect) {
+                        centralBoxCollect.classList.remove('show', 'move-up', 'media-q-mode', 'media-qa-mode');
+                    }
+                    const ansCollect = document.getElementById('answers-container');
+                    if (ansCollect) {
+                        ansCollect.style.display = '';
+                        ansCollect.classList.remove('show', 'media-mode');
+                    }
+                    const mediaCollect = document.getElementById('media-container');
+                    if (mediaCollect) {
+                        mediaCollect.classList.remove('show');
+                    }
+                    const clockCollect = document.getElementById('clock-container');
+                    if (clockCollect) {
+                        clockCollect.classList.remove('show');
+                    }
                     break;
 
                 case "open_door":
