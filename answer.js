@@ -129,11 +129,6 @@ channel.onmessage = function(event) {
                     insideTxt.classList.add('show');
                     setTimeout(() => fitAnswerText(insideTxt), 10);
                 }
-
-                const surfaceEl = document.getElementById(`surface-${targetDoorId}`);
-                if (surfaceEl) {
-                    surfaceEl.classList.add('wiped');
-                }
             }
             updateBetDisplays();
             break;
@@ -156,6 +151,8 @@ channel.onmessage = function(event) {
                     if (wingR) wingR.classList.add('bg-moneydoor');
                     const bgLyr = document.getElementById(`bg-layer-${i}`);
                     if (bgLyr) bgLyr.classList.add('bg-moneydoor');
+                    const surfaceEl = document.getElementById(`surface-${i}`);
+                    if (surfaceEl) surfaceEl.classList.add('wiped');
                 }
             }
             updateBetDisplays();
