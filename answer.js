@@ -26,26 +26,20 @@ function setUnusedStatus(doorId, isUnused) {
     }
 }
 
+function getIsUnused(i, round) {
+    if (round >= 5 && round <= 7 && i === 1) return true;
+    if (round === 8 && (i === 1 || i === 4)) return true;
+    return false;
+}
+
 function updateBetDisplays() {
     for (let i = 1; i <= 4; i++) {
-        let betVal = 0;
-        let isUnused = false;
-
-        if (!activeRound) {
-            isUnused = true;
-        } else if (activeRound >= 5 && activeRound <= 7) {
-            if (i === 1) isUnused = true;
-            else betVal = currentBets[`b${i}`] || 0;
-        } else if (activeRound === 8) {
-            if (i === 1 || i === 4) isUnused = true;
-            else betVal = currentBets[`b${i}`] || 0;
-        } else {
-            betVal = currentBets[`b${i}`] || 0;
-        }
+        let isUnused = getIsUnused(i, activeRound);
+        let betVal = isUnused ? 0 : (currentBets[`b${i}`] || 0);
 
         const valEl = document.getElementById(`bet-val-${i}`);
         if (valEl) {
-            valEl.innerText = `${isUnused ? 0 : betVal.toLocaleString('vi-VN')} ${CURRENCY_UNIT}`;
+            valEl.innerText = `${betVal.toLocaleString('vi-VN')} ${CURRENCY_UNIT}`;
         }
     }
 }
@@ -135,12 +129,10 @@ channel.onmessage = function(event) {
 
         case 'show_all_q_and_a':
             for (let i = 1; i <= 4; i++) {
-                let isUnused = false;
-                if (!activeRound) isUnused = true;
-                else if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
-                else if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
+                let isUnused = getIsUnused(i, activeRound);
 
                 if (!isUnused) {
+                    setUnusedStatus(i, false);
                     const bBox = document.getElementById(`bet-box-${i}`);
                     if (bBox) bBox.classList.add('show');
                     const insideTxt = document.getElementById(`inside-txt-${i}`);

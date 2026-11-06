@@ -28,7 +28,6 @@ function setUnusedStatus(isUnused) {
 }
 
 function checkIsUnused() {
-    if (!activeRound) return true;
     if (activeRound >= 5 && activeRound <= 7 && DOOR_ID === 1) return true;
     if (activeRound === 8 && (DOOR_ID === 1 || DOOR_ID === 4)) return true;
     return false;
@@ -118,6 +117,7 @@ channel.onmessage = function(event) {
         case 'show_all_q_and_a':
             const isUnusedAll = checkIsUnused();
             if (!isUnusedAll) {
+                setUnusedStatus(false);
                 const bBox = document.getElementById(`bet-box-${DOOR_ID}`);
                 if (bBox) bBox.classList.add('show');
                 const insideTxt = document.getElementById(`inside-txt-${DOOR_ID}`);
