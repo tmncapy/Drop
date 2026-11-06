@@ -218,6 +218,7 @@ channel.onmessage = function(event) {
 
         case 'reset_round':
             currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
+            activeRound = null;
             
             const wingLReset = document.getElementById(`wing-l-${DOOR_ID}`);
             if (wingLReset) wingLReset.classList.remove('bg-moneydoor');
@@ -251,8 +252,7 @@ channel.onmessage = function(event) {
             const betBoxReset = document.getElementById(`bet-box-${DOOR_ID}`);
             if (betBoxReset) betBoxReset.classList.remove('show');
 
-            const isUnusedReset = checkIsUnused();
-            setUnusedStatus(isUnusedReset);
+            setUnusedStatus(true);
             updateBetDisplay();
             break;
     }

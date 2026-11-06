@@ -256,6 +256,7 @@ channel.onmessage = function(event) {
 
         case 'reset_round':
             currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
+            activeRound = null;
             for (let i = 1; i <= 4; i++) {
                 const wingL = document.getElementById(`wing-l-${i}`);
                 if (wingL) wingL.classList.remove('bg-moneydoor');
@@ -291,15 +292,7 @@ channel.onmessage = function(event) {
                 const betBoxReset = document.getElementById(`bet-box-${i}`);
                 if (betBoxReset) betBoxReset.classList.remove('show');
 
-                setUnusedStatus(i, false);
-            }
-            if (!activeRound) {
-                for (let i = 1; i <= 4; i++) setUnusedStatus(i, true);
-            } else if (activeRound >= 5 && activeRound <= 7) {
-                setUnusedStatus(1, true);
-            } else if (activeRound === 8) {
-                setUnusedStatus(1, true);
-                setUnusedStatus(4, true);
+                setUnusedStatus(i, true);
             }
             updateBetDisplays();
             break;
