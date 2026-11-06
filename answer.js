@@ -136,7 +136,11 @@ channel.onmessage = function(event) {
                     const bBox = document.getElementById(`bet-box-${i}`);
                     if (bBox) bBox.classList.add('show');
                     const insideTxt = document.getElementById(`inside-txt-${i}`);
-                    if (insideTxt) insideTxt.classList.add('shift-up');
+                    if (insideTxt) {
+                        insideTxt.classList.add('show', 'shift-up');
+                        insideTxt.classList.remove('hide-on-drop');
+                        setTimeout(() => fitAnswerText(insideTxt), 10);
+                    }
                     const wingL = document.getElementById(`wing-l-${i}`);
                     if (wingL) wingL.classList.add('bg-moneydoor');
                     const wingR = document.getElementById(`wing-r-${i}`);
