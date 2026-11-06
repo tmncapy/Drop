@@ -26,20 +26,26 @@ function setUnusedStatus(doorId, isUnused) {
     }
 }
 
-function getIsUnused(i, round) {
-    if (round >= 5 && round <= 7 && i === 1) return true;
-    if (round === 8 && (i === 1 || i === 4)) return true;
-    return false;
-}
-
 function updateBetDisplays() {
     for (let i = 1; i <= 4; i++) {
-        let isUnused = getIsUnused(i, activeRound);
-        let betVal = isUnused ? 0 : (currentBets[`b${i}`] || 0);
+        let betVal = 0;
+        let isUnused = false;
+
+        if (!activeRound) {
+            isUnused = true;
+        } else if (activeRound >= 5 && activeRound <= 7) {
+            if (i === 1) isUnused = true;
+            else betVal = currentBets[`b${i}`] || 0;
+        } else if (activeRound === 8) {
+            if (i === 1 || i === 4) isUnused = true;
+            else betVal = currentBets[`b${i}`] || 0;
+        } else {
+            betVal = currentBets[`b${i}`] || 0;
+        }
 
         const valEl = document.getElementById(`bet-val-${i}`);
         if (valEl) {
-            valEl.innerText = `${betVal.toLocaleString('vi-VN')} ${CURRENCY_UNIT}`;
+            valEl.innerText = `${isUnused ? 0 : betVal.toLocaleString('vi-VN')} ${CURRENCY_UNIT}`;
         }
     }
 }
@@ -123,32 +129,33 @@ channel.onmessage = function(event) {
                     insideTxt.classList.add('show');
                     setTimeout(() => fitAnswerText(insideTxt), 10);
                 }
+
+                const surfaceEl = document.getElementById(`surface-${targetDoorId}`);
+                if (surfaceEl) {
+                    surfaceEl.classList.add('wiped');
+                }
             }
             updateBetDisplays();
             break;
 
         case 'show_all_q_and_a':
             for (let i = 1; i <= 4; i++) {
-                let isUnused = getIsUnused(i, activeRound);
+                let isUnused = false;
+                if (!activeRound) isUnused = true;
+                else if (activeRound >= 5 && activeRound <= 7 && i === 1) isUnused = true;
+                else if (activeRound === 8 && (i === 1 || i === 4)) isUnused = true;
 
                 if (!isUnused) {
-                    setUnusedStatus(i, false);
                     const bBox = document.getElementById(`bet-box-${i}`);
                     if (bBox) bBox.classList.add('show');
                     const insideTxt = document.getElementById(`inside-txt-${i}`);
-                    if (insideTxt) {
-                        insideTxt.classList.add('show', 'shift-up');
-                        insideTxt.classList.remove('hide-on-drop');
-                        setTimeout(() => fitAnswerText(insideTxt), 10);
-                    }
+                    if (insideTxt) insideTxt.classList.add('shift-up');
                     const wingL = document.getElementById(`wing-l-${i}`);
                     if (wingL) wingL.classList.add('bg-moneydoor');
                     const wingR = document.getElementById(`wing-r-${i}`);
                     if (wingR) wingR.classList.add('bg-moneydoor');
                     const bgLyr = document.getElementById(`bg-layer-${i}`);
                     if (bgLyr) bgLyr.classList.add('bg-moneydoor');
-                    const surfaceEl = document.getElementById(`surface-${i}`);
-                    if (surfaceEl) surfaceEl.classList.add('wiped');
                 }
             }
             updateBetDisplays();
@@ -203,8 +210,6 @@ channel.onmessage = function(event) {
             const bgLayer = document.getElementById(`bg-layer-${doorId}`);
             if (bgLayer) bgLayer.classList.remove('bg-moneydoor');
             const insideText = document.getElementById(`inside-txt-${doorId}`);
-            const doorFrameEl = document.querySelector(`#ans-wrap-${doorId} .door-frame`);
-            if (doorFrameEl) doorFrameEl.classList.add('collapsed-frame');
 
             const vSplit = document.getElementById(`v-split-${doorId}`);
 
@@ -252,7 +257,6 @@ channel.onmessage = function(event) {
 
         case 'reset_round':
             currentBets = { b1: 0, b2: 0, b3: 0, b4: 0 };
-            activeRound = null;
             for (let i = 1; i <= 4; i++) {
                 const wingL = document.getElementById(`wing-l-${i}`);
                 if (wingL) wingL.classList.remove('bg-moneydoor');
@@ -270,8 +274,6 @@ channel.onmessage = function(event) {
                     bgLyr.classList.remove('collapsed-bg');
                     bgLyr.classList.remove('bg-moneydoor');
                 }
-                const doorFrameReset = document.querySelector(`#ans-wrap-${i} .door-frame`);
-                if (doorFrameReset) doorFrameReset.classList.remove('collapsed-frame');
                 
                 const insideReset = document.getElementById(`inside-txt-${i}`);
                 if (insideReset) {
@@ -288,7 +290,15 @@ channel.onmessage = function(event) {
                 const betBoxReset = document.getElementById(`bet-box-${i}`);
                 if (betBoxReset) betBoxReset.classList.remove('show');
 
-                setUnusedStatus(i, true);
+                setUnusedStatus(i, false);
+            }
+            if (!activeRound) {
+                for (let i = 1; i <= 4; i++) setUnusedStatus(i, true);
+            } else if (activeRound >= 5 && activeRound <= 7) {
+                setUnusedStatus(1, true);
+            } else if (activeRound === 8) {
+                setUnusedStatus(1, true);
+                setUnusedStatus(4, true);
             }
             updateBetDisplays();
             break;
